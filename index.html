@@ -3675,10 +3675,18 @@
             // Store data for later use after role selection
             scannedQRData = data;
             
-            // If business data already exists, hide the business option
-            if (data.business_data || data.details || data.label) {
-                // QR has been claimed by business — hide business option
-                // Only show giver + receiver
+            // If business has added content, hide the business option
+            // A blank QR only has a default label — no details, media, or photo
+            var hasBusinessContent = data.business_data || data.business_user_id;
+            var hasDetails = data.details && data.details.trim().length > 0;
+            var hasMedia = false;
+            try { 
+                var m = typeof data.media === 'string' ? JSON.parse(data.media) : (data.media || []);
+                hasMedia = m.length > 0;
+            } catch(e) {}
+            var hasPhoto = data.photo && data.photo.length > 0;
+            
+            if (hasBusinessContent || hasDetails || hasMedia || hasPhoto) {
                 bizOption.style.display = 'none';
             }
             
