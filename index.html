@@ -3618,7 +3618,19 @@
 
     _supabase.auth.getSession().then(({ data: { session } }) => {
         if (session && session.user) {
-            simulateAuthSuccess(session.user.email.split('@')[0]);
+            // Set auth state but DON'T navigate if we're on a QR scan URL
+            isAuthenticated = true;
+            currentUser = session.user.email.split('@')[0];
+            const tapTitle = document.getElementById('tapestryTitle');
+            const displayName = currentUser.includes('@') ? currentUser.split('@')[0] : currentUser.split(' ')[0];
+            tapTitle.textContent = displayName + '\'s Tapestry';
+            
+            // Only auto-navigate to tapestry if NOT on a QR scan URL
+            const path = window.location.pathname;
+            const hash = window.location.hash;
+            if (!path.startsWith('/q/') && !hash.startsWith('#/q/')) {
+                proceedAfterAuth();
+            }
         }
     });
 
