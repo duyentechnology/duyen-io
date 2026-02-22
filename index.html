@@ -2023,6 +2023,91 @@
 </div>
 
 <!-- =============================================
+     SCREEN 2B: QR CONTENT VIEW (after role selection)
+============================================= -->
+<div class="screen" id="qrContentScreen">
+    <div class="container-narrow">
+        <div class="logo-header" onclick="navigate('home')">
+            <div class="logo-symbol">緣</div>
+            <div class="logo-text">DUYÊN</div>
+        </div>
+        <div class="card">
+            <!-- Business info section (shows if business data exists) -->
+            <div id="qcBizSection" style="display: none;">
+                <div id="qcBizPhoto" style="display: none; margin-bottom: 1.5rem; text-align: center;">
+                    <img id="qcBizPhotoImg" src="" alt="Photo" style="max-width: 100%; border-radius: 16px; border: 2px solid var(--border-light);">
+                </div>
+                <h1 id="qcBizLabel" style="font-family: 'Crimson Pro', serif; font-size: 1.75rem;"></h1>
+                <p id="qcBizDetails" class="subtitle" style="white-space: pre-wrap;"></p>
+                <div id="qcBizMedia" class="thread-detail-photos" style="display: none; margin-top: 1rem;"></div>
+                <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
+            </div>
+            
+            <!-- Giver section: shows when role=giver and no giver data yet -->
+            <div id="qcGiverForm" style="display: none;">
+                <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Add Your Gift Message</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Write a personal message for the person receiving this gift.</p>
+                <textarea id="qcGiverMessage" placeholder="Write your heartfelt message here..." style="width: 100%; min-height: 120px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
+                <div style="margin-top: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Photos (optional)</label>
+                    <input type="file" id="qcGiverPhotos" accept="image/*" multiple onchange="handleGiverPhotos(this)" style="font-size: 0.9rem;">
+                    <div id="qcGiverPhotoPreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem;"></div>
+                </div>
+                <button class="btn btn-primary" onclick="saveGiverData()" style="width: 100%; margin-top: 1.5rem;">🎁 Send Gift Message</button>
+            </div>
+            
+            <!-- Giver view: shows when role=giver and giver data exists (waiting for response) -->
+            <div id="qcGiverSent" style="display: none; text-align: center; padding: 1rem 0;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🎁</div>
+                <h2 style="font-family: 'Crimson Pro', serif;">Your Gift Message</h2>
+                <div id="qcGiverSentMessage" style="background: var(--soft-sand); padding: 1.25rem; border-radius: 14px; margin: 1rem 0; text-align: left; white-space: pre-wrap;"></div>
+                <div id="qcReceiverResponse" style="display: none;">
+                    <h3 style="font-family: 'Crimson Pro', serif; margin-top: 1.5rem;">💝 Response from Receiver</h3>
+                    <div id="qcReceiverMessage" style="background: #FFF5F2; padding: 1.25rem; border-radius: 14px; margin: 1rem 0; text-align: left; white-space: pre-wrap;"></div>
+                </div>
+                <div id="qcGiverWaiting" style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
+                    Waiting for a response from the receiver...
+                </div>
+            </div>
+            
+            <!-- Receiver section: shows when role=receiver -->
+            <div id="qcReceiverView" style="display: none;">
+                <div id="qcGiverMessageView" style="display: none;">
+                    <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">🎁 A Gift For You</h2>
+                    <div id="qcGiverMsgContent" style="background: var(--soft-sand); padding: 1.25rem; border-radius: 14px; margin: 1rem 0; white-space: pre-wrap;"></div>
+                    <div id="qcGiverMsgPhotos" class="thread-detail-photos" style="display: none; margin-bottom: 1rem;"></div>
+                    <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
+                </div>
+                <div id="qcReceiverForm" style="display: none;">
+                    <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Send a Thank You</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Let the giver know how much this means to you.</p>
+                    <textarea id="qcReceiverNote" placeholder="Write your thank you note..." style="width: 100%; min-height: 120px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
+                    <button class="btn btn-primary" onclick="saveReceiverData()" style="width: 100%; margin-top: 1.5rem;">💝 Send Thank You</button>
+                </div>
+                <div id="qcReceiverSent" style="display: none; text-align: center; padding: 1rem 0;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💝</div>
+                    <h2 style="font-family: 'Crimson Pro', serif;">Thank You Sent!</h2>
+                    <p style="color: var(--text-muted);">Your response has been woven into this thread.</p>
+                </div>
+            </div>
+            
+            <!-- Business role: locked out message -->
+            <div id="qcBizLocked" style="display: none; text-align: center; padding: 2rem 0;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                <h2 style="font-family: 'Crimson Pro', serif;">Business Info Added</h2>
+                <p style="color: var(--text-muted);">Your business data is saved. You can edit your QR codes on <a href="https://dayduyen.tech" style="color: var(--brand-red);">dayduyen.tech</a></p>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Personal messages between givers and receivers are private.</p>
+            </div>
+            
+            <!-- Save to tapestry button (always available) -->
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light); text-align: center;">
+                <button class="btn btn-secondary" onclick="saveToTapestry()" style="width: 100%;">🧵 Save to My Tapestry</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =============================================
      SCREEN 3: AUTH CHOICE
 ============================================= -->
 <div class="screen" id="authScreen">
@@ -3154,6 +3239,7 @@
         const screenMap = {
             'home':       'welcomeScreen',
             'qr':         'qrIdentityScreen',
+            'qrContent':  'qrContentScreen',
             'auth':       'authScreen',
             'login':      'loginScreen',
             'signup':     'signupScreen',
@@ -3196,6 +3282,7 @@
 
         // Post-navigation hooks
         if (screen === 'qr' && window.scannedQRCode) loadScannedQR(window.scannedQRCode);
+        if (screen === 'qrContent') populateQRContent();
         if (screen === 'threadView') displayContent();
         if (screen === 'receiver') populateReceiver();
         if (screen === 'tapestry') initTapestry();
@@ -3209,7 +3296,13 @@
     function selectRole(role) {
         console.log('🎯 Role:', role);
         currentRole = role;
-        navigate('auth');
+        if (isAuthenticated && scannedQRData) {
+            navigate('qrContent');
+        } else if (isAuthenticated) {
+            navigate('qrContent');
+        } else {
+            navigate('auth');
+        }
     }
 
     function handleAction(action) {
@@ -3594,6 +3687,196 @@
         }
     }
 
+    var giverPhotoFiles = [];
+
+    function populateQRContent() {
+        var data = scannedQRData || {};
+        
+        // Hide all sections first
+        document.getElementById('qcBizSection').style.display = 'none';
+        document.getElementById('qcGiverForm').style.display = 'none';
+        document.getElementById('qcGiverSent').style.display = 'none';
+        document.getElementById('qcReceiverView').style.display = 'none';
+        document.getElementById('qcBizLocked').style.display = 'none';
+        
+        // Show business info if it exists (for giver/receiver to see)
+        if (data.label || data.details || data.photo) {
+            var bizSection = document.getElementById('qcBizSection');
+            bizSection.style.display = 'block';
+            document.getElementById('qcBizLabel').textContent = data.label || '';
+            document.getElementById('qcBizDetails').textContent = data.details || '';
+            
+            if (data.photo) {
+                document.getElementById('qcBizPhotoImg').src = data.photo;
+                document.getElementById('qcBizPhoto').style.display = 'block';
+            } else {
+                document.getElementById('qcBizPhoto').style.display = 'none';
+            }
+            
+            // Show media
+            var mediaGrid = document.getElementById('qcBizMedia');
+            var mediaItems = [];
+            try { mediaItems = typeof data.media === 'string' ? JSON.parse(data.media) : (data.media || []); } catch(e) {}
+            if (mediaItems.length > 0) {
+                mediaGrid.innerHTML = mediaItems.map(function(m) {
+                    var src = m.url || m.dataUrl || m;
+                    return '<img src="' + src + '" alt="Media" style="cursor:pointer;" onclick="window.open(this.src)">';
+                }).join('');
+                mediaGrid.style.display = 'grid';
+            } else {
+                mediaGrid.style.display = 'none';
+            }
+        }
+        
+        // Role-specific content
+        if (currentRole === 'business') {
+            document.getElementById('qcBizLocked').style.display = 'block';
+        }
+        else if (currentRole === 'giver') {
+            if (data.giver_data) {
+                // Giver already added message — show it + receiver response
+                var giverData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
+                document.getElementById('qcGiverSent').style.display = 'block';
+                document.getElementById('qcGiverSentMessage').textContent = giverData.message || '';
+                
+                if (data.receiver_data) {
+                    var recData = typeof data.receiver_data === 'string' ? JSON.parse(data.receiver_data) : data.receiver_data;
+                    document.getElementById('qcReceiverResponse').style.display = 'block';
+                    document.getElementById('qcReceiverMessage').textContent = recData.message || '';
+                    document.getElementById('qcGiverWaiting').style.display = 'none';
+                } else {
+                    document.getElementById('qcReceiverResponse').style.display = 'none';
+                    document.getElementById('qcGiverWaiting').style.display = 'block';
+                }
+            } else {
+                // Giver hasn't added message yet — show form
+                document.getElementById('qcGiverForm').style.display = 'block';
+            }
+        }
+        else if (currentRole === 'receiver') {
+            document.getElementById('qcReceiverView').style.display = 'block';
+            
+            if (data.giver_data) {
+                var gData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
+                document.getElementById('qcGiverMessageView').style.display = 'block';
+                document.getElementById('qcGiverMsgContent').textContent = gData.message || '';
+                
+                // Show giver photos if any
+                var gPhotos = document.getElementById('qcGiverMsgPhotos');
+                if (gData.photos && gData.photos.length > 0) {
+                    gPhotos.innerHTML = gData.photos.map(function(p) {
+                        return '<img src="' + p + '" alt="Gift photo" onclick="window.open(this.src)">';
+                    }).join('');
+                    gPhotos.style.display = 'grid';
+                } else {
+                    gPhotos.style.display = 'none';
+                }
+            } else {
+                document.getElementById('qcGiverMessageView').style.display = 'none';
+            }
+            
+            if (data.receiver_data) {
+                // Already sent thank you
+                document.getElementById('qcReceiverForm').style.display = 'none';
+                document.getElementById('qcReceiverSent').style.display = 'block';
+            } else {
+                document.getElementById('qcReceiverForm').style.display = 'block';
+                document.getElementById('qcReceiverSent').style.display = 'none';
+            }
+        }
+    }
+
+    function handleGiverPhotos(input) {
+        var files = Array.from(input.files);
+        var preview = document.getElementById('qcGiverPhotoPreview');
+        files.forEach(function(file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                giverPhotoFiles.push(e.target.result);
+                var img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:10px;border:2px solid var(--border-light);';
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function saveGiverData() {
+        if (!scannedQRData) return;
+        var message = document.getElementById('qcGiverMessage').value.trim();
+        if (!message) { alert('Please write a message'); return; }
+        
+        var giverData = {
+            message: message,
+            photos: giverPhotoFiles,
+            user: currentUser,
+            date: new Date().toISOString()
+        };
+        
+        try {
+            var { error } = await _supabase
+                .from('qr_codes')
+                .update({ giver_data: giverData, giver_user_id: (await _supabase.auth.getUser()).data.user.id })
+                .eq('id', scannedQRData.id);
+            
+            if (error) {
+                console.error('Save giver error:', error);
+                alert('Error saving. Please try again.');
+                return;
+            }
+            
+            scannedQRData.giver_data = giverData;
+            populateQRContent();
+        } catch(e) {
+            console.error('Save giver error:', e);
+            alert('Error saving. Please try again.');
+        }
+    }
+
+    async function saveReceiverData() {
+        if (!scannedQRData) return;
+        var note = document.getElementById('qcReceiverNote').value.trim();
+        if (!note) { alert('Please write a thank you note'); return; }
+        
+        var receiverData = {
+            message: note,
+            user: currentUser,
+            date: new Date().toISOString()
+        };
+        
+        try {
+            var { error } = await _supabase
+                .from('qr_codes')
+                .update({ receiver_data: receiverData, receiver_user_id: (await _supabase.auth.getUser()).data.user.id })
+                .eq('id', scannedQRData.id);
+            
+            if (error) {
+                console.error('Save receiver error:', error);
+                alert('Error saving. Please try again.');
+                return;
+            }
+            
+            scannedQRData.receiver_data = receiverData;
+            populateQRContent();
+        } catch(e) {
+            console.error('Save receiver error:', e);
+            alert('Error saving. Please try again.');
+        }
+    }
+
+    async function saveToTapestry() {
+        if (!isAuthenticated) {
+            navigate('auth');
+            return;
+        }
+        if (!scannedQRData) {
+            alert('No QR data to save');
+            return;
+        }
+        alert('Saved to your tapestry! 🧵');
+    }
+
     _supabase.auth.getSession().then(({ data: { session } }) => {
         if (session && session.user) {
             // Set auth state but DON'T navigate if we're on a QR scan URL
@@ -3938,6 +4221,12 @@
         if (window.postAuthDestination === 'externalQr') {
             window.postAuthDestination = null;
             openExternalQrPage(scannedExternalUrl);
+            return;
+        }
+
+        // If we have scanned QR data, go to content screen
+        if (scannedQRData && currentRole) {
+            navigate('qrContent');
             return;
         }
 
