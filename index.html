@@ -2091,7 +2091,35 @@
                 </div>
             </div>
             
-            <!-- Business role: locked out message -->
+            <!-- Business role: form to add info (shows when no business data yet) -->
+            <div id="qcBizForm" style="display: none;">
+                <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Add Your Business Info</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Add details about your business or product for this QR code.</p>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Business Name</label>
+                    <input type="text" id="qcBizName" placeholder="Your business name" style="width: 100%; border: 2px solid var(--border-light); border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Description</label>
+                    <textarea id="qcBizDesc" placeholder="Tell people about your product or service..." style="width: 100%; min-height: 100px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Contact Email (optional)</label>
+                    <input type="email" id="qcBizEmail" placeholder="hello@yourbusiness.com" style="width: 100%; border: 2px solid var(--border-light); border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Phone (optional)</label>
+                    <input type="tel" id="qcBizPhone" placeholder="(555) 123-4567" style="width: 100%; border: 2px solid var(--border-light); border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Photo (optional)</label>
+                    <input type="file" id="qcBizPhotoInput" accept="image/*" onchange="handleBizPhoto(this)" style="font-size: 0.9rem;">
+                    <div id="qcBizPhotoPreview" style="margin-top: 0.75rem;"></div>
+                </div>
+                <button class="btn btn-primary" onclick="saveBusinessData()" style="width: 100%; margin-top: 1rem;">🏢 Save Business Info</button>
+            </div>
+
+            <!-- Business role: locked out message (shows after business data saved) -->
             <div id="qcBizLocked" style="display: none; text-align: center; padding: 2rem 0;">
                 <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
                 <h2 style="font-family: 'Crimson Pro', serif;">Business Info Added</h2>
@@ -3695,13 +3723,73 @@
         }
     }
 
+    var bizPhotoData = null;
     var giverPhotoFiles = [];
+
+    function handleBizPhoto(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                bizPhotoData = e.target.result;
+                var preview = document.getElementById('qcBizPhotoPreview');
+                preview.innerHTML = '<img src="' + e.target.result + '" style="max-width:200px;border-radius:12px;border:2px solid var(--border-light);">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function saveBusinessData() {
+        if (!scannedQRData) return;
+        var name = document.getElementById('qcBizName').value.trim();
+        if (!name) { alert('Please enter a business name'); return; }
+        
+        var businessData = {
+            name: name,
+            description: document.getElementById('qcBizDesc').value.trim(),
+            email: document.getElementById('qcBizEmail').value.trim(),
+            phone: document.getElementById('qcBizPhone').value.trim(),
+            photo: bizPhotoData,
+            date: new Date().toISOString()
+        };
+        
+        try {
+            var userId = (await _supabase.auth.getUser()).data.user.id;
+            var updateFields = {
+                business_data: businessData,
+                business_user_id: userId,
+                label: name,
+                details: businessData.description
+            };
+            if (bizPhotoData) updateFields.photo = bizPhotoData;
+            
+            var { error } = await _supabase
+                .from('qr_codes')
+                .update(updateFields)
+                .eq('id', scannedQRData.id);
+            
+            if (error) {
+                console.error('Save business error:', error);
+                alert('Error saving. Please try again.');
+                return;
+            }
+            
+            scannedQRData.business_data = businessData;
+            scannedQRData.business_user_id = userId;
+            scannedQRData.label = name;
+            scannedQRData.details = businessData.description;
+            populateQRContent(); // Will now show locked screen
+        } catch(e) {
+            console.error('Save business error:', e);
+            alert('Error saving. Please try again.');
+        }
+    }
 
     function populateQRContent() {
         var data = scannedQRData || {};
         
         // Hide all sections first
         document.getElementById('qcBizSection').style.display = 'none';
+        document.getElementById('qcBizForm').style.display = 'none';
         document.getElementById('qcGiverForm').style.display = 'none';
         document.getElementById('qcGiverSent').style.display = 'none';
         document.getElementById('qcReceiverView').style.display = 'none';
@@ -3738,7 +3826,16 @@
         
         // Role-specific content
         if (currentRole === 'business') {
-            document.getElementById('qcBizLocked').style.display = 'block';
+            if (data.business_data || data.business_user_id) {
+                // Already claimed — show locked
+                document.getElementById('qcBizLocked').style.display = 'block';
+            } else {
+                // Show form to add business info
+                document.getElementById('qcBizForm').style.display = 'block';
+                // Pre-fill with existing QR data if any
+                document.getElementById('qcBizName').value = data.label || '';
+                document.getElementById('qcBizDesc').value = data.details || '';
+            }
         }
         else if (currentRole === 'giver') {
             if (data.giver_data) {
