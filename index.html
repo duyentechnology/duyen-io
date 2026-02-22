@@ -1989,38 +1989,30 @@
             <div class="logo-symbol">緣</div>
             <div class="logo-text">DUYÊN</div>
         </div>
-        <div class="card" id="qrContentCard">
-            <div id="qrLoading" style="text-align: center; padding: 2rem 0;">
-                <div style="font-size: 2.5rem; margin-bottom: 1rem;">🧵</div>
-                <p style="color: var(--text-muted);">Loading thread...</p>
+        <div class="card">
+            <h1>A Thread Awaits</h1>
+            <p class="subtitle">Someone wove a connection into this code. What's your role in this story?</p>
+
+            <div id="roleBusinessOption" class="identity-card" onclick="selectRole('business')">
+                <div class="identity-icon">🏢</div>
+                <div class="identity-title">I'm the Business</div>
+                <div class="identity-desc">Add your business information, photos, videos, and links</div>
             </div>
-            <div id="qrContent" style="display: none;">
-                <div id="qrPhoto" style="display: none; margin-bottom: 1.5rem; text-align: center;">
-                    <img id="qrPhotoImg" src="" alt="Memory photo" style="max-width: 100%; border-radius: 16px; border: 2px solid var(--border-light);">
-                </div>
-                <h1 id="qrLabel" style="font-family: 'Crimson Pro', serif; font-size: 1.75rem;">A Thread</h1>
-                <p id="qrDetails" class="subtitle" style="white-space: pre-wrap;"></p>
-                <div id="qrMediaGrid" class="thread-detail-photos" style="display: none; margin-top: 1rem;"></div>
-                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-light);">
-                    <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center;">What's your role in this story?</p>
-                    <div class="identity-card" onclick="selectRole('business')">
-                        <div class="identity-icon">🏢</div>
-                        <div class="identity-title">I'm the Business</div>
-                        <div class="identity-desc">Add your business information, photos, videos, and links</div>
-                    </div>
-                    <div class="identity-card" onclick="selectRole('giver')">
-                        <div class="identity-icon">🎁</div>
-                        <div class="identity-title">I'm Giving a Gift</div>
-                        <div class="identity-desc">Add your personal message, photos, and videos</div>
-                    </div>
-                    <div class="identity-card" onclick="selectRole('receiver')">
-                        <div class="identity-icon">💝</div>
-                        <div class="identity-title">I Received This</div>
-                        <div class="identity-desc">View the gift and save it to your tapestry</div>
-                    </div>
-                </div>
+
+            <div class="identity-card" onclick="selectRole('giver')">
+                <div class="identity-icon">🎁</div>
+                <div class="identity-title">I'm Giving a Gift</div>
+                <div class="identity-desc">Add your personal message, photos, and videos</div>
             </div>
-            <div id="qrNotFound" style="display: none; text-align: center; padding: 2rem 0;">
+
+            <div class="identity-card" onclick="selectRole('receiver')">
+                <div class="identity-icon">💝</div>
+                <div class="identity-title">I Received This</div>
+                <div class="identity-desc">View the gift and save it to your tapestry</div>
+            </div>
+        </div>
+        <div id="qrNotFound" style="display: none;">
+            <div class="card" style="text-align: center; padding: 2rem 0;">
                 <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔍</div>
                 <h2 style="font-family: 'Crimson Pro', serif;">Thread Not Found</h2>
                 <p style="color: var(--text-muted);">This QR code hasn't been set up yet.</p>
@@ -3557,18 +3549,16 @@
     }
 
     // Fetch QR code data from Supabase and display it
+    // Store fetched QR data globally so role screens can use it later
+    var scannedQRData = null;
+
     async function loadScannedQR(code) {
-        const loading = document.getElementById('qrLoading');
-        const content = document.getElementById('qrContent');
         const notFound = document.getElementById('qrNotFound');
-        
-        loading.style.display = 'block';
-        content.style.display = 'none';
+        const bizOption = document.getElementById('roleBusinessOption');
         notFound.style.display = 'none';
+        bizOption.style.display = 'block';
         
         try {
-            // The code is the short ID from the URL (e.g. "fsOblgf" from duyen.io/q/fsOblgf)
-            // Search by url containing the code, or by exact id match
             const searchUrl = 'https://duyen.io/q/' + code;
             let data = null;
             
@@ -3585,45 +3575,22 @@
             }
             
             if (!data) {
-                loading.style.display = 'none';
                 notFound.style.display = 'block';
                 return;
             }
             
-            // Populate the content
-            document.getElementById('qrLabel').textContent = data.label || 'A Thread';
-            document.getElementById('qrDetails').textContent = data.details || 'This thread is waiting for its story to be woven.';
+            // Store data for later use after role selection
+            scannedQRData = data;
             
-            // Show photo if available
-            const photoEl = document.getElementById('qrPhoto');
-            if (data.photo) {
-                document.getElementById('qrPhotoImg').src = data.photo;
-                photoEl.style.display = 'block';
-            } else {
-                photoEl.style.display = 'none';
+            // If business data already exists, hide the business option
+            if (data.business_data || data.details || data.label) {
+                // QR has been claimed by business — hide business option
+                // Only show giver + receiver
+                bizOption.style.display = 'none';
             }
-            
-            // Show media if available
-            const mediaGrid = document.getElementById('qrMediaGrid');
-            let mediaItems = [];
-            try { mediaItems = typeof data.media === 'string' ? JSON.parse(data.media) : (data.media || []); } catch(e) {}
-            if (mediaItems.length > 0) {
-                mediaGrid.innerHTML = mediaItems.map(function(m) {
-                    var src = m.url || m.dataUrl || m;
-                    return '<img src="' + src + '" alt="Media" style="cursor:pointer;" onclick="window.open(this.src)">';
-                }).join('');
-                mediaGrid.style.display = 'grid';
-            } else {
-                mediaGrid.style.display = 'none';
-            }
-            
-            loading.style.display = 'none';
-            content.style.display = 'block';
             
         } catch(e) {
             console.error('Error loading QR:', e);
-            loading.style.display = 'none';
-            notFound.style.display = 'block';
         }
     }
 
