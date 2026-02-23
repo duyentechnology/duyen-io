@@ -2099,6 +2099,9 @@
                     <span>🎙️</span>
                     <audio id="qcBizVoiceAudio2" controls style="flex:1;height:36px;"></audio>
                 </div>
+                <div id="qcBizVideoPlayback" style="display:none; margin-top: 1rem;">
+                    <video id="qcBizVideoEl2" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
+                </div>
                 <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
             </div>
             
@@ -2111,6 +2114,11 @@
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Photos (optional)</label>
                     <input type="file" id="qcGiverPhotos" accept="image/*" multiple onchange="handleGiverPhotos(this)" style="font-size: 0.9rem;">
                     <div id="qcGiverPhotoPreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem;"></div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Video (optional)</label>
+                    <input type="file" id="qcGiverVideo" accept="video/*" onchange="handleGiverVideo(this)" style="font-size: 0.9rem;">
+                    <div id="qcGiverVideoPreview" style="margin-top: 0.75rem;"></div>
                 </div>
                 <div class="voice-memo-box">
                     <label>🎙️ Voice Memo (optional)</label>
@@ -2134,12 +2142,18 @@
                     <span>🎙️</span>
                     <audio id="qcGiverSentAudio" controls style="flex:1;height:36px;"></audio>
                 </div>
+                <div id="qcGiverSentVideo" style="display:none; margin-top: 1rem;">
+                    <video id="qcGiverSentVideoEl" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
+                </div>
                 <div id="qcReceiverResponse" style="display: none;">
                     <h3 style="font-family: 'Crimson Pro', serif; margin-top: 1.5rem;">💝 Response from Receiver</h3>
                     <div id="qcReceiverMessage" style="background: #FFF5F2; padding: 1.25rem; border-radius: 14px; margin: 1rem 0; text-align: left; white-space: pre-wrap;"></div>
                     <div id="qcReceiverRespVoice" style="display:none;" class="voice-preview">
                         <span>🎙️</span>
                         <audio id="qcReceiverRespAudio" controls style="flex:1;height:36px;"></audio>
+                    </div>
+                    <div id="qcReceiverRespVideo" style="display:none; margin-top: 1rem;">
+                        <video id="qcReceiverRespVideoEl" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
                     </div>
                 </div>
                 <div id="qcGiverWaiting" style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
@@ -2156,6 +2170,9 @@
                         <span>🎙️</span>
                         <audio id="qcGiverMsgAudio" controls style="flex:1;height:36px;"></audio>
                     </div>
+                    <div id="qcGiverMsgVideo" style="display:none; margin-top: 1rem;">
+                        <video id="qcGiverMsgVideoEl" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
+                    </div>
                     <div id="qcGiverMsgPhotos" class="thread-detail-photos" style="display: none; margin-bottom: 1rem;"></div>
                     <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
                 </div>
@@ -2163,6 +2180,16 @@
                     <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Send a Thank You</h2>
                     <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Let the giver know how much this means to you.</p>
                     <textarea id="qcReceiverNote" placeholder="Write your thank you note..." style="width: 100%; min-height: 120px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
+                    <div style="margin-top: 1rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Photo (optional)</label>
+                        <input type="file" id="qcReceiverPhoto" accept="image/*" onchange="handleReceiverPhoto(this)" style="font-size: 0.9rem;">
+                        <div id="qcReceiverPhotoPreview" style="margin-top: 0.75rem;"></div>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Video (optional)</label>
+                        <input type="file" id="qcReceiverVideo" accept="video/*" onchange="handleReceiverVideo(this)" style="font-size: 0.9rem;">
+                        <div id="qcReceiverVideoPreview" style="margin-top: 0.75rem;"></div>
+                    </div>
                     <div class="voice-memo-box">
                         <label>🎙️ Voice Memo (optional)</label>
                         <button class="voice-btn" id="receiverVoiceBtn" onclick="toggleRecording('receiver')">🎙️ Record Voice Memo</button>
@@ -2206,6 +2233,11 @@
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Photo (optional)</label>
                     <input type="file" id="qcBizPhotoInput" accept="image/*" onchange="handleBizPhoto(this)" style="font-size: 0.9rem;">
                     <div id="qcBizPhotoPreview" style="margin-top: 0.75rem;"></div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Video (optional)</label>
+                    <input type="file" id="qcBizVideoInput" accept="video/*" onchange="handleBizVideo(this)" style="font-size: 0.9rem;">
+                    <div id="qcBizVideoPreview" style="margin-top: 0.75rem;"></div>
                 </div>
                 <div class="voice-memo-box">
                     <label>🎙️ Voice Memo (optional)</label>
@@ -3815,7 +3847,11 @@
     }
 
     var bizPhotoData = null;
+    var bizVideoData = null;
     var giverPhotoFiles = [];
+    var giverVideoData = null;
+    var receiverPhotoData = null;
+    var receiverVideoData = null;
     
     // ==========================================
     // VOICE MEMO RECORDING
@@ -3927,6 +3963,54 @@
         }
     }
 
+    function handleBizVideo(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                bizVideoData = e.target.result;
+                var preview = document.getElementById('qcBizVideoPreview');
+                preview.innerHTML = '<video src="' + e.target.result + '" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function handleGiverVideo(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                giverVideoData = e.target.result;
+                var preview = document.getElementById('qcGiverVideoPreview');
+                preview.innerHTML = '<video src="' + e.target.result + '" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function handleReceiverPhoto(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                receiverPhotoData = e.target.result;
+                var preview = document.getElementById('qcReceiverPhotoPreview');
+                preview.innerHTML = '<img src="' + e.target.result + '" style="max-width:200px;border-radius:12px;border:2px solid var(--border-light);">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function handleReceiverVideo(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                receiverVideoData = e.target.result;
+                var preview = document.getElementById('qcReceiverVideoPreview');
+                preview.innerHTML = '<video src="' + e.target.result + '" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     async function saveBusinessData() {
         if (!scannedQRData) return;
         var name = document.getElementById('qcBizName').value.trim();
@@ -3938,6 +4022,7 @@
             email: document.getElementById('qcBizEmail').value.trim(),
             phone: document.getElementById('qcBizPhone').value.trim(),
             photo: bizPhotoData,
+            video: bizVideoData,
             voice: voiceRecorders.biz ? voiceRecorders.biz.dataUrl : null,
             date: new Date().toISOString()
         };
@@ -4023,6 +4108,15 @@
             } else {
                 bizVoicePlay.style.display = 'none';
             }
+            
+            // Show business video if available
+            var bizVideoPlay = document.getElementById('qcBizVideoPlayback');
+            if (bizDataObj && bizDataObj.video) {
+                document.getElementById('qcBizVideoEl2').src = bizDataObj.video;
+                bizVideoPlay.style.display = 'block';
+            } else {
+                bizVideoPlay.style.display = 'none';
+            }
         }
         
         // Role-specific content
@@ -4052,6 +4146,13 @@
                 } else {
                     document.getElementById('qcGiverSentVoice').style.display = 'none';
                 }
+                // Show giver video if saved
+                if (giverData.video) {
+                    document.getElementById('qcGiverSentVideoEl').src = giverData.video;
+                    document.getElementById('qcGiverSentVideo').style.display = 'block';
+                } else {
+                    document.getElementById('qcGiverSentVideo').style.display = 'none';
+                }
                 
                 if (data.receiver_data) {
                     var recData = typeof data.receiver_data === 'string' ? JSON.parse(data.receiver_data) : data.receiver_data;
@@ -4063,6 +4164,13 @@
                         document.getElementById('qcReceiverRespVoice').style.display = 'flex';
                     } else {
                         document.getElementById('qcReceiverRespVoice').style.display = 'none';
+                    }
+                    // Show receiver video if saved
+                    if (recData.video) {
+                        document.getElementById('qcReceiverRespVideoEl').src = recData.video;
+                        document.getElementById('qcReceiverRespVideo').style.display = 'block';
+                    } else {
+                        document.getElementById('qcReceiverRespVideo').style.display = 'none';
                     }
                     document.getElementById('qcGiverWaiting').style.display = 'none';
                 } else {
@@ -4088,6 +4196,13 @@
                     document.getElementById('qcGiverMsgVoice').style.display = 'flex';
                 } else {
                     document.getElementById('qcGiverMsgVoice').style.display = 'none';
+                }
+                // Show giver video
+                if (gData.video) {
+                    document.getElementById('qcGiverMsgVideoEl').src = gData.video;
+                    document.getElementById('qcGiverMsgVideo').style.display = 'block';
+                } else {
+                    document.getElementById('qcGiverMsgVideo').style.display = 'none';
                 }
                 
                 // Show giver photos if any
@@ -4139,6 +4254,7 @@
         var giverData = {
             message: message,
             photos: giverPhotoFiles,
+            video: giverVideoData,
             voice: voiceRecorders.giver ? voiceRecorders.giver.dataUrl : null,
             user: currentUser,
             date: new Date().toISOString()
@@ -4171,6 +4287,8 @@
         
         var receiverData = {
             message: note,
+            photo: receiverPhotoData,
+            video: receiverVideoData,
             voice: voiceRecorders.receiver ? voiceRecorders.receiver.dataUrl : null,
             user: currentUser,
             date: new Date().toISOString()
