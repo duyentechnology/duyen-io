@@ -2091,10 +2091,10 @@
             <div id="qcGuestBanner" style="display: none; background: linear-gradient(135deg, #FFF8F0, #FDF2E9); border: 2px solid var(--golden-thread); border-radius: 14px; padding: 14px 16px; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                     <span style="font-size: 1.3rem;">👋</span>
-                    <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">You're browsing as a guest</span>
+                    <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Browsing as guest</span>
                 </div>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0 0 10px;">Create a free account to save memories, send messages, and build your tapestry.</p>
-                <button class="btn btn-primary" onclick="window.postAuthDestination='qrContent'; navigate('auth');" style="width: 100%; padding: 10px; font-size: 0.9rem;">✨ Sign Up Free</button>
+                <p id="qcGuestBannerMsg" style="color: var(--text-muted); font-size: 0.85rem; margin: 0 0 10px;"></p>
+                <button class="btn btn-primary" onclick="window.postAuthDestination='qrContent'; navigate('auth');" style="width: 100%; padding: 10px; font-size: 0.9rem;">✨ Create Free Account</button>
             </div>
             
             <!-- Business info section (shows if business data exists) -->
@@ -2141,7 +2141,7 @@
                     </div>
                 </div>
                 <button class="btn btn-primary" onclick="saveGiverData()" style="width: 100%; margin-top: 1.5rem;">🎁 Send Gift Message</button>
-                <p id="qcGiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">You'll need to sign in to send your message</p>
+                <p id="qcGiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Create an account to send your message and get notified</p>
             </div>
             
             <!-- Giver view: shows when role=giver and giver data exists (waiting for response) -->
@@ -2212,7 +2212,7 @@
                         </div>
                     </div>
                     <button class="btn btn-primary" onclick="saveReceiverData()" style="width: 100%; margin-top: 1.5rem;">💝 Send Thank You</button>
-                    <p id="qcReceiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">You'll need to sign in to send your response</p>
+                    <p id="qcReceiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Create an account to send thanks and save this memory</p>
                 </div>
                 <div id="qcReceiverSent" style="display: none; text-align: center; padding: 1rem 0;">
                     <div style="font-size: 3rem; margin-bottom: 1rem;">💝</div>
@@ -2266,10 +2266,15 @@
 
             <!-- Business role: locked out message (shows after business data saved) -->
             <div id="qcBizLocked" style="display: none; text-align: center; padding: 2rem 0;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
-                <h2 style="font-family: 'Crimson Pro', serif;">Business Info Added</h2>
-                <p style="color: var(--text-muted);">Your business data is saved. You can edit your QR codes on <a href="https://dayduyen.tech" style="color: var(--brand-red);">dayduyen.tech</a></p>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Personal messages between givers and receivers are private.</p>
+                <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                <h2 style="font-family: 'Crimson Pro', serif;">Business Info Saved!</h2>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Sign in at <a href="https://dayduyen.tech" style="color: var(--brand-red); font-weight: 600;">dayduyen.tech</a> to:</p>
+                <div style="text-align: left; max-width: 280px; margin: 1rem auto; color: var(--text-secondary); font-size: 0.9rem;">
+                    <p style="margin: 0.4rem 0;">📊 Track how many times your QR is scanned</p>
+                    <p style="margin: 0.4rem 0;">✏️ Edit your business info anytime</p>
+                    <p style="margin: 0.4rem 0;">📱 Create and manage more QR codes</p>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">Personal messages between givers and receivers are private.</p>
             </div>
             
             <!-- Save to tapestry button (always available) -->
@@ -2291,7 +2296,7 @@
         </div>
         <div class="card">
             <h1>Welcome to Duyên</h1>
-            <p class="subtitle">Sign in to weave your tapestry</p>
+            <p class="subtitle" id="authSubtitle">Sign in to weave your tapestry</p>
 
             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
                 <button class="btn-social" onclick="handleGoogleAuth()">
@@ -2309,8 +2314,15 @@
                 <button class="btn btn-secondary btn-full" onclick="navigate('signup')">Create New Account</button>
             </div>
 
-            <div class="text-link">
-                <a href="#" onclick="skipAuth(); return false;">Continue as Guest</a>
+            <!-- Guest option for giver/receiver only -->
+            <div id="authGuestOption" style="display: none; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-light);">
+                <button class="btn btn-secondary btn-full" onclick="skipAuth()" style="background: transparent; border: 2px dashed var(--border-light);">👤 Continue as Guest</button>
+                <p id="authGuestNote" style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;"></p>
+            </div>
+            
+            <!-- Business login required message -->
+            <div id="authBizRequired" style="display: none; margin-top: 1rem; text-align: center;">
+                <p style="font-size: 0.85rem; color: var(--text-muted);">🏢 Sign in to track scans and manage your QR codes</p>
             </div>
         </div>
     </div>
@@ -3456,6 +3468,31 @@
         // Post-navigation hooks
         if (screen === 'qr' && window.scannedQRCode) loadScannedQR(window.scannedQRCode);
         if (screen === 'qrContent') populateQRContent();
+        if (screen === 'auth') {
+            var guestOpt = document.getElementById('authGuestOption');
+            var guestNote = document.getElementById('authGuestNote');
+            var bizReq = document.getElementById('authBizRequired');
+            var subtitle = document.getElementById('authSubtitle');
+            if (currentRole === 'business') {
+                guestOpt.style.display = 'none';
+                bizReq.style.display = 'block';
+                subtitle.textContent = 'Sign in to add your business info';
+            } else if (currentRole === 'giver') {
+                guestOpt.style.display = 'block';
+                bizReq.style.display = 'none';
+                subtitle.textContent = 'Sign in to send your gift message';
+                guestNote.textContent = 'Sign up to save memories and get notified when your gift is opened';
+            } else if (currentRole === 'receiver') {
+                guestOpt.style.display = 'block';
+                bizReq.style.display = 'none';
+                subtitle.textContent = 'Sign in to view your gift';
+                guestNote.textContent = 'Sign up to save this memory and send a thank you back';
+            } else {
+                guestOpt.style.display = 'none';
+                bizReq.style.display = 'none';
+                subtitle.textContent = 'Sign in to weave your tapestry';
+            }
+        }
         if (screen === 'threadView') displayContent();
         if (screen === 'receiver') populateReceiver();
         if (screen === 'tapestry') initTapestry();
@@ -3469,16 +3506,10 @@
     function selectRole(role) {
         console.log('🎯 Role:', role);
         currentRole = role;
-        if (role === 'business') {
-            // Business always requires login
-            if (isAuthenticated) {
-                navigate('qrContent');
-            } else {
-                navigate('auth');
-            }
-        } else {
-            // Giver and Receiver can continue as guest
+        if (isAuthenticated) {
             navigate('qrContent');
+        } else {
+            navigate('auth');
         }
     }
 
@@ -4114,8 +4145,14 @@
         
         // Show guest banner if not logged in (giver/receiver only)
         var guestBanner = document.getElementById('qcGuestBanner');
+        var guestMsg = document.getElementById('qcGuestBannerMsg');
         if (!isAuthenticated && currentRole !== 'business') {
             guestBanner.style.display = 'block';
+            if (currentRole === 'giver') {
+                guestMsg.textContent = 'Sign up to save this memory and get notified when your gift is opened.';
+            } else {
+                guestMsg.textContent = 'Sign up to save this gift to your tapestry and send a thank you.';
+            }
         } else {
             guestBanner.style.display = 'none';
         }
@@ -4718,7 +4755,11 @@
 
     function skipAuth() {
         console.log('👤 Guest mode');
-        proceedAfterAuth();
+        if (scannedQRData && currentRole) {
+            navigate('qrContent');
+        } else {
+            proceedAfterAuth();
+        }
     }
 
     function simulateAuthSuccess(user) {
