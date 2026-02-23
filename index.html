@@ -3837,7 +3837,8 @@
             scannedQRData = data;
             
             // Only hide business if someone explicitly claimed it via the business role
-            if (data.business_data || data.business_user_id) {
+            // OR if giver/receiver already added data (business must claim first)
+            if (data.business_data || data.business_user_id || data.giver_data || data.giver_user_id || data.receiver_data || data.receiver_user_id) {
                 bizOption.style.display = 'none';
             }
             
@@ -4137,8 +4138,8 @@
         
         // Role-specific content
         if (currentRole === 'business') {
-            if (data.business_data || data.business_user_id) {
-                // Already claimed — show locked
+            if (data.business_data || data.business_user_id || data.giver_data || data.receiver_data) {
+                // Already claimed or other roles added data — show locked
                 document.getElementById('qcBizLocked').style.display = 'block';
             } else {
                 // Show form to add business info
