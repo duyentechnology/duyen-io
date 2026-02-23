@@ -2298,6 +2298,12 @@
             <h1>Welcome to Duyên</h1>
             <p class="subtitle" id="authSubtitle">Sign in to weave your tapestry</p>
 
+            <!-- Already logged in option -->
+            <div id="authLoggedIn" style="display: none; margin-bottom: 1.5rem;">
+                <button class="btn btn-primary btn-full" id="authContinueBtn" onclick="navigate('qrContent')" style="padding: 14px; font-size: 1rem;"></button>
+                <div class="divider" style="margin-top: 1rem;"><span>or switch account</span></div>
+            </div>
+
             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
                 <button class="btn-social" onclick="handleGoogleAuth()">
                     <span style="font-size: 1.3rem;">🔵</span> Continue with Google
@@ -3473,6 +3479,17 @@
             var guestNote = document.getElementById('authGuestNote');
             var bizReq = document.getElementById('authBizRequired');
             var subtitle = document.getElementById('authSubtitle');
+            var loggedInOpt = document.getElementById('authLoggedIn');
+            var continueBtn = document.getElementById('authContinueBtn');
+            
+            // Show "Continue as [name]" if already logged in
+            if (isAuthenticated && currentUser) {
+                loggedInOpt.style.display = 'block';
+                continueBtn.textContent = '✅ Continue as ' + currentUser;
+            } else {
+                loggedInOpt.style.display = 'none';
+            }
+            
             if (currentRole === 'business') {
                 guestOpt.style.display = 'none';
                 bizReq.style.display = 'block';
@@ -3506,11 +3523,8 @@
     function selectRole(role) {
         console.log('🎯 Role:', role);
         currentRole = role;
-        if (isAuthenticated) {
-            navigate('qrContent');
-        } else {
-            navigate('auth');
-        }
+        // Always show auth screen for QR flows — even if session exists
+        navigate('auth');
     }
 
     function handleAction(action) {
