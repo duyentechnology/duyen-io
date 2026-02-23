@@ -2087,6 +2087,16 @@
             <div class="logo-text">DUYÊN</div>
         </div>
         <div class="card">
+            <!-- Guest mode banner -->
+            <div id="qcGuestBanner" style="display: none; background: linear-gradient(135deg, #FFF8F0, #FDF2E9); border: 2px solid var(--golden-thread); border-radius: 14px; padding: 14px 16px; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <span style="font-size: 1.3rem;">👋</span>
+                    <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">You're browsing as a guest</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0 0 10px;">Create a free account to save memories, send messages, and build your tapestry.</p>
+                <button class="btn btn-primary" onclick="window.postAuthDestination='qrContent'; navigate('auth');" style="width: 100%; padding: 10px; font-size: 0.9rem;">✨ Sign Up Free</button>
+            </div>
+            
             <!-- Business info section (shows if business data exists) -->
             <div id="qcBizSection" style="display: none;">
                 <div id="qcBizPhoto" style="display: none; margin-bottom: 1.5rem; text-align: center;">
@@ -2131,6 +2141,7 @@
                     </div>
                 </div>
                 <button class="btn btn-primary" onclick="saveGiverData()" style="width: 100%; margin-top: 1.5rem;">🎁 Send Gift Message</button>
+                <p id="qcGiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">You'll need to sign in to send your message</p>
             </div>
             
             <!-- Giver view: shows when role=giver and giver data exists (waiting for response) -->
@@ -2201,6 +2212,7 @@
                         </div>
                     </div>
                     <button class="btn btn-primary" onclick="saveReceiverData()" style="width: 100%; margin-top: 1.5rem;">💝 Send Thank You</button>
+                    <p id="qcReceiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">You'll need to sign in to send your response</p>
                 </div>
                 <div id="qcReceiverSent" style="display: none; text-align: center; padding: 1rem 0;">
                     <div style="font-size: 3rem; margin-bottom: 1rem;">💝</div>
@@ -3457,12 +3469,16 @@
     function selectRole(role) {
         console.log('🎯 Role:', role);
         currentRole = role;
-        if (isAuthenticated && scannedQRData) {
-            navigate('qrContent');
-        } else if (isAuthenticated) {
-            navigate('qrContent');
+        if (role === 'business') {
+            // Business always requires login
+            if (isAuthenticated) {
+                navigate('qrContent');
+            } else {
+                navigate('auth');
+            }
         } else {
-            navigate('auth');
+            // Giver and Receiver can continue as guest
+            navigate('qrContent');
         }
     }
 
@@ -4096,6 +4112,20 @@
         document.getElementById('qcReceiverView').style.display = 'none';
         document.getElementById('qcBizLocked').style.display = 'none';
         
+        // Show guest banner if not logged in (giver/receiver only)
+        var guestBanner = document.getElementById('qcGuestBanner');
+        if (!isAuthenticated && currentRole !== 'business') {
+            guestBanner.style.display = 'block';
+        } else {
+            guestBanner.style.display = 'none';
+        }
+        
+        // Show login hints on buttons for guests
+        var giverHint = document.getElementById('qcGiverLoginHint');
+        var receiverHint = document.getElementById('qcReceiverLoginHint');
+        if (giverHint) giverHint.style.display = isAuthenticated ? 'none' : 'block';
+        if (receiverHint) receiverHint.style.display = isAuthenticated ? 'none' : 'block';
+        
         // Show business info if it exists (for giver/receiver to see)
         if (data.label || data.details || data.photo) {
             var bizSection = document.getElementById('qcBizSection');
@@ -4277,6 +4307,12 @@
         var message = document.getElementById('qcGiverMessage').value.trim();
         if (!message) { alert('Please write a message'); return; }
         
+        if (!isAuthenticated) {
+            window.postAuthDestination = 'qrContent';
+            navigate('auth');
+            return;
+        }
+        
         var giverData = {
             message: message,
             photos: giverPhotoFiles,
@@ -4311,6 +4347,12 @@
         var note = document.getElementById('qcReceiverNote').value.trim();
         if (!note) { alert('Please write a thank you note'); return; }
         
+        if (!isAuthenticated) {
+            window.postAuthDestination = 'qrContent';
+            navigate('auth');
+            return;
+        }
+        
         var receiverData = {
             message: note,
             photo: receiverPhotoData,
@@ -4342,6 +4384,7 @@
 
     async function saveToTapestry() {
         if (!isAuthenticated) {
+            window.postAuthDestination = 'qrContent';
             navigate('auth');
             return;
         }
@@ -4696,6 +4739,13 @@
         if (window.postAuthDestination === 'externalQr') {
             window.postAuthDestination = null;
             openExternalQrPage(scannedExternalUrl);
+            return;
+        }
+
+        // Return to QR content after login
+        if (window.postAuthDestination === 'qrContent') {
+            window.postAuthDestination = null;
+            navigate('qrContent');
             return;
         }
 
