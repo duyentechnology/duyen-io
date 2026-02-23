@@ -2277,8 +2277,8 @@
                 <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">Personal messages between givers and receivers are private.</p>
             </div>
             
-            <!-- Save to tapestry button (always available) -->
-            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light); text-align: center;">
+            <!-- Save to tapestry button (hidden for business) -->
+            <div id="qcTapestryBtn" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light); text-align: center;">
                 <button class="btn btn-secondary" onclick="saveToTapestry()" style="width: 100%;">🧵 Save to My Tapestry</button>
             </div>
         </div>
@@ -4176,6 +4176,10 @@
         var receiverHint = document.getElementById('qcReceiverLoginHint');
         if (giverHint) giverHint.style.display = isAuthenticated ? 'none' : 'block';
         if (receiverHint) receiverHint.style.display = isAuthenticated ? 'none' : 'block';
+        
+        // Hide tapestry button for business
+        var tapBtn = document.getElementById('qcTapestryBtn');
+        if (tapBtn) tapBtn.style.display = (currentRole === 'business') ? 'none' : 'block';
         
         // Show business info if it exists (for giver/receiver to see)
         if (data.label || data.details || data.photo) {
