@@ -3880,7 +3880,21 @@
             var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             slot.chunks = [];
             slot.seconds = 0;
-            slot.recorder = new MediaRecorder(stream);
+            
+            // Detect supported MIME type (iOS Safari doesn't support webm)
+            var mimeType = '';
+            if (MediaRecorder.isTypeSupported('audio/webm')) {
+                mimeType = 'audio/webm';
+            } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                mimeType = 'audio/mp4';
+            } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+                mimeType = 'audio/ogg';
+            }
+            // If none supported, let browser pick default
+            
+            var options = mimeType ? { mimeType: mimeType } : {};
+            slot.mimeType = mimeType || 'audio/mp4';
+            slot.recorder = new MediaRecorder(stream, options);
             
             slot.recorder.ondataavailable = function(e) {
                 if (e.data.size > 0) slot.chunks.push(e.data);
@@ -3888,7 +3902,9 @@
             
             slot.recorder.onstop = function() {
                 stream.getTracks().forEach(function(t) { t.stop(); });
-                slot.blob = new Blob(slot.chunks, { type: 'audio/webm' });
+                // Use the actual MIME type from the recorder if available
+                var blobType = slot.recorder.mimeType || slot.mimeType || 'audio/mp4';
+                slot.blob = new Blob(slot.chunks, { type: blobType });
                 var reader = new FileReader();
                 reader.onload = function(e) {
                     slot.dataUrl = e.target.result;
