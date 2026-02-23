@@ -1919,6 +1919,61 @@
             font-weight: 500;
         }
 
+        .voice-memo-box {
+            border: 2px solid var(--border-light);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .voice-memo-box label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .voice-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 2px solid var(--border-light);
+            background: white;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .voice-btn:hover { background: var(--soft-sand); }
+        .voice-btn.recording {
+            border-color: #e53e3e;
+            background: #FFF5F5;
+            color: #e53e3e;
+            animation: pulse-record 1.5s infinite;
+        }
+        @keyframes pulse-record {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(229,62,62,0.3); }
+            50% { box-shadow: 0 0 0 8px rgba(229,62,62,0); }
+        }
+        .voice-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 0.75rem;
+            padding: 10px 14px;
+            background: var(--soft-sand);
+            border-radius: 12px;
+        }
+        .voice-preview audio { flex: 1; height: 36px; }
+        .voice-preview .voice-delete {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+
         /* External scan landing */
         .scan-landing-url {
             background: white;
@@ -2040,6 +2095,10 @@
                 <h1 id="qcBizLabel" style="font-family: 'Crimson Pro', serif; font-size: 1.75rem;"></h1>
                 <p id="qcBizDetails" class="subtitle" style="white-space: pre-wrap;"></p>
                 <div id="qcBizMedia" class="thread-detail-photos" style="display: none; margin-top: 1rem;"></div>
+                <div id="qcBizVoicePlayback" style="display:none; margin-top: 1rem;" class="voice-preview">
+                    <span>🎙️</span>
+                    <audio id="qcBizVoiceAudio2" controls style="flex:1;height:36px;"></audio>
+                </div>
                 <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
             </div>
             
@@ -2053,6 +2112,16 @@
                     <input type="file" id="qcGiverPhotos" accept="image/*" multiple onchange="handleGiverPhotos(this)" style="font-size: 0.9rem;">
                     <div id="qcGiverPhotoPreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem;"></div>
                 </div>
+                <div class="voice-memo-box">
+                    <label>🎙️ Voice Memo (optional)</label>
+                    <button class="voice-btn" id="giverVoiceBtn" onclick="toggleRecording('giver')">🎙️ Record Voice Memo</button>
+                    <div id="giverVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="giverTimerText">0:00</span></div>
+                    <div id="giverVoicePreview" style="display:none;" class="voice-preview">
+                        <span>🎙️</span>
+                        <audio id="giverVoiceAudio" controls></audio>
+                        <button class="voice-delete" onclick="deleteRecording('giver')">🗑️</button>
+                    </div>
+                </div>
                 <button class="btn btn-primary" onclick="saveGiverData()" style="width: 100%; margin-top: 1.5rem;">🎁 Send Gift Message</button>
             </div>
             
@@ -2061,9 +2130,17 @@
                 <div style="font-size: 3rem; margin-bottom: 1rem;">🎁</div>
                 <h2 style="font-family: 'Crimson Pro', serif;">Your Gift Message</h2>
                 <div id="qcGiverSentMessage" style="background: var(--soft-sand); padding: 1.25rem; border-radius: 14px; margin: 1rem 0; text-align: left; white-space: pre-wrap;"></div>
+                <div id="qcGiverSentVoice" style="display:none;" class="voice-preview">
+                    <span>🎙️</span>
+                    <audio id="qcGiverSentAudio" controls style="flex:1;height:36px;"></audio>
+                </div>
                 <div id="qcReceiverResponse" style="display: none;">
                     <h3 style="font-family: 'Crimson Pro', serif; margin-top: 1.5rem;">💝 Response from Receiver</h3>
                     <div id="qcReceiverMessage" style="background: #FFF5F2; padding: 1.25rem; border-radius: 14px; margin: 1rem 0; text-align: left; white-space: pre-wrap;"></div>
+                    <div id="qcReceiverRespVoice" style="display:none;" class="voice-preview">
+                        <span>🎙️</span>
+                        <audio id="qcReceiverRespAudio" controls style="flex:1;height:36px;"></audio>
+                    </div>
                 </div>
                 <div id="qcGiverWaiting" style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
                     Waiting for a response from the receiver...
@@ -2075,6 +2152,10 @@
                 <div id="qcGiverMessageView" style="display: none;">
                     <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">🎁 A Gift For You</h2>
                     <div id="qcGiverMsgContent" style="background: var(--soft-sand); padding: 1.25rem; border-radius: 14px; margin: 1rem 0; white-space: pre-wrap;"></div>
+                    <div id="qcGiverMsgVoice" style="display:none;" class="voice-preview">
+                        <span>🎙️</span>
+                        <audio id="qcGiverMsgAudio" controls style="flex:1;height:36px;"></audio>
+                    </div>
                     <div id="qcGiverMsgPhotos" class="thread-detail-photos" style="display: none; margin-bottom: 1rem;"></div>
                     <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
                 </div>
@@ -2082,6 +2163,16 @@
                     <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Send a Thank You</h2>
                     <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Let the giver know how much this means to you.</p>
                     <textarea id="qcReceiverNote" placeholder="Write your thank you note..." style="width: 100%; min-height: 120px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
+                    <div class="voice-memo-box">
+                        <label>🎙️ Voice Memo (optional)</label>
+                        <button class="voice-btn" id="receiverVoiceBtn" onclick="toggleRecording('receiver')">🎙️ Record Voice Memo</button>
+                        <div id="receiverVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="receiverTimerText">0:00</span></div>
+                        <div id="receiverVoicePreview" style="display:none;" class="voice-preview">
+                            <span>🎙️</span>
+                            <audio id="receiverVoiceAudio" controls></audio>
+                            <button class="voice-delete" onclick="deleteRecording('receiver')">🗑️</button>
+                        </div>
+                    </div>
                     <button class="btn btn-primary" onclick="saveReceiverData()" style="width: 100%; margin-top: 1.5rem;">💝 Send Thank You</button>
                 </div>
                 <div id="qcReceiverSent" style="display: none; text-align: center; padding: 1rem 0;">
@@ -2115,6 +2206,16 @@
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Photo (optional)</label>
                     <input type="file" id="qcBizPhotoInput" accept="image/*" onchange="handleBizPhoto(this)" style="font-size: 0.9rem;">
                     <div id="qcBizPhotoPreview" style="margin-top: 0.75rem;"></div>
+                </div>
+                <div class="voice-memo-box">
+                    <label>🎙️ Voice Memo (optional)</label>
+                    <button class="voice-btn" id="bizVoiceBtn" onclick="toggleRecording('biz')">🎙️ Record Voice Memo</button>
+                    <div id="bizVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="bizTimerText">0:00</span></div>
+                    <div id="bizVoicePreview" style="display:none;" class="voice-preview">
+                        <span>🎙️</span>
+                        <audio id="bizVoiceAudio" controls></audio>
+                        <button class="voice-delete" onclick="deleteRecording('biz')">🗑️</button>
+                    </div>
                 </div>
                 <button class="btn btn-primary" onclick="saveBusinessData()" style="width: 100%; margin-top: 1rem;">🏢 Save Business Info</button>
             </div>
@@ -3725,6 +3826,104 @@
 
     var bizPhotoData = null;
     var giverPhotoFiles = [];
+    
+    // ==========================================
+    // VOICE MEMO RECORDING
+    // ==========================================
+    var voiceRecorders = {};  // { biz: {recorder, chunks, blob, dataUrl, timer, seconds}, giver: {...}, receiver: {...} }
+    
+    function initVoiceSlot(role) {
+        if (!voiceRecorders[role]) {
+            voiceRecorders[role] = { recorder: null, chunks: [], blob: null, dataUrl: null, timer: null, seconds: 0 };
+        }
+        return voiceRecorders[role];
+    }
+    
+    async function toggleRecording(role) {
+        var slot = initVoiceSlot(role);
+        if (slot.recorder && slot.recorder.state === 'recording') {
+            stopRecording(role);
+        } else {
+            startRecording(role);
+        }
+    }
+    
+    async function startRecording(role) {
+        var slot = initVoiceSlot(role);
+        try {
+            var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            slot.chunks = [];
+            slot.seconds = 0;
+            slot.recorder = new MediaRecorder(stream);
+            
+            slot.recorder.ondataavailable = function(e) {
+                if (e.data.size > 0) slot.chunks.push(e.data);
+            };
+            
+            slot.recorder.onstop = function() {
+                stream.getTracks().forEach(function(t) { t.stop(); });
+                slot.blob = new Blob(slot.chunks, { type: 'audio/webm' });
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    slot.dataUrl = e.target.result;
+                    showVoicePreview(role);
+                };
+                reader.readAsDataURL(slot.blob);
+            };
+            
+            slot.recorder.start();
+            
+            var btn = document.getElementById(role + 'VoiceBtn');
+            btn.className = 'voice-btn recording';
+            btn.innerHTML = '⏹️ Stop Recording';
+            
+            var timerDiv = document.getElementById(role + 'VoiceTimer');
+            timerDiv.style.display = 'block';
+            slot.timer = setInterval(function() {
+                slot.seconds++;
+                var m = Math.floor(slot.seconds / 60);
+                var s = slot.seconds % 60;
+                document.getElementById(role + 'TimerText').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+            }, 1000);
+            
+        } catch(e) {
+            alert('Could not access microphone. Please allow microphone access and try again.');
+            console.error('Mic error:', e);
+        }
+    }
+    
+    function stopRecording(role) {
+        var slot = voiceRecorders[role];
+        if (slot && slot.recorder && slot.recorder.state === 'recording') {
+            slot.recorder.stop();
+            clearInterval(slot.timer);
+            
+            var btn = document.getElementById(role + 'VoiceBtn');
+            btn.className = 'voice-btn';
+            btn.innerHTML = '🎙️ Record Again';
+            document.getElementById(role + 'VoiceTimer').style.display = 'none';
+        }
+    }
+    
+    function showVoicePreview(role) {
+        var slot = voiceRecorders[role];
+        var preview = document.getElementById(role + 'VoicePreview');
+        var audio = document.getElementById(role + 'VoiceAudio');
+        audio.src = slot.dataUrl;
+        preview.style.display = 'flex';
+    }
+    
+    function deleteRecording(role) {
+        var slot = voiceRecorders[role];
+        if (slot) {
+            slot.blob = null;
+            slot.dataUrl = null;
+            slot.chunks = [];
+        }
+        document.getElementById(role + 'VoicePreview').style.display = 'none';
+        var btn = document.getElementById(role + 'VoiceBtn');
+        btn.innerHTML = '🎙️ Record Voice Memo';
+    }
 
     function handleBizPhoto(input) {
         if (input.files && input.files[0]) {
@@ -3749,6 +3948,7 @@
             email: document.getElementById('qcBizEmail').value.trim(),
             phone: document.getElementById('qcBizPhone').value.trim(),
             photo: bizPhotoData,
+            voice: voiceRecorders.biz ? voiceRecorders.biz.dataUrl : null,
             date: new Date().toISOString()
         };
         
@@ -3822,6 +4022,17 @@
             } else {
                 mediaGrid.style.display = 'none';
             }
+            
+            // Show business voice memo if available
+            var bizVoicePlay = document.getElementById('qcBizVoicePlayback');
+            var bizDataObj = data.business_data;
+            try { if (typeof bizDataObj === 'string') bizDataObj = JSON.parse(bizDataObj); } catch(e) {}
+            if (bizDataObj && bizDataObj.voice) {
+                document.getElementById('qcBizVoiceAudio2').src = bizDataObj.voice;
+                bizVoicePlay.style.display = 'flex';
+            } else {
+                bizVoicePlay.style.display = 'none';
+            }
         }
         
         // Role-specific content
@@ -3844,10 +4055,25 @@
                 document.getElementById('qcGiverSent').style.display = 'block';
                 document.getElementById('qcGiverSentMessage').textContent = giverData.message || '';
                 
+                // Show giver voice memo if saved
+                if (giverData.voice) {
+                    document.getElementById('qcGiverSentAudio').src = giverData.voice;
+                    document.getElementById('qcGiverSentVoice').style.display = 'flex';
+                } else {
+                    document.getElementById('qcGiverSentVoice').style.display = 'none';
+                }
+                
                 if (data.receiver_data) {
                     var recData = typeof data.receiver_data === 'string' ? JSON.parse(data.receiver_data) : data.receiver_data;
                     document.getElementById('qcReceiverResponse').style.display = 'block';
                     document.getElementById('qcReceiverMessage').textContent = recData.message || '';
+                    // Show receiver voice if saved
+                    if (recData.voice) {
+                        document.getElementById('qcReceiverRespAudio').src = recData.voice;
+                        document.getElementById('qcReceiverRespVoice').style.display = 'flex';
+                    } else {
+                        document.getElementById('qcReceiverRespVoice').style.display = 'none';
+                    }
                     document.getElementById('qcGiverWaiting').style.display = 'none';
                 } else {
                     document.getElementById('qcReceiverResponse').style.display = 'none';
@@ -3865,6 +4091,14 @@
                 var gData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
                 document.getElementById('qcGiverMessageView').style.display = 'block';
                 document.getElementById('qcGiverMsgContent').textContent = gData.message || '';
+                
+                // Show giver voice memo
+                if (gData.voice) {
+                    document.getElementById('qcGiverMsgAudio').src = gData.voice;
+                    document.getElementById('qcGiverMsgVoice').style.display = 'flex';
+                } else {
+                    document.getElementById('qcGiverMsgVoice').style.display = 'none';
+                }
                 
                 // Show giver photos if any
                 var gPhotos = document.getElementById('qcGiverMsgPhotos');
@@ -3915,6 +4149,7 @@
         var giverData = {
             message: message,
             photos: giverPhotoFiles,
+            voice: voiceRecorders.giver ? voiceRecorders.giver.dataUrl : null,
             user: currentUser,
             date: new Date().toISOString()
         };
@@ -3946,6 +4181,7 @@
         
         var receiverData = {
             message: note,
+            voice: voiceRecorders.receiver ? voiceRecorders.receiver.dataUrl : null,
             user: currentUser,
             date: new Date().toISOString()
         };
