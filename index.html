@@ -3836,6 +3836,15 @@
             // Store data for later use after role selection
             scannedQRData = data;
             
+            // Increment scan count
+            _supabase.from('qr_codes')
+                .update({ 
+                    scan_count: (data.scan_count || 0) + 1,
+                    last_scanned_at: new Date().toISOString()
+                })
+                .eq('id', data.id)
+                .then(function() { console.log('📊 Scan counted'); });
+            
             // Only hide business if someone explicitly claimed it via the business role
             // OR if giver/receiver already added data (business must claim first)
             if (data.business_data || data.business_user_id || data.giver_data || data.giver_user_id || data.receiver_data || data.receiver_user_id) {
