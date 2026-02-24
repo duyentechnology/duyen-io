@@ -2121,7 +2121,7 @@
                 <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Write a personal message for the person receiving this gift.</p>
                 <textarea id="qcGiverMessage" placeholder="Write your heartfelt message here..." style="width: 100%; min-height: 120px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
                 <div style="margin-top: 1rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Photos (optional)</label>
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Photos (up to 5)</label>
                     <input type="file" id="qcGiverPhotos" accept="image/*" multiple onchange="handleGiverPhotos(this)" style="font-size: 0.9rem;">
                     <div id="qcGiverPhotoPreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem;"></div>
                 </div>
@@ -2192,9 +2192,9 @@
                     <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Let the giver know how much this means to you.</p>
                     <textarea id="qcReceiverNote" placeholder="Write your thank you note..." style="width: 100%; min-height: 120px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
                     <div style="margin-top: 1rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Photo (optional)</label>
-                        <input type="file" id="qcReceiverPhoto" accept="image/*" onchange="handleReceiverPhoto(this)" style="font-size: 0.9rem;">
-                        <div id="qcReceiverPhotoPreview" style="margin-top: 0.75rem;"></div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Photos (up to 5)</label>
+                        <input type="file" id="qcReceiverPhoto" accept="image/*" multiple onchange="handleReceiverPhotos(this)" style="font-size: 0.9rem;">
+                        <div id="qcReceiverPhotoPreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem;"></div>
                     </div>
                     <div style="margin-top: 1rem;">
                         <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Video (optional)</label>
@@ -2242,9 +2242,9 @@
                     <input type="tel" id="qcBizPhone" placeholder="(555) 123-4567" style="width: 100%; border: 2px solid var(--border-light); border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
                 </div>
                 <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Photo (optional)</label>
-                    <input type="file" id="qcBizPhotoInput" accept="image/*" onchange="handleBizPhoto(this)" style="font-size: 0.9rem;">
-                    <div id="qcBizPhotoPreview" style="margin-top: 0.75rem;"></div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Photos (up to 5)</label>
+                    <input type="file" id="qcBizPhotoInput" accept="image/*" multiple onchange="handleBizPhotos(this)" style="font-size: 0.9rem;">
+                    <div id="qcBizPhotoPreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem;"></div>
                 </div>
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Video (optional)</label>
@@ -3925,16 +3925,48 @@
     var receiverVideoData = null;
     
     // Keep original file references for storage upload
-    var bizPhotoFile = null;
+    var bizPhotoFileList = [];
     var bizVideoFile = null;
     var giverPhotoFileList = [];
     var giverVideoFile = null;
-    var receiverPhotoFile = null;
+    var receiverPhotoFileList = [];
     var receiverVideoFile = null;
+    
+    // Compress image file — resizes to max 1200px and converts to JPEG at 80% quality
+    function compressImage(file, maxWidth, quality) {
+        maxWidth = maxWidth || 1200;
+        quality = quality || 0.8;
+        return new Promise(function(resolve) {
+            var img = new Image();
+            img.onload = function() {
+                var canvas = document.createElement('canvas');
+                var w = img.width;
+                var h = img.height;
+                if (w > maxWidth) {
+                    h = Math.round(h * maxWidth / w);
+                    w = maxWidth;
+                }
+                canvas.width = w;
+                canvas.height = h;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                canvas.toBlob(function(blob) {
+                    resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+                }, 'image/jpeg', quality);
+            };
+            img.src = URL.createObjectURL(file);
+        });
+    }
     
     // Upload file to Supabase Storage, returns public URL
     async function uploadToStorage(file, folder) {
         if (!file) return null;
+        
+        // Compress images before upload
+        if (file.type && file.type.startsWith('image/')) {
+            file = await compressImage(file, 1200, 0.8);
+        }
+        
         var timestamp = Date.now();
         var safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.-]/g, '_') : 'file';
         var path = folder + '/' + timestamp + '_' + safeName;
@@ -4092,17 +4124,22 @@
         btn.innerHTML = '🎙️ Record Voice Memo';
     }
 
-    function handleBizPhoto(input) {
-        if (input.files && input.files[0]) {
-            bizPhotoFile = input.files[0];
+    function handleBizPhotos(input) {
+        var files = Array.from(input.files);
+        var total = bizPhotoFileList.length + files.length;
+        if (total > 5) { alert('Maximum 5 photos'); input.value = ''; return; }
+        var preview = document.getElementById('qcBizPhotoPreview');
+        files.forEach(function(file) {
+            bizPhotoFileList.push(file);
             var reader = new FileReader();
             reader.onload = function(e) {
-                bizPhotoData = e.target.result;
-                var preview = document.getElementById('qcBizPhotoPreview');
-                preview.innerHTML = '<img src="' + e.target.result + '" style="max-width:200px;border-radius:12px;border:2px solid var(--border-light);">';
+                var img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:10px;border:2px solid var(--border-light);';
+                preview.appendChild(img);
             };
-            reader.readAsDataURL(input.files[0]);
-        }
+            reader.readAsDataURL(file);
+        });
     }
 
     function handleBizVideo(input) {
@@ -4131,17 +4168,22 @@
         }
     }
 
-    function handleReceiverPhoto(input) {
-        if (input.files && input.files[0]) {
-            receiverPhotoFile = input.files[0];
+    function handleReceiverPhotos(input) {
+        var files = Array.from(input.files);
+        var total = receiverPhotoFileList.length + files.length;
+        if (total > 5) { alert('Maximum 5 photos'); input.value = ''; return; }
+        var preview = document.getElementById('qcReceiverPhotoPreview');
+        files.forEach(function(file) {
+            receiverPhotoFileList.push(file);
             var reader = new FileReader();
             reader.onload = function(e) {
-                receiverPhotoData = e.target.result;
-                var preview = document.getElementById('qcReceiverPhotoPreview');
-                preview.innerHTML = '<img src="' + e.target.result + '" style="max-width:200px;border-radius:12px;border:2px solid var(--border-light);">';
+                var img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:10px;border:2px solid var(--border-light);';
+                preview.appendChild(img);
             };
-            reader.readAsDataURL(input.files[0]);
-        }
+            reader.readAsDataURL(file);
+        });
     }
 
     function handleReceiverVideo(input) {
@@ -4172,7 +4214,11 @@
             var qrId = scannedQRData.id;
             
             // Upload media to Storage
-            var photoUrl = bizPhotoFile ? await uploadToStorage(bizPhotoFile, 'biz/' + qrId) : null;
+            var photoUrls = [];
+            for (var i = 0; i < bizPhotoFileList.length; i++) {
+                var url = await uploadToStorage(bizPhotoFileList[i], 'biz/' + qrId);
+                if (url) photoUrls.push(url);
+            }
             var videoUrl = bizVideoFile ? await uploadToStorage(bizVideoFile, 'biz/' + qrId) : null;
             var voiceUrl = (voiceRecorders.biz && voiceRecorders.biz.blob) ? await uploadBlobToStorage(voiceRecorders.biz.blob, 'biz/' + qrId, 'voice') : null;
             
@@ -4181,7 +4227,7 @@
                 description: document.getElementById('qcBizDesc').value.trim(),
                 email: document.getElementById('qcBizEmail').value.trim(),
                 phone: document.getElementById('qcBizPhone').value.trim(),
-                photo: photoUrl,
+                photos: photoUrls,
                 video: videoUrl,
                 voice: voiceUrl,
                 date: new Date().toISOString()
@@ -4417,6 +4463,8 @@
 
     function handleGiverPhotos(input) {
         var files = Array.from(input.files);
+        var total = giverPhotoFileList.length + files.length;
+        if (total > 5) { alert('Maximum 5 photos'); input.value = ''; return; }
         var preview = document.getElementById('qcGiverPhotoPreview');
         files.forEach(function(file) {
             giverPhotoFileList.push(file);
@@ -4511,13 +4559,17 @@
         try {
             var qrId = scannedQRData.id;
             
-            var photoUrl = receiverPhotoFile ? await uploadToStorage(receiverPhotoFile, 'receiver/' + qrId) : null;
+            var photoUrls = [];
+            for (var i = 0; i < receiverPhotoFileList.length; i++) {
+                var url = await uploadToStorage(receiverPhotoFileList[i], 'receiver/' + qrId);
+                if (url) photoUrls.push(url);
+            }
             var videoUrl = receiverVideoFile ? await uploadToStorage(receiverVideoFile, 'receiver/' + qrId) : null;
             var voiceUrl = (voiceRecorders.receiver && voiceRecorders.receiver.blob) ? await uploadBlobToStorage(voiceRecorders.receiver.blob, 'receiver/' + qrId, 'voice') : null;
             
             var receiverData = {
                 message: note,
-                photo: photoUrl,
+                photos: photoUrls,
                 video: videoUrl,
                 voice: voiceUrl,
                 user: currentUser,
