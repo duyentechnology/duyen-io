@@ -2099,9 +2099,7 @@
             
             <!-- Business info section (shows if business data exists) -->
             <div id="qcBizSection" style="display: none;">
-                <div id="qcBizPhoto" style="display: none; margin-bottom: 1.5rem; text-align: center;">
-                    <img id="qcBizPhotoImg" src="" alt="Photo" style="max-width: 100%; border-radius: 16px; border: 2px solid var(--border-light);">
-                </div>
+                <div id="qcBizPhotos" style="display: none; margin-bottom: 1.5rem;"></div>
                 <h1 id="qcBizLabel" style="font-family: 'Crimson Pro', serif; font-size: 1.75rem;"></h1>
                 <p id="qcBizDetails" class="subtitle" style="white-space: pre-wrap;"></p>
                 <div id="qcBizMedia" class="thread-detail-photos" style="display: none; margin-top: 1rem;"></div>
@@ -2149,6 +2147,7 @@
                 <div style="font-size: 3rem; margin-bottom: 1rem;">🎁</div>
                 <h2 style="font-family: 'Crimson Pro', serif;">Your Gift Message</h2>
                 <div id="qcGiverSentMessage" style="background: var(--soft-sand); padding: 1.25rem; border-radius: 14px; margin: 1rem 0; text-align: left; white-space: pre-wrap;"></div>
+                <div id="qcGiverSentPhotos" class="thread-detail-photos" style="display:none; margin: 1rem 0;"></div>
                 <div id="qcGiverSentVoice" style="display:none;" class="voice-preview">
                     <span>🎙️</span>
                     <audio id="qcGiverSentAudio" controls style="flex:1;height:36px;"></audio>
@@ -2159,6 +2158,7 @@
                 <div id="qcReceiverResponse" style="display: none;">
                     <h3 style="font-family: 'Crimson Pro', serif; margin-top: 1.5rem;">💝 Response from Receiver</h3>
                     <div id="qcReceiverMessage" style="background: #FFF5F2; padding: 1.25rem; border-radius: 14px; margin: 1rem 0; text-align: left; white-space: pre-wrap;"></div>
+                    <div id="qcReceiverRespPhotos" class="thread-detail-photos" style="display:none; margin: 1rem 0;"></div>
                     <div id="qcReceiverRespVoice" style="display:none;" class="voice-preview">
                         <span>🎙️</span>
                         <audio id="qcReceiverRespAudio" controls style="flex:1;height:36px;"></audio>
@@ -4308,11 +4308,25 @@
             document.getElementById('qcBizLabel').textContent = data.label || '';
             document.getElementById('qcBizDetails').textContent = data.details || '';
             
-            if (data.photo) {
-                document.getElementById('qcBizPhotoImg').src = data.photo;
-                document.getElementById('qcBizPhoto').style.display = 'block';
+            // Show business photos from business_data
+            var bizPhotosDiv = document.getElementById('qcBizPhotos');
+            var bizDataObj = data.business_data;
+            try { if (typeof bizDataObj === 'string') bizDataObj = JSON.parse(bizDataObj); } catch(e) {}
+            var bizPhotos = (bizDataObj && bizDataObj.photos) ? bizDataObj.photos : [];
+            // Also check legacy single photo
+            if (bizPhotos.length === 0 && bizDataObj && bizDataObj.photo) bizPhotos = [bizDataObj.photo];
+            if (bizPhotos.length === 0 && data.photo) bizPhotos = [data.photo];
+            
+            if (bizPhotos.length > 0) {
+                var photosHtml = '<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">';
+                bizPhotos.forEach(function(url) {
+                    photosHtml += '<img src="' + url + '" style="max-width: ' + (bizPhotos.length === 1 ? '100%' : '48%') + '; border-radius: 14px; border: 2px solid var(--border-light); cursor: pointer;" onclick="window.open(this.src)">';
+                });
+                photosHtml += '</div>';
+                bizPhotosDiv.innerHTML = photosHtml;
+                bizPhotosDiv.style.display = 'block';
             } else {
-                document.getElementById('qcBizPhoto').style.display = 'none';
+                bizPhotosDiv.style.display = 'none';
             }
             
             // Show media
@@ -4331,8 +4345,6 @@
             
             // Show business voice memo if available
             var bizVoicePlay = document.getElementById('qcBizVoicePlayback');
-            var bizDataObj = data.business_data;
-            try { if (typeof bizDataObj === 'string') bizDataObj = JSON.parse(bizDataObj); } catch(e) {}
             if (bizDataObj && bizDataObj.voice) {
                 document.getElementById('qcBizVoiceAudio2').src = bizDataObj.voice;
                 bizVoicePlay.style.display = 'flex';
@@ -4370,6 +4382,17 @@
                 document.getElementById('qcGiverSent').style.display = 'block';
                 document.getElementById('qcGiverSentMessage').textContent = giverData.message || '';
                 
+                // Show giver sent photos
+                var gSentPhotos = document.getElementById('qcGiverSentPhotos');
+                if (giverData.photos && giverData.photos.length > 0) {
+                    gSentPhotos.innerHTML = giverData.photos.map(function(p) {
+                        return '<img src="' + p + '" alt="Gift photo" onclick="window.open(this.src)">';
+                    }).join('');
+                    gSentPhotos.style.display = 'grid';
+                } else {
+                    gSentPhotos.style.display = 'none';
+                }
+                
                 // Show giver voice memo if saved
                 if (giverData.voice) {
                     document.getElementById('qcGiverSentAudio').src = giverData.voice;
@@ -4389,6 +4412,18 @@
                     var recData = typeof data.receiver_data === 'string' ? JSON.parse(data.receiver_data) : data.receiver_data;
                     document.getElementById('qcReceiverResponse').style.display = 'block';
                     document.getElementById('qcReceiverMessage').textContent = recData.message || '';
+                    
+                    // Show receiver response photos
+                    var rRespPhotos = document.getElementById('qcReceiverRespPhotos');
+                    if (recData.photos && recData.photos.length > 0) {
+                        rRespPhotos.innerHTML = recData.photos.map(function(p) {
+                            return '<img src="' + p + '" alt="Thank you photo" onclick="window.open(this.src)">';
+                        }).join('');
+                        rRespPhotos.style.display = 'grid';
+                    } else {
+                        rRespPhotos.style.display = 'none';
+                    }
+                    
                     // Show receiver voice if saved
                     if (recData.voice) {
                         document.getElementById('qcReceiverRespAudio').src = recData.voice;
