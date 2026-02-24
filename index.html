@@ -3924,6 +3924,60 @@
     var receiverPhotoData = null;
     var receiverVideoData = null;
     
+    // Keep original file references for storage upload
+    var bizPhotoFile = null;
+    var bizVideoFile = null;
+    var giverPhotoFileList = [];
+    var giverVideoFile = null;
+    var receiverPhotoFile = null;
+    var receiverVideoFile = null;
+    
+    // Upload file to Supabase Storage, returns public URL
+    async function uploadToStorage(file, folder) {
+        if (!file) return null;
+        var timestamp = Date.now();
+        var safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.-]/g, '_') : 'file';
+        var path = folder + '/' + timestamp + '_' + safeName;
+        
+        var { data, error } = await _supabase.storage
+            .from('qr-media')
+            .upload(path, file, { cacheControl: '3600', upsert: false });
+        
+        if (error) {
+            console.error('Upload error:', error);
+            return null;
+        }
+        
+        var { data: urlData } = _supabase.storage
+            .from('qr-media')
+            .getPublicUrl(path);
+        
+        return urlData.publicUrl;
+    }
+    
+    // Upload blob (voice memo) to storage
+    async function uploadBlobToStorage(blob, folder, filename) {
+        if (!blob) return null;
+        var timestamp = Date.now();
+        var ext = blob.type.includes('mp4') ? '.mp4' : blob.type.includes('ogg') ? '.ogg' : '.webm';
+        var path = folder + '/' + timestamp + '_' + (filename || 'voice') + ext;
+        
+        var { data, error } = await _supabase.storage
+            .from('qr-media')
+            .upload(path, blob, { contentType: blob.type, cacheControl: '3600', upsert: false });
+        
+        if (error) {
+            console.error('Voice upload error:', error);
+            return null;
+        }
+        
+        var { data: urlData } = _supabase.storage
+            .from('qr-media')
+            .getPublicUrl(path);
+        
+        return urlData.publicUrl;
+    }
+    
     // ==========================================
     // VOICE MEMO RECORDING
     // ==========================================
@@ -4040,6 +4094,7 @@
 
     function handleBizPhoto(input) {
         if (input.files && input.files[0]) {
+            bizPhotoFile = input.files[0];
             var reader = new FileReader();
             reader.onload = function(e) {
                 bizPhotoData = e.target.result;
@@ -4052,6 +4107,7 @@
 
     function handleBizVideo(input) {
         if (input.files && input.files[0]) {
+            bizVideoFile = input.files[0];
             var reader = new FileReader();
             reader.onload = function(e) {
                 bizVideoData = e.target.result;
@@ -4064,6 +4120,7 @@
 
     function handleGiverVideo(input) {
         if (input.files && input.files[0]) {
+            giverVideoFile = input.files[0];
             var reader = new FileReader();
             reader.onload = function(e) {
                 giverVideoData = e.target.result;
@@ -4076,6 +4133,7 @@
 
     function handleReceiverPhoto(input) {
         if (input.files && input.files[0]) {
+            receiverPhotoFile = input.files[0];
             var reader = new FileReader();
             reader.onload = function(e) {
                 receiverPhotoData = e.target.result;
@@ -4088,6 +4146,7 @@
 
     function handleReceiverVideo(input) {
         if (input.files && input.files[0]) {
+            receiverVideoFile = input.files[0];
             var reader = new FileReader();
             reader.onload = function(e) {
                 receiverVideoData = e.target.result;
@@ -4103,18 +4162,31 @@
         var name = document.getElementById('qcBizName').value.trim();
         if (!name) { alert('Please enter a business name'); return; }
         
-        var businessData = {
-            name: name,
-            description: document.getElementById('qcBizDesc').value.trim(),
-            email: document.getElementById('qcBizEmail').value.trim(),
-            phone: document.getElementById('qcBizPhone').value.trim(),
-            photo: bizPhotoData,
-            video: bizVideoData,
-            voice: voiceRecorders.biz ? voiceRecorders.biz.dataUrl : null,
-            date: new Date().toISOString()
-        };
+        // Show saving indicator
+        var saveBtn = document.querySelector('#qcBizForm .btn-primary');
+        var origText = saveBtn.textContent;
+        saveBtn.textContent = '⏳ Saving...';
+        saveBtn.disabled = true;
         
         try {
+            var qrId = scannedQRData.id;
+            
+            // Upload media to Storage
+            var photoUrl = bizPhotoFile ? await uploadToStorage(bizPhotoFile, 'biz/' + qrId) : null;
+            var videoUrl = bizVideoFile ? await uploadToStorage(bizVideoFile, 'biz/' + qrId) : null;
+            var voiceUrl = (voiceRecorders.biz && voiceRecorders.biz.blob) ? await uploadBlobToStorage(voiceRecorders.biz.blob, 'biz/' + qrId, 'voice') : null;
+            
+            var businessData = {
+                name: name,
+                description: document.getElementById('qcBizDesc').value.trim(),
+                email: document.getElementById('qcBizEmail').value.trim(),
+                phone: document.getElementById('qcBizPhone').value.trim(),
+                photo: photoUrl,
+                video: videoUrl,
+                voice: voiceUrl,
+                date: new Date().toISOString()
+            };
+            
             var userId = (await _supabase.auth.getUser()).data.user.id;
             var updateFields = {
                 business_data: businessData,
@@ -4122,7 +4194,6 @@
                 label: name,
                 details: businessData.description
             };
-            if (bizPhotoData) updateFields.photo = bizPhotoData;
             
             var { error } = await _supabase
                 .from('qr_codes')
@@ -4139,10 +4210,13 @@
             scannedQRData.business_user_id = userId;
             scannedQRData.label = name;
             scannedQRData.details = businessData.description;
-            populateQRContent(); // Will now show locked screen
+            populateQRContent();
         } catch(e) {
             console.error('Save business error:', e);
             alert('Error saving. Please try again.');
+        } finally {
+            saveBtn.textContent = origText;
+            saveBtn.disabled = false;
         }
     }
 
@@ -4345,6 +4419,7 @@
         var files = Array.from(input.files);
         var preview = document.getElementById('qcGiverPhotoPreview');
         files.forEach(function(file) {
+            giverPhotoFileList.push(file);
             var reader = new FileReader();
             reader.onload = function(e) {
                 giverPhotoFiles.push(e.target.result);
@@ -4368,16 +4443,33 @@
             return;
         }
         
-        var giverData = {
-            message: message,
-            photos: giverPhotoFiles,
-            video: giverVideoData,
-            voice: voiceRecorders.giver ? voiceRecorders.giver.dataUrl : null,
-            user: currentUser,
-            date: new Date().toISOString()
-        };
+        var saveBtn = document.querySelector('#qcGiverForm .btn-primary');
+        var origText = saveBtn.textContent;
+        saveBtn.textContent = '⏳ Sending...';
+        saveBtn.disabled = true;
         
         try {
+            var qrId = scannedQRData.id;
+            
+            // Upload photos to Storage
+            var photoUrls = [];
+            for (var i = 0; i < giverPhotoFileList.length; i++) {
+                var url = await uploadToStorage(giverPhotoFileList[i], 'giver/' + qrId);
+                if (url) photoUrls.push(url);
+            }
+            
+            var videoUrl = giverVideoFile ? await uploadToStorage(giverVideoFile, 'giver/' + qrId) : null;
+            var voiceUrl = (voiceRecorders.giver && voiceRecorders.giver.blob) ? await uploadBlobToStorage(voiceRecorders.giver.blob, 'giver/' + qrId, 'voice') : null;
+            
+            var giverData = {
+                message: message,
+                photos: photoUrls,
+                video: videoUrl,
+                voice: voiceUrl,
+                user: currentUser,
+                date: new Date().toISOString()
+            };
+            
             var { error } = await _supabase
                 .from('qr_codes')
                 .update({ giver_data: giverData, giver_user_id: (await _supabase.auth.getUser()).data.user.id })
@@ -4394,6 +4486,9 @@
         } catch(e) {
             console.error('Save giver error:', e);
             alert('Error saving. Please try again.');
+        } finally {
+            saveBtn.textContent = origText;
+            saveBtn.disabled = false;
         }
     }
 
@@ -4408,16 +4503,27 @@
             return;
         }
         
-        var receiverData = {
-            message: note,
-            photo: receiverPhotoData,
-            video: receiverVideoData,
-            voice: voiceRecorders.receiver ? voiceRecorders.receiver.dataUrl : null,
-            user: currentUser,
-            date: new Date().toISOString()
-        };
+        var saveBtn = document.querySelector('#qcReceiverForm .btn-primary');
+        var origText = saveBtn.textContent;
+        saveBtn.textContent = '⏳ Sending...';
+        saveBtn.disabled = true;
         
         try {
+            var qrId = scannedQRData.id;
+            
+            var photoUrl = receiverPhotoFile ? await uploadToStorage(receiverPhotoFile, 'receiver/' + qrId) : null;
+            var videoUrl = receiverVideoFile ? await uploadToStorage(receiverVideoFile, 'receiver/' + qrId) : null;
+            var voiceUrl = (voiceRecorders.receiver && voiceRecorders.receiver.blob) ? await uploadBlobToStorage(voiceRecorders.receiver.blob, 'receiver/' + qrId, 'voice') : null;
+            
+            var receiverData = {
+                message: note,
+                photo: photoUrl,
+                video: videoUrl,
+                voice: voiceUrl,
+                user: currentUser,
+                date: new Date().toISOString()
+            };
+            
             var { error } = await _supabase
                 .from('qr_codes')
                 .update({ receiver_data: receiverData, receiver_user_id: (await _supabase.auth.getUser()).data.user.id })
@@ -4434,6 +4540,9 @@
         } catch(e) {
             console.error('Save receiver error:', e);
             alert('Error saving. Please try again.');
+        } finally {
+            saveBtn.textContent = origText;
+            saveBtn.disabled = false;
         }
     }
 
