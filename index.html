@@ -3853,7 +3853,7 @@
     );
 
     function logoutDuyen() {
-        try { _supabase.auth.signOut({ scope: 'global' }); } catch(e) {}
+        try { _supabase.auth.signOut({ scope: 'local' }); } catch(e) {}
         document.cookie.split(';').forEach(function(c) {
             var name = c.split('=')[0].trim();
             document.cookie = name + '=; path=/; max-age=0';
