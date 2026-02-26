@@ -3138,7 +3138,7 @@
                 </div>
                 <div class="stat">
                     <div class="stat-number" id="statCategories">0</div>
-                    <div class="stat-label">Categories</div>
+                    <div class="stat-label">⭐ Favorites</div>
                 </div>
             </div>
         </div>
@@ -3146,9 +3146,10 @@
         <!-- Filter tabs -->
         <div class="filter-tabs" id="tapestryFilters">
             <div class="filter-tab active" onclick="filterTapestry('all', this)">All</div>
-            <div class="filter-tab" onclick="filterTapestry('thing', this)">🎁 Things</div>
-            <div class="filter-tab" onclick="filterTapestry('person', this)">👥 People</div>
-            <div class="filter-tab" onclick="filterTapestry('place', this)">📍 Places</div>
+            <div class="filter-tab" onclick="filterTapestry('giver', this)">🎁 Given</div>
+            <div class="filter-tab" onclick="filterTapestry('receiver', this)">💝 Received</div>
+            <div class="filter-tab" onclick="filterTapestry('business', this)">🏢 Business</div>
+            <div class="filter-tab" onclick="filterTapestry('favorites', this)">⭐ Favorites</div>
         </div>
 
         <!-- Thread cards -->
@@ -3363,64 +3364,89 @@
     }
 
     // Tapestry data (user's saved threads)
-    const sampleThreads = [
-        {
-            id: 1, category: 'thing',
-            title: 'Handmade Ceramic Mug',
-            from: 'Sarah Chen',
-            message: 'Happy Birthday! I made this just for you. May it bring warmth to your mornings.',
-            date: '2025-01-10',
-            tags: ['Birthday', 'Handmade', 'Pottery'],
-            icon: '☕'
-        },
-        {
-            id: 2, category: 'person',
-            title: 'Coffee with Alex',
-            from: 'Alex Rivera',
-            message: "Great catching up! Let's do this again soon. Thanks for the advice on the project.",
-            date: '2025-01-08',
-            tags: ['Coffee', 'Meeting', 'Friends'],
-            icon: '👤'
-        },
-        {
-            id: 3, category: 'place',
-            title: 'Golden Gate Park',
-            from: 'Emma & Tom',
-            message: 'What an amazing day exploring the park together! The botanical garden was stunning.',
-            date: '2025-01-05',
-            tags: ['Nature', 'SF', 'Adventure'],
-            icon: '📍'
-        },
-        {
-            id: 4, category: 'thing',
-            title: 'Vintage Leather Journal',
-            from: 'Grandma Rose',
-            message: 'For your travels and dreams. Write your story, my dear.',
-            date: '2024-12-25',
-            tags: ['Gift', 'Journal', 'Travel'],
-            icon: '📔'
-        },
-        {
-            id: 5, category: 'place',
-            title: 'The Blue Door Café',
-            from: 'Local Discovery',
-            message: 'Amazing brunch spot! Best avocado toast in the city. Perfect for weekend mornings.',
-            date: '2024-12-20',
-            tags: ['Food', 'Brunch', 'Local'],
-            icon: '🏪'
-        },
-        {
-            id: 6, category: 'person',
-            title: 'Mom\'s Sunday Call',
-            from: 'Mom',
-            message: 'Remember: you are stronger than you know. Call me whenever you need to talk.',
-            date: '2025-01-12',
-            tags: ['Family', 'Love', 'Weekly'],
-            icon: '💕'
-        }
-    ];
+    const sampleThreads = [];
 
-    let userThreads = [...sampleThreads]; // Start with sample data for demo
+    let userThreads = [];
+    
+    // Load tapestry from database
+    async function loadTapestryFromDB() {
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (!user) return;
+            
+            // Get tapestry entries with joined QR code data
+            var { data, error } = await _supabase
+                .from('tapestry')
+                .select('*, qr_codes(*)')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+            
+            if (error) { console.error('Load tapestry error:', error); return; }
+            if (!data) return;
+            
+            console.log('🧵 Loaded tapestry:', data.length, 'entries');
+            
+            userThreads = data.map(function(entry) {
+                var qr = entry.qr_codes || {};
+                var bizData = qr.business_data;
+                if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
+                var giverData = qr.giver_data;
+                if (typeof giverData === 'string') try { giverData = JSON.parse(giverData); } catch(e) { giverData = null; }
+                var receiverData = qr.receiver_data;
+                if (typeof receiverData === 'string') try { receiverData = JSON.parse(receiverData); } catch(e) { receiverData = null; }
+                
+                // Build display data based on role
+                var title = entry.title || qr.label || 'QR Memory';
+                var message = '';
+                var from = '';
+                var photos = [];
+                var hasVoice = false;
+                var category = entry.role === 'business' ? 'business' : entry.role;
+                var icon = entry.role === 'giver' ? '🎁' : entry.role === 'receiver' ? '💝' : '🏢';
+                
+                if (bizData) {
+                    from = bizData.name || 'Business';
+                    message = bizData.description || '';
+                    photos = bizData.photos || (bizData.photo ? [bizData.photo] : []);
+                    hasVoice = !!bizData.voice;
+                }
+                if (giverData) {
+                    if (entry.role === 'receiver') {
+                        from = giverData.user || 'Gift Giver';
+                        message = giverData.message || '';
+                    } else if (entry.role === 'giver') {
+                        message = giverData.message || '';
+                        from = 'You';
+                    }
+                    photos = photos.length ? photos : (giverData.photos || []);
+                    hasVoice = hasVoice || !!giverData.voice;
+                }
+                if (receiverData && entry.role === 'giver') {
+                    // Show receiver's thank you for givers
+                    if (receiverData.message) message += (message ? ' → ' : '') + receiverData.message;
+                }
+                
+                return {
+                    id: entry.id,
+                    qr_code_id: entry.qr_code_id,
+                    category: category,
+                    title: title,
+                    from: from || 'Someone special',
+                    message: message || 'A meaningful moment',
+                    date: entry.created_at,
+                    tags: entry.tags || [],
+                    icon: icon,
+                    photos: photos,
+                    hasVoice: hasVoice,
+                    isFavorite: entry.is_favorite,
+                    note: entry.note,
+                    role: entry.role
+                };
+            });
+        } catch(e) {
+            console.error('Load tapestry error:', e);
+        }
+    }
 
     // ==========================================
     // NAVIGATION
@@ -4643,7 +4669,71 @@
             alert('No QR data to save');
             return;
         }
-        alert('Saved to your tapestry! 🧵');
+        
+        var btn = document.querySelector('#qcTapestryBtn button');
+        var origText = btn.innerHTML;
+        btn.innerHTML = '⏳ Saving...';
+        btn.disabled = true;
+        
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (!user) { alert('Please sign in first'); return; }
+            
+            // Build title from available data
+            var title = '';
+            var bizData = scannedQRData.business_data;
+            if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
+            
+            if (bizData && bizData.name) {
+                title = bizData.name;
+            } else if (scannedQRData.label) {
+                title = scannedQRData.label;
+            } else {
+                title = 'QR Memory';
+            }
+            
+            var { data, error } = await _supabase
+                .from('tapestry')
+                .insert({
+                    user_id: user.id,
+                    qr_code_id: scannedQRData.id,
+                    role: currentRole || 'receiver',
+                    title: title
+                })
+                .select();
+            
+            if (error) {
+                if (error.code === '23505') {
+                    // Duplicate — already saved
+                    alert('Already in your tapestry! 🧵');
+                } else {
+                    console.error('Tapestry save error:', error);
+                    alert('Error saving. Please try again.');
+                }
+                return;
+            }
+            
+            // Update button to show saved
+            btn.innerHTML = '✅ Saved to Tapestry!';
+            btn.style.background = '#7A9B7E';
+            btn.style.color = 'white';
+            btn.style.border = 'none';
+            setTimeout(function() {
+                btn.innerHTML = origText;
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.style.border = '';
+                btn.disabled = false;
+            }, 3000);
+            return;
+            
+        } catch(e) {
+            console.error('Tapestry save error:', e);
+            alert('Error saving. Please try again.');
+        } finally {
+            btn.disabled = false;
+            if (btn.innerHTML === '⏳ Saving...') btn.innerHTML = origText;
+        }
     }
 
     _supabase.auth.getSession().then(({ data: { session } }) => {
@@ -5653,7 +5743,9 @@
     // ==========================================
     // TAPESTRY
     // ==========================================
-    function initTapestry() {
+    async function initTapestry() {
+        // Load real data from database
+        await loadTapestryFromDB();
         updateStats();
 
         if (userThreads.length > 0) {
@@ -5678,11 +5770,11 @@
             const d = new Date(t.date);
             return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         }).length;
-        const cats = new Set(userThreads.map(t => t.category)).size;
+        const favorites = userThreads.filter(t => t.isFavorite).length;
 
         document.getElementById('statTotal').textContent = total;
         document.getElementById('statMonth').textContent = thisMonth;
-        document.getElementById('statCategories').textContent = cats;
+        document.getElementById('statCategories').textContent = favorites;
     }
 
     function renderTapestry() {
@@ -5691,8 +5783,10 @@
 
         let filtered = userThreads;
 
-        // Category filter
-        if (currentFilter !== 'all') {
+        // Category/role filter
+        if (currentFilter === 'favorites') {
+            filtered = filtered.filter(t => t.isFavorite);
+        } else if (currentFilter !== 'all') {
             filtered = filtered.filter(t => t.category === currentFilter);
         }
 
@@ -5703,7 +5797,7 @@
                 t.title.toLowerCase().includes(search) ||
                 t.from.toLowerCase().includes(search) ||
                 t.message.toLowerCase().includes(search) ||
-                t.tags.some(tag => tag.toLowerCase().includes(search))
+                (t.tags && t.tags.some(tag => tag.toLowerCase().includes(search)))
             );
         }
 
@@ -5713,11 +5807,11 @@
         }
 
         filtered.forEach(thread => {
-            const catClass = thread.category === 'thing' ? 'cat-thing' : thread.category === 'person' ? 'cat-person' : 'cat-place';
-            const catLabel = thread.category === 'thing' ? '🎁 Thing' : thread.category === 'person' ? '👤 Person' : '📍 Place';
+            const roleColors = { giver: '#7A9B7E', receiver: '#C47B7B', business: '#C85A3E' };
+            const roleLabels = { giver: '🎁 You Gave', receiver: '💝 You Received', business: '🏢 Business' };
+            const roleColor = roleColors[thread.role] || '#8B7E74';
+            const roleLabel = roleLabels[thread.role] || thread.role;
             const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const isExternal = thread.source === 'external_scan';
-            const fromLabel = isExternal ? thread.from : 'From ' + thread.from;
             const photoThumb = thread.photos && thread.photos.length > 0
                 ? `<img src="${thread.photos[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
                 : (thread.icon || '🧵');
@@ -5728,14 +5822,14 @@
             card.innerHTML = `
                 <div class="thread-card-image">${photoThumb}</div>
                 <div class="thread-card-body">
-                    <span class="thread-card-category ${catClass}">${catLabel}${isExternal ? ' · 🔗 Scan' : ''}</span>
+                    <span class="thread-card-category" style="background: ${roleColor}15; color: ${roleColor}; border: 1px solid ${roleColor}40;">${roleLabel}${thread.isFavorite ? ' ⭐' : ''}</span>
                     <div class="thread-card-title">${thread.title}</div>
-                    <div class="thread-card-from">${fromLabel}</div>
+                    <div class="thread-card-from">From ${thread.from}</div>
                     <div class="thread-card-msg">${thread.message}</div>
-                    <div class="thread-tags">${thread.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+                    <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
                     <div class="thread-card-footer">
                         <span>📅 ${date}</span>
-                        ${thread.isHidden ? '<span>👁️ Hidden</span>' : `<span>🧵 Thread #${thread.id}</span>`}
+                        <span>${thread.photos && thread.photos.length > 0 ? '📷 ' + thread.photos.length : ''}${thread.hasVoice ? ' 🎙️' : ''}</span>
                     </div>
                 </div>
             `;
@@ -5760,7 +5854,7 @@
             const date = new Date(thread.date);
             const formatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-            const icon = thread.category === 'thing' ? '🎁' : thread.category === 'person' ? '👤' : '📍';
+            const icon = thread.icon || '🧵';
 
             const card = document.createElement('div');
             card.className = 'timeline-card';
