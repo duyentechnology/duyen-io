@@ -4082,9 +4082,14 @@
                 .eq('id', data.id)
                 .then(function() { console.log('📊 Scan counted'); });
             
-            // Only hide business if someone explicitly claimed it via the business role
-            // OR if giver/receiver already added data (business must claim first)
-            if (data.business_data || data.business_user_id || data.giver_data || data.giver_user_id || data.receiver_data || data.receiver_user_id) {
+            // Hide business role if:
+            // 1. Someone already claimed business role (business_data/business_user_id)
+            // 2. QR creator added product data during generation (details, media, photo)
+            // 3. Other roles already filled (giver/receiver)
+            var hasGeneratedData = (data.details && data.details.trim() !== '') || 
+                                   (data.media && data.media.length > 0) || 
+                                   data.photo;
+            if (data.business_data || data.business_user_id || hasGeneratedData || data.giver_data || data.giver_user_id || data.receiver_data || data.receiver_user_id) {
                 bizOption.style.display = 'none';
             }
             
@@ -4540,7 +4545,10 @@
         
         // Role-specific content
         if (currentRole === 'business') {
-            if (data.business_data || data.business_user_id || data.giver_data || data.receiver_data) {
+            var hasGenData = (data.details && data.details.trim() !== '') || 
+                             (data.media && data.media.length > 0) || 
+                             data.photo;
+            if (data.business_data || data.business_user_id || hasGenData || data.giver_data || data.receiver_data) {
                 // Already claimed or other roles added data — show locked
                 document.getElementById('qcBizLocked').style.display = 'block';
             } else {
