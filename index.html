@@ -3552,7 +3552,19 @@
                 var photos = [];
                 var hasVoice = false;
                 var category = entry.role === 'business' ? 'business' : entry.role;
-                var icon = entry.role === 'giver' ? '🎁' : entry.role === 'receiver' ? '💝' : '🏢';
+                var icon = entry.role === 'giver' ? '🎁' : entry.role === 'receiver' ? '💝' : entry.role === 'external' ? '📌' : '🏢';
+                
+                // Handle external scans
+                if (entry.role === 'external' || qr.source === 'external') {
+                    from = (giverData && giverData.name) ? giverData.name : 'Scanned QR';
+                    message = qr.details || '';
+                    icon = '📌';
+                    category = (giverData && giverData.category) || 'thing';
+                    // Media from storage
+                    if (qr.media && qr.media.length > 0) {
+                        photos = qr.media.map(function(m) { return m.url || m; });
+                    }
+                }
                 
                 if (bizData) {
                     from = bizData.name || 'Business';
@@ -3590,7 +3602,8 @@
                     hasVoice: hasVoice,
                     isFavorite: entry.is_favorite,
                     note: entry.note,
-                    role: entry.role
+                    role: entry.role,
+                    externalUrl: (qr.source === 'external') ? qr.url : null
                 };
             });
         } catch(e) {
@@ -3942,7 +3955,7 @@
         renderExtPhotoPreview();
     }
 
-    function saveExternalScan() {
+    async function saveExternalScan() {
         const titleEl = document.getElementById('extTitle');
         const title = titleEl.value.trim();
         const errorEl = document.getElementById('extTitleError');
@@ -3957,33 +3970,73 @@
         errorEl.style.display = 'none';
         titleEl.style.borderColor = '';
 
-        const notes = document.getElementById('extNotes').value.trim();
-        const from = document.getElementById('extFrom').value.trim();
-        const tagsRaw = document.getElementById('extTags').value.trim();
-        const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+        // Show saving state
+        var saveBtn = document.querySelector('#externalQrScreen .btn-primary');
+        if (saveBtn) { saveBtn.textContent = 'Saving...'; saveBtn.disabled = true; }
 
-        const icons = { thing: '🎁', person: '👤', place: '📍' };
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (!user) { alert('Please sign in first'); return; }
 
-        const newThread = {
-            id: Date.now(),
-            category: extSelectedCategory,
-            title: title,
-            from: from || 'Scanned QR',
-            message: notes || 'Saved from a QR code scan.',
-            date: new Date().toISOString().split('T')[0],
-            tags: tags.length > 0 ? tags : ['Scan'],
-            icon: icons[extSelectedCategory] || '📌',
-            source: 'external_scan',
-            externalUrl: scannedExternalUrl,
-            photos: extPhotos.map(p => p.dataUrl),
-            isHidden: false
-        };
+            var notes = document.getElementById('extNotes').value.trim();
+            var from = document.getElementById('extFrom').value.trim();
+            var tagsRaw = document.getElementById('extTags').value.trim();
+            var tags = tagsRaw ? tagsRaw.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
 
-        userThreads.unshift(newThread);
-        console.log('📌 External scan saved to tapestry:', newThread);
+            // Upload photos to Supabase Storage
+            var mediaUrls = [];
+            for (var i = 0; i < extPhotos.length; i++) {
+                var photo = extPhotos[i];
+                if (photo.file) {
+                    var url = await uploadToStorage(photo.file, 'external/' + user.id);
+                    if (url) mediaUrls.push({ type: 'image', url: url });
+                }
+            }
 
-        document.getElementById('successMsg').textContent = 'Woven into your tapestry! This moment is now part of the days of your life.';
-        navigate('success');
+            // Insert into qr_codes table as external source
+            var { data, error } = await _supabase
+                .from('qr_codes')
+                .insert({
+                    user_id: user.id,
+                    url: scannedExternalUrl,
+                    label: title,
+                    details: notes || '',
+                    source: 'external',
+                    media: mediaUrls.length > 0 ? mediaUrls : null,
+                    status: 'active',
+                    giver_data: from ? { name: from, tags: tags, category: extSelectedCategory } : null
+                })
+                .select();
+
+            if (error) {
+                console.error('Save external QR error:', error);
+                alert('Error saving: ' + error.message);
+                return;
+            }
+
+            console.log('📌 External scan saved to Supabase:', data);
+
+            // Also add to tapestry so it shows in the collection
+            if (data && data[0]) {
+                var { error: tapError } = await _supabase
+                    .from('tapestry')
+                    .insert({
+                        user_id: user.id,
+                        qr_code_id: data[0].id,
+                        role: 'external',
+                        title: title
+                    });
+                if (tapError) console.error('Tapestry insert error:', tapError);
+            }
+
+            document.getElementById('successMsg').textContent = 'Woven into your tapestry! This moment is now part of the days of your life.';
+            navigate('success');
+        } catch(e) {
+            console.error('Save external error:', e);
+            alert('Error saving. Please try again.');
+        } finally {
+            if (saveBtn) { saveBtn.textContent = '🧵 Weave into Tapestry'; saveBtn.disabled = false; }
+        }
     }
 
     // Keep simulateScan for test journeys
@@ -6058,7 +6111,7 @@
     function startNotifPolling() {
         if (notifPollInterval) clearInterval(notifPollInterval);
         loadNotifications(); // Load immediately
-        notifPollInterval = setInterval(loadNotifications, 30000);
+        notifPollInterval = setInterval(loadNotifications, 60000);
     }
 
     function stopNotifPolling() {
