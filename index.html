@@ -4090,16 +4090,6 @@
                                    (data.media && data.media.length > 0) || 
                                    data.photo;
             
-            // TEMP DEBUG — remove after testing
-            var debugDiv = document.createElement('div');
-            debugDiv.style.cssText = 'background:#333;color:#0f0;padding:10px;margin:10px 0;border-radius:8px;font-size:12px;font-family:monospace;word-break:break-all;';
-            debugDiv.innerHTML = '🔒 DEBUG:<br>details: ' + JSON.stringify(data.details) 
-                + '<br>media: ' + JSON.stringify(data.media) 
-                + '<br>photo: ' + JSON.stringify(data.photo)
-                + '<br>business_data: ' + JSON.stringify(data.business_data)
-                + '<br>hasGeneratedData: ' + hasGeneratedData;
-            bizOption.parentElement.insertBefore(debugDiv, bizOption);
-            
             if (data.business_data || data.business_user_id || hasGeneratedData || data.giver_data || data.giver_user_id || data.receiver_data || data.receiver_user_id) {
                 bizOption.style.display = 'none';
             }
