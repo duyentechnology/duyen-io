@@ -6188,8 +6188,8 @@
         }
 
         filtered.forEach(thread => {
-            const roleColors = { giver: '#7A9B7E', receiver: '#C47B7B', business: '#C85A3E' };
-            const roleLabels = { giver: '🎁 You Gave', receiver: '💝 You Received', business: '🏢 Business' };
+            const roleColors = { giver: '#7A9B7E', receiver: '#C47B7B', business: '#C85A3E', external: '#6B8EC4' };
+            const roleLabels = { giver: '🎁 You Gave', receiver: '💝 You Received', business: '🏢 Business', external: '📌 Saved Scan' };
             const roleColor = roleColors[thread.role] || '#8B7E74';
             const roleLabel = roleLabels[thread.role] || thread.role;
             const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -6263,7 +6263,7 @@
         const icon = thread.icon || catIcons[thread.category] || '🧵';
         const catLabel = catLabels[thread.category] || 'Thread';
         const date = new Date(thread.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-        const isExternal = thread.source === 'external_scan';
+        const isExternal = thread.source === 'external_scan' || thread.role === 'external';
 
         let html = `
             <div class="thread-detail-hero">
