@@ -2179,7 +2179,7 @@
             <h1>A Thread Awaits</h1>
             <p class="subtitle">Someone wove a connection into this code. What's your role in this story?</p>
 
-            <div id="roleBusinessOption" class="identity-card" onclick="selectRole('business')">
+            <div id="roleBusinessOption" class="identity-card" onclick="selectRole('business')" style="display:none;">
                 <div class="identity-icon">🏢</div>
                 <div class="identity-title">I'm the Business</div>
                 <div class="identity-desc">Add your business information, photos, videos, and links</div>
@@ -4047,7 +4047,7 @@
         const notFound = document.getElementById('qrNotFound');
         const bizOption = document.getElementById('roleBusinessOption');
         notFound.style.display = 'none';
-        bizOption.style.display = 'block';
+        bizOption.style.display = 'none';
         
         try {
             const searchUrl = 'https://duyen.io/q/' + code;
@@ -4090,8 +4090,8 @@
                                    (data.media && data.media.length > 0) || 
                                    data.photo;
             
-            if (data.business_data || data.business_user_id || hasGeneratedData || data.giver_data || data.giver_user_id || data.receiver_data || data.receiver_user_id) {
-                bizOption.style.display = 'none';
+            if (!data.business_data && !data.business_user_id && !hasGeneratedData && !data.giver_data && !data.giver_user_id && !data.receiver_data && !data.receiver_user_id) {
+                bizOption.style.display = 'block';
             }
             
         } catch(e) {
