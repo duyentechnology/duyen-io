@@ -3617,27 +3617,6 @@
 })();
 </script>
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-            body.style.cssText = 'width:'+w+'px; height:'+h+'px; background:radial-gradient(ellipse at 35% 30%, '+p.glow+'EE 0%, '+p.body+' 55%, '+p.body+'CC 100%); border-radius:'+br+'; clip-path:'+clip+'; box-shadow:0 0 '+Math.round(w*0.6)+'px '+p.glow+'88, 0 0 '+Math.round(w*1.1)+'px '+p.glow+'33, inset 0 0 '+Math.round(w*0.2)+'px rgba(0,0,0,0.15);';
-            outer.appendChild(glow);
-            outer.appendChild(body);
-            const tstr = document.createElement('div');
-            tstr.className = 'welcome-tassel-string';
-            tstr.style.height = tassleH + 'px';
-            const fringe = document.createElement('div');
-            fringe.className = 'welcome-tassel-fringe';
-            for (let f = 0; f < fringeCount; f++) {
-                const strand = document.createElement('span');
-                strand.style.cssText = 'height:'+(7+Math.random()*9)+'px; background:'+p.tassel+';';
-                fringe.appendChild(strand);
-            }
-            wrap.appendChild(hs);
-            wrap.appendChild(outer);
-            wrap.appendChild(tstr);
-            wrap.appendChild(fringe);
-            container.appendChild(wrap);
-        }
-    }
-
     // Splash screen dismiss
     window.addEventListener('DOMContentLoaded', function() {
         // Hide splash after 2.2s then show welcome
