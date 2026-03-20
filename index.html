@@ -1414,7 +1414,7 @@
             z-index: 1;
             max-width: 520px;
             width: 100%;
-            background: transparent;
+            background: #ffffff;
             padding: 4rem 2rem 3rem;
             text-align: center;
         }
@@ -1495,12 +1495,6 @@
             letter-spacing: 0.15em;
             color: #bbb;
             text-transform: uppercase;
-        }
-            7%   { opacity: 1; }
-            30%  { transform: translateX(16px) rotate(1.5deg); }
-            60%  { transform: translateX(-14px) rotate(-1.2deg); }
-            93%  { opacity: 0.8; }
-            100% { bottom: 115vh; opacity: 0; transform: translateX(4px); }
         }
 
         /* =============================================
@@ -2218,7 +2212,6 @@
         @keyframes splashFadeUp {
             from { opacity: 0; transform: translateY(14px); }
             to { opacity: 1; transform: translateY(0); }
-        }
         }
 
     </style>
@@ -3647,9 +3640,16 @@
 
     // Splash screen dismiss
     window.addEventListener('DOMContentLoaded', function() {
+        // Hide splash after 2.2s then show welcome
         setTimeout(function() {
             var splash = document.getElementById('splash');
             if (splash) splash.classList.add('hidden');
+            // Ensure welcome screen is active after splash hides
+            try { navigate('home'); } catch(e) { 
+                document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+                var ws = document.getElementById('welcomeScreen');
+                if (ws) ws.classList.add('active');
+            }
         }, 2200);
     });
 
@@ -5152,6 +5152,8 @@
                 proceedAfterAuth();
             }
         }
+    }).catch(function(e) {
+        console.warn('Session check failed, continuing as guest:', e);
     });
 
     async function handleLogin() {
@@ -6582,9 +6584,13 @@
     // Listen for hash changes
     window.addEventListener('hashchange', handleRoute);
 
-    // Initial route
+    // Handle direct QR/hash routes on load (non-splash paths)
     window.addEventListener('DOMContentLoaded', function() {
-        handleRoute();
+        var path = window.location.pathname;
+        var hash = window.location.hash;
+        if (path.startsWith('/q/') || hash.startsWith('#/q/') || hash === '#/tapestry') {
+            handleRoute();
+        }
     });
 </script>
 </body>
