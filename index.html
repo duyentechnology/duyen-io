@@ -2493,12 +2493,9 @@
             <h1>A Thread Awaits</h1>
             <p class="subtitle" id="qrRoleSubtitle">Someone wove a connection into this code. What's your role in this story?</p>
 
-            <div id="guestWarning" style="display:flex; align-items:flex-start; gap:0.6rem; background:#fff8f0; border:1.5px solid #f0c88a; border-radius:12px; padding:0.85rem 1rem; margin-bottom:1.25rem; font-size:0.82rem; line-height:1.55; color:#7a4a1a;">
-                <span style="font-size:1.1rem; flex-shrink:0;">⚠️</span>
-                <div>
-                    <strong style="color:#5a3200; display:block; margin-bottom:0.15rem;">Without an account, nothing will be saved.</strong>
-                    Your photos and memories will be lost when you leave. <a href="#" onclick="navigate('auth'); return false;" style="color:#8B3A7F; font-weight:600; text-decoration:none;">Sign in free →</a>
-                </div>
+            <div id="guestWarning" style="display:flex; align-items:center; gap:0.6rem; background:#f9f5ff; border:1px solid #e2d4f0; border-radius:12px; padding:0.75rem 1rem; margin-bottom:1.25rem; font-size:0.82rem; color:#7D6E64; line-height:1.5;">
+                <span style="font-size:1.1rem; flex-shrink:0;">🔒</span>
+                <span><a href="#" onclick="window.postAuthDestination='qrContent'; navigate('auth'); return false;" style="color:#8B3A7F; font-weight:600; text-decoration:none;">Sign in</a> to save memories to your tapestry. Guests can view but not save.</span>
             </div>
 
             <div id="roleBusinessOption" class="identity-card" onclick="selectRole('business')" style="display:none;">
