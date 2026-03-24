@@ -357,7 +357,7 @@
         .code-input:focus {
             border-color: var(--brand-red);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(200, 90, 62, 0.1);
+            box-shadow: 0 0 0 3px rgba(139, 58, 127, 0.1);
             transform: translateY(-2px);
         }
 
@@ -832,7 +832,7 @@
         .template-card.selected {
             border-color: var(--golden-thread);
             background: #fff8f5;
-            box-shadow: 0 0 0 3px rgba(200, 90, 62, 0.1);
+            box-shadow: 0 0 0 3px rgba(139, 58, 127, 0.1);
         }
 
         .template-card.selected::after {
@@ -1345,7 +1345,7 @@
             align-items: flex-start;
         }
         .notif-item:hover { background: var(--cream-bg); }
-        .notif-item.unread { background: rgba(200, 90, 62, 0.04); }
+        .notif-item.unread { background: rgba(139, 58, 127, 0.04); }
         .notif-item.unread::before {
             content: '';
             width: 8px;
@@ -6627,7 +6627,7 @@
         }
 
         filtered.forEach(thread => {
-            const roleColors = { giver: '#7A9B7E', receiver: '#C47B7B', business: '#C85A3E', external: '#6B8EC4' };
+            const roleColors = { giver: '#7A9B7E', receiver: '#C47B7B', business: '#8B3A7F', external: '#6B8EC4' };
             const roleLabels = { giver: '🎁 You Gave', receiver: '💝 You Received', business: '🏢 Business', external: '📌 Saved Scan' };
             const roleColor = roleColors[thread.role] || '#8B7E74';
             const roleLabel = roleLabels[thread.role] || thread.role;
