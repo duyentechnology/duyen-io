@@ -15,8 +15,8 @@
             --golden-thread: #B08968;
             --warm-brown: #7D6E64;
             --deep-earth: #3D2E24;
-            --brand-red: #C85A3E;
-            --brand-red-hover: #b04a2e;
+            --brand-red: #8B3A7F;
+            --brand-red-hover: #7a3070;
             --sage: #81B29A;
             --text-primary: #3D2E24;
             --text-secondary: #5D4E44;
@@ -120,14 +120,14 @@
 
         .logo-symbol {
             font-size: 3rem;
-            color: var(--brand-red);
+            color: #DA251D;
             font-weight: 300;
             font-family: 'Crimson Pro', serif;
         }
 
         .logo-text {
             font-size: 1.25rem;
-            color: var(--text-secondary);
+            color: #DA251D;
             font-weight: 300;
             letter-spacing: 0.15em;
             font-family: 'DM Sans', sans-serif;
@@ -179,7 +179,7 @@
         .btn-primary:hover {
             background: var(--brand-red-hover);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(200, 90, 62, 0.25);
+            box-shadow: 0 6px 20px rgba(139, 58, 127, 0.25);
         }
 
         .btn-secondary {
@@ -1424,18 +1424,18 @@
         }
 
         .welcome-logo .logo-symbol {
-            font-size: 7rem;
+            font-size: 10rem;
             font-weight: 400;
-            color: #111;
+            color: #DA251D;
             line-height: 1;
             display: block;
         }
 
         .welcome-logo .logo-text {
-            font-size: 1rem;
+            font-size: 1.4rem;
             font-weight: 400;
             letter-spacing: 0.4em;
-            color: #999;
+            color: #DA251D;
             margin-top: 0.4rem;
             display: block;
             font-family: 'DM Sans', sans-serif;
@@ -1478,15 +1478,15 @@
         }
 
         .welcome-actions .btn-primary {
-            background: #111 !important;
+            background: #8B3A7F !important;
             color: #fff !important;
             border: none !important;
         }
 
         .welcome-actions .btn-secondary {
             background: transparent !important;
-            color: #111 !important;
-            border: 1.5px solid #ddd !important;
+            color: #8B3A7F !important;
+            border: 1.5px solid #8B3A7F !important;
         }
 
         .welcome-footer {
@@ -1751,7 +1751,7 @@
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
-            box-shadow: 0 6px 24px rgba(200, 90, 62, 0.35);
+            box-shadow: 0 6px 24px rgba(139, 58, 127, 0.35);
             cursor: pointer;
             transition: all 0.3s;
             border: none;
@@ -1760,7 +1760,7 @@
 
         .fab:hover {
             transform: scale(1.1);
-            box-shadow: 0 8px 32px rgba(200, 90, 62, 0.45);
+            box-shadow: 0 8px 32px rgba(139, 58, 127, 0.45);
         }
 
         /* =============================================
@@ -2249,7 +2249,7 @@
         <h1 class="welcome-headline">Duyên Preserves<br>What Matters</h1>
 
         <div class="welcome-body">
-            <p>Each time you scan a Duyên code, you create a thread —
+            <p>Each time you scan a QR code, you create a thread —
             a lasting memory of a gift received, a person met,
             or a place discovered. Together, these threads
             weave the tapestry of your life.</p>
@@ -2534,11 +2534,8 @@
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
-                <button class="btn-social" onclick="handleGoogleAuth()">
+                <button class="btn-social" onclick="handleGoogleAuth()" style="border: 2px solid #8B3A7F; color: #8B3A7F;">
                     <span style="font-size: 1.3rem;">🔵</span> Continue with Google
-                </button>
-                <button class="btn-social" onclick="handleAppleAuth()">
-                    <span style="font-size: 1.3rem;">🍎</span> Continue with Apple
                 </button>
             </div>
 
@@ -2546,7 +2543,7 @@
 
             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <button class="btn btn-primary btn-full" onclick="navigate('login')">Sign In with Email</button>
-                <button class="btn btn-secondary btn-full" onclick="navigate('signup')">Create New Account</button>
+                <button class="btn btn-secondary btn-full" onclick="navigate('signup')" style="border: 2px solid #8B3A7F !important; color: #8B3A7F !important; background: transparent !important;">Create New Account</button>
             </div>
 
             <!-- Guest option for giver/receiver only -->
