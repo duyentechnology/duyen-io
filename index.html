@@ -2493,6 +2493,14 @@
             <h1>A Thread Awaits</h1>
             <p class="subtitle" id="qrRoleSubtitle">Someone wove a connection into this code. What's your role in this story?</p>
 
+            <div id="guestWarning" style="display:flex; align-items:flex-start; gap:0.6rem; background:#fff8f0; border:1.5px solid #f0c88a; border-radius:12px; padding:0.85rem 1rem; margin-bottom:1.25rem; font-size:0.82rem; line-height:1.55; color:#7a4a1a;">
+                <span style="font-size:1.1rem; flex-shrink:0;">⚠️</span>
+                <div>
+                    <strong style="color:#5a3200; display:block; margin-bottom:0.15rem;">Without an account, nothing will be saved.</strong>
+                    Your photos and memories will be lost when you leave. <a href="#" onclick="navigate('auth'); return false;" style="color:#8B3A7F; font-weight:600; text-decoration:none;">Sign in free →</a>
+                </div>
+            </div>
+
             <div id="roleBusinessOption" class="identity-card" onclick="selectRole('business')" style="display:none;">
                 <div class="identity-icon">🏢</div>
                 <div class="identity-title">I'm the Business</div>
@@ -2533,14 +2541,7 @@
         </div>
         <div class="card">
             <!-- Guest mode banner -->
-            <div id="qcGuestBanner" style="display: none; background: linear-gradient(135deg, #FFF8F0, #FDF2E9); border: 2px solid var(--golden-thread); border-radius: 14px; padding: 14px 16px; margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                    <span style="font-size: 1.3rem;">👋</span>
-                    <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Browsing as guest</span>
-                </div>
-                <p id="qcGuestBannerMsg" style="color: var(--text-muted); font-size: 0.85rem; margin: 0 0 10px;"></p>
-                <button class="btn btn-primary" onclick="window.postAuthDestination='qrContent'; navigate('auth');" style="width: 100%; padding: 10px; font-size: 0.9rem;">✨ Create Free Account</button>
-            </div>
+
             
             <!-- Business info section (shows if business data exists) -->
             <div id="qcBizSection" style="display: none;">
@@ -2722,9 +2723,20 @@
                 <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">Personal messages between givers and receivers are private.</p>
             </div>
             
-            <!-- Save to tapestry button (hidden for business) -->
-            <div id="qcTapestryBtn" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light); text-align: center;">
-                <button class="btn btn-secondary" onclick="saveToTapestry()" style="width: 100%;">🧵 Save to My Tapestry</button>
+            <!-- Save to tapestry section -->
+            <div id="qcTapestryBtn" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                <!-- Logged-in: show save button -->
+                <div id="qcSaveBtnWrap" style="text-align:center;">
+                    <button class="btn btn-secondary" onclick="saveToTapestry()" style="width: 100%;">🧵 Save to My Tapestry</button>
+                </div>
+                <!-- Guest receiver: prompt to sign in to save -->
+                <div id="qcGuestBanner" style="display:none; background:#f3eaf1; border:1.5px solid #c9a0c4; border-radius:14px; padding:1.1rem 1.25rem; text-align:center;">
+                    <div style="font-size:1.5rem; margin-bottom:0.5rem;">🧵</div>
+                    <p style="font-weight:700; color:#3d1a38; font-size:0.95rem; margin-bottom:0.3rem;">Want to keep this memory?</p>
+                    <p id="qcGuestBannerMsg" style="color:#7D6E64; font-size:0.82rem; margin-bottom:1rem; line-height:1.5;">Create a free account to save this to your tapestry and send a thank you.</p>
+                    <button class="btn btn-primary" onclick="window.postAuthDestination='qrContent'; navigate('auth');" style="width:100%; padding:12px; font-size:0.95rem;">✨ Sign In to Save</button>
+                    <p style="font-size:0.75rem; color:#aaa; margin-top:0.75rem;">It's free — takes 30 seconds</p>
+                </div>
             </div>
         </div>
     </div>
@@ -4111,6 +4123,10 @@
 
         // Post-navigation hooks
         if (screen === 'qr' && window.scannedQRCode) loadScannedQR(window.scannedQRCode);
+        if (screen === 'qr') {
+            var gw = document.getElementById('guestWarning');
+            if (gw) gw.style.display = isAuthenticated ? 'none' : 'flex';
+        }
         if (screen === 'qrContent') populateQRContent();
         if (screen === 'auth') {
             var guestOpt = document.getElementById('authGuestOption');
@@ -4161,8 +4177,18 @@
     function selectRole(role) {
         console.log('🎯 Role:', role);
         currentRole = role;
-        // Always show auth screen for QR flows — even if session exists
-        navigate('auth');
+
+        if (role === 'giver') {
+            // Giver must sign in first — no anonymous gifting
+            if (isAuthenticated) navigate('qrContent');
+            else { window.postAuthDestination = 'qrContent'; navigate('auth'); }
+        } else if (role === 'receiver') {
+            // Receiver can view first, prompted to sign in to save at the bottom
+            navigate('qrContent');
+        } else {
+            // Business
+            navigate('auth');
+        }
     }
 
     function handleAction(action) {
@@ -4982,18 +5008,16 @@
         document.getElementById('qcReceiverView').style.display = 'none';
         document.getElementById('qcBizLocked').style.display = 'none';
         
-        // Show guest banner if not logged in (giver/receiver only)
+        // Show save button or guest banner depending on auth state
         var guestBanner = document.getElementById('qcGuestBanner');
+        var saveBtnWrap = document.getElementById('qcSaveBtnWrap');
         var guestMsg = document.getElementById('qcGuestBannerMsg');
-        if (!isAuthenticated && currentRole !== 'business') {
-            guestBanner.style.display = 'block';
-            if (currentRole === 'giver') {
-                guestMsg.textContent = 'Sign up to save this memory and get notified when your gift is opened.';
-            } else {
-                guestMsg.textContent = 'Sign up to save this gift to your tapestry and send a thank you.';
-            }
+        if (!isAuthenticated && currentRole === 'receiver') {
+            if (guestBanner) guestBanner.style.display = 'block';
+            if (saveBtnWrap) saveBtnWrap.style.display = 'none';
         } else {
-            guestBanner.style.display = 'none';
+            if (guestBanner) guestBanner.style.display = 'none';
+            if (saveBtnWrap) saveBtnWrap.style.display = 'block';
         }
         
         // Show login hints on buttons for guests
