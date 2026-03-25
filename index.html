@@ -2555,6 +2555,16 @@
                 <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
             </div>
             
+            <!-- Secret phrase lock screen (non-business roles when phrase is set) -->
+            <div id="qcSecretLock" style="display: none; text-align: center; padding: 1.5rem 0;">
+                <div style="font-size: 3rem; margin-bottom: 0.75rem;">🔒</div>
+                <p style="font-family: 'Crimson Pro', serif; font-size: 1.3rem; font-weight: 600; margin: 0 0 0.4rem; color: #5a2a57;">This gift is protected</p>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0 0 1.25rem;">Enter the secret phrase the giver shared with you</p>
+                <input type="text" id="qcSecretInput" placeholder="Enter secret phrase…" style="width: 100%; border: 2px solid #c99bc4; border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box; text-align: center; margin-bottom: 0.5rem;" onkeydown="if(event.key==='Enter') unlockContent()">
+                <p id="qcSecretError" style="display: none; color: #c0392b; font-size: 0.85rem; margin: 0 0 0.75rem;">✗ Wrong phrase — try again</p>
+                <button class="btn btn-primary" onclick="unlockContent()" style="width: 100%; background: #8B3A7F;">🔓 Unlock</button>
+            </div>
+
             <!-- Giver section: shows when role=giver and no giver data yet -->
             <div id="qcGiverForm" style="display: none;">
                 <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Add Your Gift Message</h2>
@@ -2579,6 +2589,11 @@
                         <audio id="giverVoiceAudio" controls></audio>
                         <button class="voice-delete" onclick="deleteRecording('giver')">🗑️</button>
                     </div>
+                </div>
+                <div style="margin-top: 1.25rem; background: #f9f4f9; border: 2px dashed #c99bc4; border-radius: 14px; padding: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem; color: #8B3A7F;">🔒 Secret Phrase <span style="font-weight: 400; color: var(--text-muted);">(optional)</span></label>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.6rem;">Lock your message with a word or phrase only the receiver would know. Leave blank to keep it open.</p>
+                    <input type="text" id="qcGiverSecretPhrase" placeholder="e.g. sunflower, our first road trip, lucky cat…" style="width: 100%; border: 2px solid #c99bc4; border-radius: 10px; padding: 0.65rem 1rem; font-family: inherit; font-size: 0.95rem; box-sizing: border-box; background: white;">
                 </div>
                 <button class="btn btn-primary" onclick="saveGiverData()" style="width: 100%; margin-top: 1.5rem;">🎁 Send Gift Message</button>
                 <p id="qcGiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Create an account to send your message and get notified</p>
@@ -4571,6 +4586,8 @@
         const bizOption = document.getElementById('roleBusinessOption');
         notFound.style.display = 'none';
         bizOption.style.display = 'none';
+        window._contentUnlocked = false;
+        window._lockedGiverData = null;
         
         try {
             const searchUrl = 'https://duyen.io/q/' + code;
@@ -5002,6 +5019,7 @@
         document.getElementById('qcGiverSent').style.display = 'none';
         document.getElementById('qcReceiverView').style.display = 'none';
         document.getElementById('qcBizLocked').style.display = 'none';
+        document.getElementById('qcSecretLock').style.display = 'none';
         
         // Show save button or guest banner depending on auth state
         var guestBanner = document.getElementById('qcGuestBanner');
@@ -5103,6 +5121,14 @@
             }
         }
         else if (currentRole === 'giver') {
+            // Check lock
+            var _gd = data.giver_data;
+            if (typeof _gd === 'string') { try { _gd = JSON.parse(_gd); } catch(e) { _gd = null; } }
+            if (_gd && _gd.secret_phrase && !window._contentUnlocked) {
+                window._lockedGiverData = _gd;
+                document.getElementById('qcSecretLock').style.display = 'block';
+                return;
+            }
             if (data.giver_data) {
                 // Giver already added message — show it + receiver response
                 var giverData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
@@ -5176,6 +5202,14 @@
             }
         }
         else if (currentRole === 'receiver') {
+            // Check lock
+            var _gd2 = data.giver_data;
+            if (typeof _gd2 === 'string') { try { _gd2 = JSON.parse(_gd2); } catch(e) { _gd2 = null; } }
+            if (_gd2 && _gd2.secret_phrase && !window._contentUnlocked) {
+                window._lockedGiverData = _gd2;
+                document.getElementById('qcSecretLock').style.display = 'block';
+                return;
+            }
             document.getElementById('qcReceiverView').style.display = 'block';
             
             if (data.giver_data) {
@@ -5220,6 +5254,21 @@
                 document.getElementById('qcReceiverForm').style.display = 'block';
                 document.getElementById('qcReceiverSent').style.display = 'none';
             }
+        }
+    }
+
+    function unlockContent() {
+        var input = document.getElementById('qcSecretInput').value.trim().toLowerCase();
+        var stored = window._lockedGiverData && window._lockedGiverData.secret_phrase;
+        if (!input) return;
+        if (input === stored) {
+            window._contentUnlocked = true;
+            document.getElementById('qcSecretError').style.display = 'none';
+            populateQRContent();
+        } else {
+            document.getElementById('qcSecretError').style.display = 'block';
+            document.getElementById('qcSecretInput').value = '';
+            document.getElementById('qcSecretInput').focus();
         }
     }
 
@@ -5271,13 +5320,15 @@
             var videoUrl = giverVideoFile ? await uploadToStorage(giverVideoFile, 'giver/' + qrId) : null;
             var voiceUrl = (voiceRecorders.giver && voiceRecorders.giver.blob) ? await uploadBlobToStorage(voiceRecorders.giver.blob, 'giver/' + qrId, 'voice') : null;
             
+            var secretPhrase = document.getElementById('qcGiverSecretPhrase').value.trim().toLowerCase();
             var giverData = {
                 message: message,
                 photos: photoUrls,
                 video: videoUrl,
                 voice: voiceUrl,
                 user: currentUser,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                secret_phrase: secretPhrase || null
             };
             
             var { error } = await _supabase
