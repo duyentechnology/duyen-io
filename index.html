@@ -2563,6 +2563,7 @@
                 <input type="text" id="qcSecretInput" placeholder="Enter secret phrase…" style="width: 100%; border: 2px solid #c99bc4; border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box; text-align: center; margin-bottom: 0.5rem;" onkeydown="if(event.key==='Enter') unlockContent()">
                 <p id="qcSecretError" style="display: none; color: #c0392b; font-size: 0.85rem; margin: 0 0 0.75rem;">✗ Wrong phrase — try again</p>
                 <button class="btn btn-primary" onclick="unlockContent()" style="width: 100%; background: #8B3A7F;">🔓 Unlock</button>
+                <a href="#" onclick="navigate('tapestry'); return false;" style="display:inline-block; margin-top:1rem; font-size:0.85rem; color:#8B3A7F; text-decoration:none; font-weight:600;">Go to My Tapestry →</a>
             </div>
 
             <!-- Giver section: shows when role=giver and no giver data yet -->
@@ -2739,6 +2740,7 @@
                 <!-- Logged-in: show save button -->
                 <div id="qcSaveBtnWrap" style="text-align:center;">
                     <button class="btn btn-secondary" onclick="saveToTapestry()" style="width: 100%;">🧵 Save to My Tapestry</button>
+                    <a href="#" onclick="navigate('tapestry'); return false;" style="display:inline-block; margin-top:0.75rem; font-size:0.85rem; color:#8B3A7F; text-decoration:none; font-weight:600;">Go to My Tapestry →</a>
                 </div>
                 <!-- Guest receiver: prompt to sign in to save -->
                 <div id="qcGuestBanner" style="display:none; background:#f3eaf1; border:1.5px solid #c9a0c4; border-radius:14px; padding:1.1rem 1.25rem; text-align:center;">
