@@ -1500,6 +1500,100 @@
         /* =============================================
            TAPESTRY VIEW
         ============================================= */
+        /* ── COLLAGE STRIP ── */
+        .collage-outer {
+            position: relative;
+            margin: 0.5rem -1rem 0;
+        }
+        .collage-outer::before, .collage-outer::after {
+            content: ''; position: absolute; top: 0; bottom: 0;
+            width: 32px; pointer-events: none; z-index: 10;
+        }
+        .collage-outer::before { left: 0;  background: linear-gradient(to right, var(--page-bg, #f8f5f0), transparent); }
+        .collage-outer::after  { right: 0; background: linear-gradient(to left,  var(--page-bg, #f8f5f0), transparent); }
+        .collage-scroll {
+            display: flex;
+            align-items: flex-end;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 24px 48px 16px 48px;
+            transition: opacity 0.25s ease;
+        }
+        .collage-scroll::-webkit-scrollbar { display: none; }
+        .collage-card-mini {
+            flex-shrink: 0;
+            width: 110px;
+            margin-left: -32px;
+            position: relative;
+            cursor: pointer;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 2px 3px 10px rgba(0,0,0,0.16);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            transform: rotate(var(--ctilt, 0deg));
+        }
+        .collage-card-mini:first-child { margin-left: 0; }
+        .collage-card-mini:hover {
+            transform: rotate(0deg) scale(1.1) translateY(-6px) !important;
+            box-shadow: 4px 10px 24px rgba(0,0,0,0.24) !important;
+            z-index: 50 !important;
+        }
+        .collage-card-mini::before {
+            content: ''; position: absolute; top: -6px; left: 50%;
+            transform: translateX(-50%) rotate(var(--ctape, -2deg));
+            width: 36px; height: 14px;
+            background: rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.65);
+            border-radius: 2px; z-index: 5;
+        }
+        .collage-card-mini::after {
+            content: ''; position: absolute; bottom: 0; right: 0;
+            width: 0; height: 0; border-style: solid;
+            border-width: 0 0 11px 11px;
+            border-color: transparent transparent rgba(255,255,255,0.22) transparent; z-index: 5;
+        }
+        .collage-photo-mini {
+            width: 100%; aspect-ratio: 4/3;
+            background: rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; overflow: hidden;
+        }
+        .collage-photo-mini img { width:100%; height:100%; object-fit:cover; }
+        .collage-body-mini { padding: 0.35rem 0.45rem 0.55rem; }
+        .collage-title-mini {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.75rem; font-weight: 600;
+            color: white; line-height: 1.2;
+        }
+        .collage-date-mini {
+            font-family: 'Caveat', cursive;
+            font-size: 0.65rem; color: rgba(255,255,255,0.55);
+            margin-top: 0.1rem;
+        }
+        .collage-note-mini {
+            padding: 0.55rem 0.5rem 0.65rem;
+            min-height: 80px;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .collage-msg-mini {
+            font-family: 'Caveat', cursive;
+            font-size: 0.75rem; line-height: 1.5; color: white;
+            display: -webkit-box; -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .collage-hint {
+            font-family: 'Caveat', cursive; font-size: 0.8rem;
+            color: var(--text-muted); text-align: center;
+            padding: 0.15rem 0 0.6rem;
+        }
+        .collage-new-badge {
+            position: absolute; top: 0.35rem; right: 0.35rem;
+            font-family: 'Caveat', cursive; font-size: 0.62rem;
+            background: rgba(255,255,255,0.92); color: #1C1410;
+            padding: 0.05rem 0.35rem; border-radius: 6px; z-index: 6;
+        }
+
         .tapestry-welcome {
             text-align: center;
             margin-bottom: 2.5rem;
@@ -3719,6 +3813,12 @@
                 </div>
             </div>
         </div>
+
+        <!-- Collage strip -->
+        <div class="collage-outer" id="collageOuter" style="display:none;">
+            <div class="collage-scroll" id="collageScroll"></div>
+        </div>
+        <div class="collage-hint" id="collageHint" style="display:none;">swipe to see older · tap any card to open</div>
 
         <!-- Filter tabs -->
         <div class="filter-tabs" id="tapestryFilters">
@@ -6757,11 +6857,73 @@
         }
     }
 
+    function buildCollage() {
+        const scroll = document.getElementById('collageScroll');
+        const outer  = document.getElementById('collageOuter');
+        const hint   = document.getElementById('collageHint');
+        scroll.innerHTML = '';
+
+        if (!userThreads || userThreads.length === 0) {
+            outer.style.display = 'none';
+            hint.style.display  = 'none';
+            return;
+        }
+
+        outer.style.display = 'block';
+        hint.style.display  = 'block';
+
+        const palettes = {
+            receiver: ['#C8406A','#D4503C','#B83858'],
+            giver:    ['#3A8C48','#B87828','#5A8060'],
+            business: ['#4888C0','#5848A8','#2878A0'],
+            external: ['#8B5E3C','#6B7280','#7C4D3A'],
+        };
+        const tilts  = [-7, 8, -5, 6, -8, 5, -4, 9, -6, 7];
+        const tapes  = [-3, 3, 2, -2, 3, -3, 2, -2, 3, -1];
+
+        // Sort newest first, show up to 10
+        const cards = [...userThreads]
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 10);
+
+        cards.forEach((thread, i) => {
+            const palette   = palettes[thread.role] || palettes.external;
+            const color     = palette[i % 3];
+            const hasPhoto  = thread.photos && thread.photos.length > 0;
+            const isNewest  = i === 0;
+            const date      = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+            const div = document.createElement('div');
+            div.className = 'collage-card-mini';
+            div.style.cssText = `z-index:${20 - i}; --ctilt:${tilts[i % tilts.length]}deg; --ctape:${tapes[i % tapes.length]}deg; background:${color};`;
+            div.onclick = () => openThread(thread.id);
+
+            if (hasPhoto) {
+                div.innerHTML = `
+                    ${isNewest ? '<div class="collage-new-badge">new</div>' : ''}
+                    <div class="collage-photo-mini">
+                        <img src="${thread.photos[0]}" alt="${thread.title}">
+                    </div>
+                    <div class="collage-body-mini">
+                        <div class="collage-title-mini">${thread.title}</div>
+                        <div class="collage-date-mini">${date}</div>
+                    </div>`;
+            } else {
+                div.innerHTML = `
+                    ${isNewest ? '<div class="collage-new-badge">new</div>' : ''}
+                    <div class="collage-note-mini">
+                        <div class="collage-msg-mini">"${thread.message || thread.title}"</div>
+                        <div class="collage-date-mini">${date}</div>
+                    </div>`;
+            }
+            scroll.appendChild(div);
+        });
+    }
+
     // ==========================================
     // TAPESTRY
     // ==========================================
     async function initTapestry() {
-        // Load real data from database
         await loadTapestryFromDB();
         updateStats();
 
@@ -6770,6 +6932,7 @@
             document.getElementById('tapestryFilters').style.display = 'flex';
             document.getElementById('tapestryGrid').style.display = 'grid';
             document.getElementById('timelineSection').style.display = 'block';
+            buildCollage();
             renderTapestry();
             renderTimeline();
         } else {
@@ -6777,6 +6940,8 @@
             document.getElementById('tapestryFilters').style.display = 'none';
             document.getElementById('tapestryGrid').style.display = 'none';
             document.getElementById('timelineSection').style.display = 'none';
+            document.getElementById('collageOuter').style.display = 'none';
+            document.getElementById('collageHint').style.display = 'none';
         }
     }
 
@@ -6828,7 +6993,6 @@
             const roleLabel  = roleLabels[thread.role] || thread.role;
             const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-            // Color palettes per role — cycle through 3 shades
             const palettes = {
                 receiver: ['#C8406A','#D4503C','#B83858'],
                 giver:    ['#3A8C48','#B87828','#5A8060'],
@@ -6840,15 +7004,45 @@
             const tapeTilts = [-3, 2, 3, -2, 2, -3];
             const tapeTilt  = tapeTilts[index % tapeTilts.length];
 
-            const hasPhoto  = thread.photos && thread.photos.length > 0;
-            const photoCount = thread.photos ? thread.photos.length : 0;
+            const photos     = thread.photos || [];
+            const hasPhoto   = photos.length > 0;
+            const photoCount = photos.length;
 
-            const photoThumb = hasPhoto
-                ? `<img src="${thread.photos[0]}" style="width:100%;height:100%;object-fit:cover;">`
-                : (thread.icon || '🧵');
+            // Build photo section based on count
+            function buildPhotoSection() {
+                if (photoCount === 0) return '';
+                if (photoCount === 1) {
+                    return `<div class="thread-card-image">
+                        <img src="${photos[0]}" style="width:100%;height:100%;object-fit:cover;">
+                    </div>`;
+                }
+                if (photoCount === 2) {
+                    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">
+                        <div class="thread-card-image" style="aspect-ratio:1;"><img src="${photos[0]}" style="width:100%;height:100%;object-fit:cover;"></div>
+                        <div class="thread-card-image" style="aspect-ratio:1;"><img src="${photos[1]}" style="width:100%;height:100%;object-fit:cover;"></div>
+                    </div>`;
+                }
+                if (photoCount === 3) {
+                    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">
+                        <div class="thread-card-image" style="aspect-ratio:4/3;grid-column:1/-1;"><img src="${photos[0]}" style="width:100%;height:100%;object-fit:cover;"></div>
+                        <div class="thread-card-image" style="aspect-ratio:1;"><img src="${photos[1]}" style="width:100%;height:100%;object-fit:cover;"></div>
+                        <div class="thread-card-image" style="aspect-ratio:1;"><img src="${photos[2]}" style="width:100%;height:100%;object-fit:cover;"></div>
+                    </div>`;
+                }
+                // 4+ photos: lead + strip of thumbnails
+                const extras = photoCount - 3;
+                const thumbs = photos.slice(1, 4).map((p, i) => {
+                    const isLast = i === 2 && extras > 0;
+                    return `<div class="thread-card-image" style="aspect-ratio:1;position:relative;">
+                        <img src="${p}" style="width:100%;height:100%;object-fit:cover;">
+                        ${isLast ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:white;font-weight:600;">+${extras}</div>` : ''}
+                    </div>`;
+                }).join('');
+                return `<div class="thread-card-image"><img src="${photos[0]}" style="width:100%;height:100%;object-fit:cover;"></div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;">${thumbs}</div>`;
+            }
 
             const mediaChips = [
-                photoCount > 1 ? `<span class="media-chip">📷 ${photoCount}</span>` : '',
                 thread.hasVoice ? `<span class="media-chip">🎙️ voice</span>` : '',
                 thread.hasVideo ? `<span class="media-chip">🎬 video</span>` : '',
             ].join('');
@@ -6859,11 +7053,10 @@
             card.onclick = () => openThread(thread.id);
 
             if (hasPhoto) {
-                // White body card with photo + color edge
                 card.innerHTML = `
                     <div class="thread-card-inner">
                         <div class="thread-card-edge" style="background:${cardColor};"></div>
-                        <div class="thread-card-image">${photoThumb}</div>
+                        ${buildPhotoSection()}
                         <div class="thread-card-body">
                             <span class="thread-card-category" style="background:${cardColor}18; color:${cardColor}; border:1px solid ${cardColor}35;">
                                 ${roleLabel}${thread.isFavorite ? ' ⭐' : ''}
@@ -6873,13 +7066,10 @@
                             <div class="thread-card-msg">${thread.message}</div>
                             ${mediaChips ? `<div style="margin-top:0.4rem;">${mediaChips}</div>` : ''}
                             <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
-                            <div class="thread-card-footer">
-                                <span>📅 ${date}</span>
-                            </div>
+                            <div class="thread-card-footer"><span>📅 ${date}</span></div>
                         </div>
                     </div>`;
             } else {
-                // Full color body card (note style)
                 card.innerHTML = `
                     <div class="thread-card-inner">
                         <div class="thread-card-body body-color" style="background:${cardColor};">
@@ -6891,11 +7081,9 @@
                             <div class="thread-card-msg">${thread.message || ''}</div>
                             ${mediaChips ? `<div style="margin-top:0.4rem;">${mediaChips}</div>` : ''}
                             <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag" style="background:rgba(255,255,255,0.18);color:white;">${t}</span>`).join('')}</div>
-                            <div class="thread-card-footer">
-                                <span>📅 ${date}</span>
-                            </div>
+                            <div class="thread-card-footer"><span>📅 ${date}</span></div>
                         </div>
-                    </div>`; 
+                    </div>`;
             }
             grid.appendChild(card);
         });
