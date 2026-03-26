@@ -4108,12 +4108,6 @@
             <button class="btn btn-primary" onclick="openScanner()">📸 Scan Your First QR Code</button>
         </div>
 
-        <!-- Timeline -->
-        <div class="timeline-section" id="timelineSection" style="display: none;">
-            <h2>Days of My Life</h2>
-            <p class="timeline-subtitle">Your threads woven through time</p>
-            <div class="timeline-scroll" id="timelineScroll"></div>
-        </div>
     </div>
 
     <!-- FAB -->
@@ -7328,20 +7322,17 @@
             document.getElementById('tapCollageOuter').style.display = 'block';
             document.getElementById('tapCollageHint').style.display = 'block';
             document.getElementById('tapMonthOuter').style.display = 'block';
-            document.getElementById('timelineSection').style.display = 'block';
             const months = tapGetMonths();
             tapCurrentMonth = months[0];
             buildTapMonthStrip();
             buildTapCollage(tapCurrentMonth);
             buildTapStacks(tapCurrentMonth);
-            renderTimeline();
         } else {
             document.getElementById('tapestryEmpty').style.display = 'block';
             document.getElementById('tapCollageOuter').style.display = 'none';
             document.getElementById('tapCollageHint').style.display = 'none';
             document.getElementById('tapMonthOuter').style.display = 'none';
             document.getElementById('tapStackArea').style.display = 'none';
-            document.getElementById('timelineSection').style.display = 'none';
         }
     }
 
@@ -7494,33 +7485,6 @@
         document.querySelectorAll('#tapestryFilters .filter-tab').forEach(t => t.classList.remove('active'));
         if (el) el.classList.add('active');
         renderTapestry();
-    }
-
-    function renderTimeline() {
-        const scroll = document.getElementById('timelineScroll');
-        scroll.innerHTML = '';
-
-        const sorted = [...userThreads].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        sorted.forEach(thread => {
-            const date = new Date(thread.date);
-            const formatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-            const icon = thread.icon || '🧵';
-
-            const card = document.createElement('div');
-            card.className = 'timeline-card';
-            card.onclick = () => openThread(thread.id);
-            card.innerHTML = `
-                <div class="timeline-date">${formatted}</div>
-                <div class="timeline-day">${day}</div>
-                <div class="timeline-icon">${icon}</div>
-                <div class="timeline-title">${thread.title}</div>
-                <div class="timeline-from">From ${thread.from}</div>
-                <div class="timeline-msg">${thread.message}</div>
-            `;
-            scroll.appendChild(card);
-        });
     }
 
     function openThread(id) {
