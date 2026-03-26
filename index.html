@@ -4036,7 +4036,7 @@
         </div>
 
         <!-- Month heading + role stacks -->
-        <div style="padding:0 0.2rem;" id="tapStackArea" style="display:none;">
+        <div id="tapStackArea" style="display:none; padding:0 0.2rem;">
             <div class="tap-month-heading">
                 <h2 id="tapMonthHeading"></h2>
                 <span class="tap-month-count" id="tapMonthCount"></span>
@@ -7323,17 +7323,7 @@
     }
 
     function updateStats() {
-        const total = userThreads.length;
-        const now = new Date();
-        const thisMonth = userThreads.filter(t => {
-            const d = new Date(t.date);
-            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-        }).length;
-        const favorites = userThreads.filter(t => t.isFavorite).length;
-
-        document.getElementById('statTotal').textContent = total;
-        document.getElementById('statMonth').textContent = thisMonth;
-        document.getElementById('statCategories').textContent = favorites;
+        // Stats row removed — nothing to update
     }
 
     function renderTapestry() {
