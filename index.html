@@ -7339,63 +7339,6 @@
         }
     }
 
-        if (!userThreads || userThreads.length === 0) {
-            outer.style.display = 'none';
-            hint.style.display  = 'none';
-            return;
-        }
-
-        outer.style.display = 'block';
-        hint.style.display  = 'block';
-
-        const palettes = {
-            receiver: ['#C8406A','#D4503C','#B83858'],
-            giver:    ['#3A8C48','#B87828','#5A8060'],
-            business: ['#4888C0','#5848A8','#2878A0'],
-            external: ['#8B5E3C','#6B7280','#7C4D3A'],
-        };
-        const tilts  = [-7, 8, -5, 6, -8, 5, -4, 9, -6, 7];
-        const tapes  = [-3, 3, 2, -2, 3, -3, 2, -2, 3, -1];
-
-        // Sort newest first, show up to 10
-        const cards = [...userThreads]
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 10);
-
-        cards.forEach((thread, i) => {
-            const palette   = palettes[thread.role] || palettes.external;
-            const color     = palette[i % 3];
-            const hasPhoto  = thread.photos && thread.photos.length > 0;
-            const isNewest  = i === 0;
-            const date      = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-            const div = document.createElement('div');
-            div.className = 'collage-card-mini';
-            div.style.cssText = `z-index:${20 - i}; --ctilt:${tilts[i % tilts.length]}deg; --ctape:${tapes[i % tapes.length]}deg; background:${color};`;
-            div.onclick = () => openThread(thread.id);
-
-            if (hasPhoto) {
-                div.innerHTML = `
-                    ${isNewest ? '<div class="collage-new-badge">new</div>' : ''}
-                    <div class="collage-photo-mini">
-                        <img src="${thread.photos[0]}" alt="${thread.title}">
-                    </div>
-                    <div class="collage-body-mini">
-                        <div class="collage-title-mini">${thread.title}</div>
-                        <div class="collage-date-mini">${date}</div>
-                    </div>`;
-            } else {
-                div.innerHTML = `
-                    ${isNewest ? '<div class="collage-new-badge">new</div>' : ''}
-                    <div class="collage-note-mini">
-                        <div class="collage-msg-mini">"${thread.message || thread.title}"</div>
-                        <div class="collage-date-mini">${date}</div>
-                    </div>`;
-            }
-            scroll.appendChild(div);
-        });
-    }
-
     function updateStats() {
         const total = userThreads.length;
         const now = new Date();
@@ -7460,7 +7403,7 @@
             const photoCount = photos.length;
 
             // Build photo section based on count
-            function buildPhotoSection() {
+            const buildPhotoSection = () => {
                 if (photoCount === 0) return '';
                 if (photoCount === 1) {
                     return `<div class="thread-card-image">
