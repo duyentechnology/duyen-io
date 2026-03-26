@@ -1694,15 +1694,15 @@
             overflow-x:auto; overflow-y:visible;
             -webkit-overflow-scrolling:touch;
             scrollbar-width:none;
-            padding:26px 52px 18px 52px;
+            padding:40px 64px 28px 64px;
             transition:opacity 0.25s ease;
         }
         .tap-collage-scroll::-webkit-scrollbar { display:none; }
         .tap-collage-scroll.switching { opacity:0; }
 
         .tap-col-card {
-            flex-shrink:0; width:120px;
-            margin-left:-34px; position:relative;
+            flex-shrink:0; width:170px;
+            margin-left:-48px; position:relative;
             cursor:pointer; border-radius:4px; overflow:hidden;
             box-shadow:2px 3px 10px rgba(0,0,0,0.16);
             transition:transform 0.25s ease, box-shadow 0.25s ease;
@@ -1730,16 +1730,16 @@
         }
         .tap-col-photo {
             width:100%; aspect-ratio:4/3; overflow:hidden;
-            display:flex; align-items:center; justify-content:center; font-size:2.2rem;
+            display:flex; align-items:center; justify-content:center; font-size:3rem;
             background:rgba(255,255,255,0.2); position:relative;
         }
         .tap-col-photo img { width:100%; height:100%; object-fit:cover; }
-        .tap-col-body { padding:0.35rem 0.45rem 0.55rem; }
-        .tap-col-title { font-family:'Cormorant Garamond',serif; font-size:0.76rem; font-weight:600; color:white; line-height:1.25; }
-        .tap-col-date  { font-family:'Caveat',cursive; font-size:0.64rem; color:rgba(255,255,255,0.55); margin-top:0.1rem; }
-        .tap-col-note  { padding:0.6rem 0.55rem 0.7rem; min-height:84px; display:flex; flex-direction:column; justify-content:space-between; }
-        .tap-col-msg   { font-family:'Caveat',cursive; font-size:0.76rem; line-height:1.5; color:white; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
-        .tap-col-new   { position:absolute; top:0.35rem; right:0.35rem; font-family:'Caveat',cursive; font-size:0.62rem; background:rgba(255,255,255,0.92); color:#1C1410; padding:0.05rem 0.35rem; border-radius:6px; z-index:6; }
+        .tap-col-body { padding:0.5rem 0.6rem 0.7rem; }
+        .tap-col-title { font-family:'Cormorant Garamond',serif; font-size:0.9rem; font-weight:600; color:white; line-height:1.25; }
+        .tap-col-date  { font-family:'Caveat',cursive; font-size:0.75rem; color:rgba(255,255,255,0.55); margin-top:0.15rem; }
+        .tap-col-note  { padding:0.75rem 0.65rem 0.85rem; min-height:100px; display:flex; flex-direction:column; justify-content:space-between; }
+        .tap-col-msg   { font-family:'Caveat',cursive; font-size:0.88rem; line-height:1.5; color:white; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+        .tap-col-new   { position:absolute; top:0.35rem; right:0.35rem; font-family:'Caveat',cursive; font-size:0.65rem; background:rgba(255,255,255,0.92); color:#1C1410; padding:0.05rem 0.35rem; border-radius:6px; z-index:6; }
 
         .tap-collage-hint {
             font-family:'Caveat',cursive; font-size:0.8rem;
@@ -4022,20 +4022,6 @@
         <div class="tapestry-welcome">
             <h1 id="tapestryTitle">Your Tapestry</h1>
             <p class="subtitle" style="margin-bottom: 0;">people · places · things</p>
-            <div class="stats-row">
-                <div class="stat">
-                    <div class="stat-number" id="statTotal">0</div>
-                    <div class="stat-label">Memories</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="statMonth">0</div>
-                    <div class="stat-label">This Month</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="statCategories">0</div>
-                    <div class="stat-label">⭐ Favorites</div>
-                </div>
-            </div>
         </div>
 
         <!-- Collage strip -->
