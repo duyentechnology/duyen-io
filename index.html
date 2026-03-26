@@ -1659,14 +1659,231 @@
         }
 
         /* Thread cards grid */
-        /* ── SCRAPBOOK TAPESTRY ── */
-        .threads-grid {
-            columns: 2;
-            column-gap: 0.9rem;
-            margin-bottom: 2.5rem;
+        /* ══════════════════════════════════════
+           TAPESTRY — full redesign
+        ══════════════════════════════════════ */
+
+        /* Role palettes */
+        :root {
+            --rec-1:#C8406A; --rec-2:#D4503C; --rec-3:#B83858;
+            --giv-1:#3A8C48; --giv-2:#B87828; --giv-3:#5A8060;
+            --biz-1:#4888C0; --biz-2:#5848A8; --biz-3:#2878A0;
+            --ext-1:#8B5E3C; --ext-2:#6B7280; --ext-3:#7C4D3A;
         }
-        @media (min-width: 600px) { .threads-grid { columns: 3; column-gap: 1.1rem; } }
-        @media (max-width: 380px) { .threads-grid { columns: 1; } }
+
+        /* ── COLLAGE STRIP ── */
+        .tap-collage-outer {
+            position:relative; margin:0.5rem 0 0;
+            overflow:visible;
+        }
+        .tap-collage-outer::before,
+        .tap-collage-outer::after {
+            content:''; position:absolute; top:0; bottom:0;
+            width:36px; pointer-events:none; z-index:10;
+        }
+        .tap-collage-outer::before { left:0;  background:linear-gradient(to right, var(--surface), transparent); }
+        .tap-collage-outer::after  { right:0; background:linear-gradient(to left,  var(--surface), transparent); }
+        .tap-collage-scroll {
+            display:flex; flex-direction:row;
+            align-items:flex-end;
+            overflow-x:auto; overflow-y:visible;
+            -webkit-overflow-scrolling:touch;
+            scrollbar-width:none;
+            padding:26px 52px 18px 52px;
+            transition:opacity 0.25s ease;
+        }
+        .tap-collage-scroll::-webkit-scrollbar { display:none; }
+        .tap-collage-scroll.switching { opacity:0; }
+
+        .tap-col-card {
+            flex-shrink:0; width:120px;
+            margin-left:-34px; position:relative;
+            cursor:pointer; border-radius:4px; overflow:hidden;
+            box-shadow:2px 3px 10px rgba(0,0,0,0.16);
+            transition:transform 0.25s ease, box-shadow 0.25s ease;
+            transform:rotate(var(--ctilt,0deg));
+        }
+        .tap-col-card:first-child { margin-left:0; }
+        .tap-col-card:hover {
+            transform:rotate(0deg) scale(1.1) translateY(-6px) !important;
+            box-shadow:4px 10px 24px rgba(0,0,0,0.26) !important;
+            z-index:50 !important;
+        }
+        .tap-col-card::before {
+            content:''; position:absolute; top:-7px; left:50%;
+            transform:translateX(-50%) rotate(var(--ctape,-2deg));
+            width:38px; height:15px;
+            background:rgba(255,255,255,0.5);
+            border:1px solid rgba(255,255,255,0.65);
+            border-radius:2px; z-index:5;
+        }
+        .tap-col-card::after {
+            content:''; position:absolute; bottom:0; right:0;
+            width:0; height:0; border-style:solid;
+            border-width:0 0 12px 12px;
+            border-color:transparent transparent rgba(255,255,255,0.22) transparent; z-index:5;
+        }
+        .tap-col-photo {
+            width:100%; aspect-ratio:4/3; overflow:hidden;
+            display:flex; align-items:center; justify-content:center; font-size:2.2rem;
+            background:rgba(255,255,255,0.2); position:relative;
+        }
+        .tap-col-photo img { width:100%; height:100%; object-fit:cover; }
+        .tap-col-body { padding:0.35rem 0.45rem 0.55rem; }
+        .tap-col-title { font-family:'Cormorant Garamond',serif; font-size:0.76rem; font-weight:600; color:white; line-height:1.25; }
+        .tap-col-date  { font-family:'Caveat',cursive; font-size:0.64rem; color:rgba(255,255,255,0.55); margin-top:0.1rem; }
+        .tap-col-note  { padding:0.6rem 0.55rem 0.7rem; min-height:84px; display:flex; flex-direction:column; justify-content:space-between; }
+        .tap-col-msg   { font-family:'Caveat',cursive; font-size:0.76rem; line-height:1.5; color:white; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+        .tap-col-new   { position:absolute; top:0.35rem; right:0.35rem; font-family:'Caveat',cursive; font-size:0.62rem; background:rgba(255,255,255,0.92); color:#1C1410; padding:0.05rem 0.35rem; border-radius:6px; z-index:6; }
+
+        .tap-collage-hint {
+            font-family:'Caveat',cursive; font-size:0.8rem;
+            color:var(--text-muted); text-align:center;
+            padding:0.15rem 0 0.4rem;
+        }
+
+        /* ── MONTH STRIP ── */
+        .tap-month-outer {
+            position:relative; margin:0.75rem 0 0;
+        }
+        .tap-month-outer::before,
+        .tap-month-outer::after {
+            content:''; position:absolute; top:0; bottom:0;
+            width:28px; pointer-events:none; z-index:2;
+        }
+        .tap-month-outer::before { left:0;  background:linear-gradient(to right, var(--surface), transparent); }
+        .tap-month-outer::after  { right:0; background:linear-gradient(to left,  var(--surface), transparent); }
+        .tap-month-strip {
+            display:flex; flex-direction:row; gap:0.5rem;
+            overflow-x:auto; -webkit-overflow-scrolling:touch;
+            scrollbar-width:none; padding:0.4rem 52px 0.6rem 52px;
+        }
+        .tap-month-strip::-webkit-scrollbar { display:none; }
+        .tap-month-pill {
+            flex-shrink:0; font-family:'Caveat',cursive; font-size:0.95rem;
+            padding:0.3rem 0.9rem; border-radius:20px;
+            border:1.5px solid rgba(0,0,0,0.1);
+            background:white; color:var(--text-muted);
+            cursor:pointer; white-space:nowrap; transition:all 0.2s; user-select:none;
+            display:flex; flex-direction:column; align-items:center; gap:0.12rem;
+        }
+        .tap-month-pill.active { border-color:#1C1410; background:#1C1410; color:white; }
+        .tap-m-dots { display:flex; gap:2px; }
+        .tap-m-dot  { width:5px; height:5px; border-radius:50%; opacity:0.6; }
+
+        /* ── MONTH HEADING ── */
+        .tap-month-heading {
+            display:flex; align-items:baseline; gap:0.6rem; margin:1.2rem 0 1.2rem;
+        }
+        .tap-month-heading h2 {
+            font-family:'Cormorant Garamond',serif;
+            font-size:2rem; font-weight:300; letter-spacing:0.05em;
+            transition:opacity 0.2s ease; color:#1C1410;
+        }
+        .tap-month-heading h2.switching { opacity:0; }
+        .tap-month-count { font-family:'Caveat',cursive; font-size:0.95rem; color:var(--text-muted); }
+
+        /* ── ROLE STACKS ── */
+        .tap-role-row { margin-bottom:1.8rem; }
+        .tap-role-row.hidden { display:none; }
+        .tap-role-label { display:flex; align-items:center; gap:0.5rem; margin-bottom:0.65rem; }
+        .tap-role-icon  { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.85rem; }
+        .tap-role-name  { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:400; letter-spacing:0.04em; color:#1C1410; }
+        .tap-role-count { font-family:'Caveat',cursive; font-size:0.85rem; color:var(--text-muted); }
+
+        .tap-stack { position:relative; height:104px; cursor:pointer; }
+        .tap-stack-layer { position:absolute; left:0; right:0; height:88px; border-radius:8px; transition:all 0.3s ease; }
+        .tap-stack-l2 { top:16px; left:16px; right:16px; }
+        .tap-stack-l1 { top:8px;  left:8px;  right:8px; opacity:0.82; }
+        .tap-stack-l0 { top:0; z-index:2; box-shadow:0 3px 14px rgba(0,0,0,0.14); }
+        .tap-stack:hover .tap-stack-l0 { transform:translateY(-3px); box-shadow:0 6px 20px rgba(0,0,0,0.2); }
+        .tap-stack-top { display:flex; align-items:center; justify-content:space-between; padding:0 1rem; height:100%; }
+        .tap-stack-left { display:flex; align-items:center; gap:0.7rem; }
+        .tap-stack-emoji { font-size:1.9rem; }
+        .tap-stack-title { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:600; color:white; line-height:1.25; }
+        .tap-stack-sub   { font-family:'Caveat',cursive; font-size:0.8rem; color:rgba(255,255,255,0.68); margin-top:0.1rem; }
+        .tap-stack-right { display:flex; align-items:center; gap:0.45rem; }
+        .tap-stack-badge { font-family:'Caveat',cursive; font-size:0.88rem; background:rgba(255,255,255,0.24); color:white; padding:0.1rem 0.55rem; border-radius:12px; }
+        .tap-stack-chev  { color:rgba(255,255,255,0.7); font-size:1rem; }
+
+        .tap-stack-empty {
+            background:white; border-radius:8px;
+            border:1.5px dashed rgba(0,0,0,0.1); height:68px;
+            display:flex; align-items:center; justify-content:center;
+            font-family:'Caveat',cursive; font-size:0.9rem; color:var(--text-muted);
+        }
+
+        /* ── DETAIL SLIDE ── */
+        #tapDetailScreen {
+            position:fixed; inset:0; z-index:200;
+            background:var(--surface);
+            transform:translateX(100%);
+            transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+            overflow-y:auto; -webkit-overflow-scrolling:touch;
+        }
+        #tapDetailScreen.open { transform:translateX(0); }
+        .tap-tapestryScreen-push { transition:transform 0.4s cubic-bezier(0.4,0,0.2,1); }
+        .tap-tapestryScreen-push.pushed { transform:translateX(-30%); }
+
+        .tap-detail-header {
+            position:sticky; top:0; z-index:10;
+            display:flex; align-items:center; gap:0.75rem;
+            padding:1rem 1.2rem 0.75rem;
+            background:var(--surface); border-bottom:1px solid var(--border-light);
+        }
+        .tap-back-btn {
+            width:34px; height:34px; border-radius:50%;
+            background:white; border:none; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1rem; box-shadow:0 1px 6px rgba(0,0,0,0.1); flex-shrink:0;
+        }
+        .tap-detail-title { font-family:'Cormorant Garamond',serif; font-size:1.35rem; font-weight:400; letter-spacing:0.04em; color:#1C1410; }
+        .tap-detail-sub   { font-family:'Caveat',cursive; font-size:0.88rem; color:var(--text-muted); }
+
+        .tap-detail-cards {
+            padding:1.2rem 1.2rem 5rem; max-width:600px; margin:0 auto;
+            display:flex; flex-direction:column; gap:1.5rem;
+        }
+        .tap-full-card {
+            border-radius:6px; overflow:hidden;
+            box-shadow:0 2px 12px rgba(0,0,0,0.12); position:relative;
+            animation:tapCardIn 0.4s ease both;
+        }
+        .tap-full-card:nth-child(odd)  { transform:rotate(-0.8deg); }
+        .tap-full-card:nth-child(even) { transform:rotate(0.8deg); }
+        .tap-full-card:nth-child(1){animation-delay:.04s}
+        .tap-full-card:nth-child(2){animation-delay:.10s}
+        .tap-full-card:nth-child(3){animation-delay:.16s}
+        .tap-full-card:nth-child(4){animation-delay:.22s}
+        @keyframes tapCardIn {
+            from { opacity:0; transform:translateY(18px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .tap-full-card::before {
+            content:''; position:absolute; top:-8px; left:50%;
+            transform:translateX(-50%) rotate(-1.5deg);
+            width:50px; height:18px; background:rgba(255,255,255,0.45); border-radius:2px; z-index:5;
+        }
+        .tap-full-card::after {
+            content:''; position:absolute; bottom:0; right:0;
+            width:0; height:0; border-style:solid; border-width:0 0 16px 16px;
+            border-color:transparent transparent rgba(255,255,255,0.22) transparent; z-index:5;
+        }
+        .tap-fc-photos { width:100%; position:relative; }
+        .tap-fc-photo  { width:100%; aspect-ratio:4/3; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:4rem; position:relative; }
+        .tap-fc-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+        .tap-fc-photo::after { content:''; position:absolute; inset:0; box-shadow:inset 0 0 18px rgba(0,0,0,0.18); pointer-events:none; }
+        .tap-fc-photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+        .tap-fc-photo-grid .tap-fc-photo { aspect-ratio:1; }
+        .tap-fc-body { padding:1rem 1rem 1.3rem; }
+        .tap-fc-role  { font-family:'Caveat',cursive; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.68); margin-bottom:0.2rem; }
+        .tap-fc-title { font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:600; color:white; line-height:1.3; margin-bottom:0.2rem; }
+        .tap-fc-from  { font-family:'Caveat',cursive; font-size:0.95rem; color:rgba(255,255,255,0.65); margin-bottom:0.45rem; }
+        .tap-fc-msg   { font-size:0.85rem; color:rgba(255,255,255,0.88); line-height:1.7; }
+        .tap-fc-msg.handwritten { font-family:'Caveat',cursive; font-size:1.02rem; }
+        .tap-fc-date  { font-family:'Caveat',cursive; font-size:0.82rem; color:rgba(255,255,255,0.48); margin-top:0.7rem; text-align:right; }
+        .tap-fc-media { display:flex; gap:0.35rem; flex-wrap:wrap; margin-top:0.5rem; }
+        .tap-fc-chip  { font-family:'Caveat',cursive; font-size:0.75rem; padding:0.1rem 0.45rem; border-radius:8px; background:rgba(255,255,255,0.2); color:white; }
 
         /* Role color palettes */
         :root {
@@ -3793,15 +4010,16 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container" id="tapestryContainer">
+
         <!-- Welcome stats -->
         <div class="tapestry-welcome">
             <h1 id="tapestryTitle">Your Tapestry</h1>
-            <p class="subtitle" style="margin-bottom: 0;">Your woven collection of meaningful threads</p>
+            <p class="subtitle" style="margin-bottom: 0;">people · places · things</p>
             <div class="stats-row">
                 <div class="stat">
                     <div class="stat-number" id="statTotal">0</div>
-                    <div class="stat-label">Threads</div>
+                    <div class="stat-label">Memories</div>
                 </div>
                 <div class="stat">
                     <div class="stat-number" id="statMonth">0</div>
@@ -3815,13 +4033,58 @@
         </div>
 
         <!-- Collage strip -->
-        <div class="collage-outer" id="collageOuter" style="display:none;">
-            <div class="collage-scroll" id="collageScroll"></div>
+        <div class="tap-collage-outer" id="tapCollageOuter" style="display:none;">
+            <div class="tap-collage-scroll" id="tapCollageScroll"></div>
         </div>
-        <div class="collage-hint" id="collageHint" style="display:none;">swipe to see older · tap any card to open</div>
+        <div class="tap-collage-hint" id="tapCollageHint" style="display:none;">swipe to see older · tap any card to open</div>
 
-        <!-- Filter tabs -->
-        <div class="filter-tabs" id="tapestryFilters">
+        <!-- Month strip -->
+        <div class="tap-month-outer" id="tapMonthOuter" style="display:none;">
+            <div class="tap-month-strip" id="tapMonthStrip"></div>
+        </div>
+
+        <!-- Month heading + role stacks -->
+        <div style="padding:0 0.2rem;" id="tapStackArea" style="display:none;">
+            <div class="tap-month-heading">
+                <h2 id="tapMonthHeading"></h2>
+                <span class="tap-month-count" id="tapMonthCount"></span>
+            </div>
+            <div class="tap-role-row" id="tap-row-receiver">
+                <div class="tap-role-label">
+                    <div class="tap-role-icon" style="background:rgba(200,64,106,0.12);">💝</div>
+                    <div class="tap-role-name">Received</div>
+                    <div class="tap-role-count" id="tap-count-receiver"></div>
+                </div>
+                <div id="tap-stack-receiver"></div>
+            </div>
+            <div class="tap-role-row" id="tap-row-giver">
+                <div class="tap-role-label">
+                    <div class="tap-role-icon" style="background:rgba(58,140,72,0.12);">🎁</div>
+                    <div class="tap-role-name">Given</div>
+                    <div class="tap-role-count" id="tap-count-giver"></div>
+                </div>
+                <div id="tap-stack-giver"></div>
+            </div>
+            <div class="tap-role-row" id="tap-row-business">
+                <div class="tap-role-label">
+                    <div class="tap-role-icon" style="background:rgba(72,136,192,0.12);">🏢</div>
+                    <div class="tap-role-name">Business</div>
+                    <div class="tap-role-count" id="tap-count-business"></div>
+                </div>
+                <div id="tap-stack-business"></div>
+            </div>
+            <div class="tap-role-row" id="tap-row-external">
+                <div class="tap-role-label">
+                    <div class="tap-role-icon" style="background:rgba(139,94,60,0.12);">📌</div>
+                    <div class="tap-role-name">Saved Scans</div>
+                    <div class="tap-role-count" id="tap-count-external"></div>
+                </div>
+                <div id="tap-stack-external"></div>
+            </div>
+        </div>
+
+        <!-- Filter tabs (kept for search/filter) -->
+        <div class="filter-tabs" id="tapestryFilters" style="display:none;">
             <div class="filter-tab active" onclick="filterTapestry('all', this)">All</div>
             <div class="filter-tab" onclick="filterTapestry('giver', this)">🎁 Given</div>
             <div class="filter-tab" onclick="filterTapestry('receiver', this)">💝 Received</div>
@@ -3829,8 +4092,8 @@
             <div class="filter-tab" onclick="filterTapestry('favorites', this)">⭐ Favorites</div>
         </div>
 
-        <!-- Thread cards -->
-        <div class="threads-grid" id="tapestryGrid"></div>
+        <!-- Thread cards grid (used for search results) -->
+        <div class="threads-grid" id="tapestryGrid" style="display:none;"></div>
 
         <!-- Empty state -->
         <div class="tapestry-empty" id="tapestryEmpty" style="display: none;">
@@ -3849,6 +4112,20 @@
 
     <!-- FAB -->
     <button class="fab" onclick="openScanner()" title="Scan QR Code">📸</button>
+</div>
+
+<!-- =============================================
+     TAPESTRY DETAIL SCREEN
+============================================= -->
+<div id="tapDetailScreen">
+    <div class="tap-detail-header">
+        <button class="tap-back-btn" onclick="closeTapDetail()">←</button>
+        <div>
+            <div class="tap-detail-title" id="tapDetailTitle"></div>
+            <div class="tap-detail-sub"   id="tapDetailSub"></div>
+        </div>
+    </div>
+    <div id="tapDetailCards"></div>
 </div>
 
 <!-- =============================================
@@ -6857,11 +7134,210 @@
         }
     }
 
-    function buildCollage() {
-        const scroll = document.getElementById('collageScroll');
-        const outer  = document.getElementById('collageOuter');
-        const hint   = document.getElementById('collageHint');
-        scroll.innerHTML = '';
+    // ==========================================
+    // TAPESTRY — new design (tapestry-left)
+    // ==========================================
+
+    var tapCurrentMonth = null;
+
+    function tapGetMonthKey(dateStr) {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-US', { month:'short', year:'numeric' });
+    }
+
+    function tapGetMonths() {
+        const seen = new Set(); const months = [];
+        [...userThreads].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
+            const k=tapGetMonthKey(t.date); if(!seen.has(k)){seen.add(k);months.push(k);}
+        });
+        return months;
+    }
+
+    function tapRolePalette(role) {
+        const p={receiver:['#C8406A','#D4503C','#B83858'],giver:['#3A8C48','#B87828','#5A8060'],business:['#4888C0','#5848A8','#2878A0'],external:['#8B5E3C','#6B7280','#7C4D3A']};
+        return p[role]||p.external;
+    }
+
+    function buildTapCollage(month) {
+        const scroll=document.getElementById('tapCollageScroll');
+        scroll.classList.add('switching');
+        setTimeout(()=>{
+            scroll.innerHTML='';
+            const cards=[...userThreads].filter(t=>tapGetMonthKey(t.date)===month).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
+            if(!cards.length){scroll.classList.remove('switching');return;}
+            const tilts=[-7,8,-5,6,-8,5,-4,9,-6,7],tapes=[-3,3,2,-2,3,-3,2,-2,3,-1];
+            cards.forEach((thread,i)=>{
+                const pal=tapRolePalette(thread.role),color=pal[i%3];
+                const hasPhoto=thread.photos&&thread.photos.length>0;
+                const date=new Date(thread.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+                const isNew=i===0;
+                const div=document.createElement('div');
+                div.className='tap-col-card';
+                div.style.cssText=`z-index:${20-i};--ctilt:${tilts[i%tilts.length]}deg;--ctape:${tapes[i%tapes.length]}deg;background:${color};`;
+                div.onclick=()=>openTapSingle(thread.id);
+                if(hasPhoto){
+                    div.innerHTML=`${isNew?'<div class="tap-col-new">new</div>':''}<div class="tap-col-photo"><img src="${thread.photos[0]}" alt="${thread.title}"></div><div class="tap-col-body"><div class="tap-col-title">${thread.title}</div><div class="tap-col-date">${date}</div></div>`;
+                } else {
+                    div.innerHTML=`${isNew?'<div class="tap-col-new">new</div>':''}<div class="tap-col-note"><div class="tap-col-msg">"${thread.message||thread.title}"</div><div class="tap-col-date">${date}</div></div>`;
+                }
+                scroll.appendChild(div);
+            });
+            scroll.classList.remove('switching');
+        },180);
+    }
+
+    function buildTapMonthStrip() {
+        const strip=document.getElementById('tapMonthStrip');
+        strip.innerHTML='';
+        const months=tapGetMonths();
+        months.forEach((month,idx)=>{
+            const roles=[...new Set(userThreads.filter(t=>tapGetMonthKey(t.date)===month).map(t=>t.role))];
+            const pill=document.createElement('div');
+            pill.className='tap-month-pill'+(idx===0?' active':'');
+            pill.innerHTML=`<span>${month}</span><div class="tap-m-dots">
+                ${roles.includes('receiver')?'<div class="tap-m-dot" style="background:#C8406A"></div>':''}
+                ${roles.includes('giver')?'<div class="tap-m-dot" style="background:#3A8C48"></div>':''}
+                ${roles.includes('business')?'<div class="tap-m-dot" style="background:#4888C0"></div>':''}
+                ${roles.includes('external')?'<div class="tap-m-dot" style="background:#8B5E3C"></div>':''}
+            </div>`;
+            pill.onclick=()=>switchTapMonth(month,pill);
+            strip.appendChild(pill);
+        });
+    }
+
+    function buildTapStacks(month) {
+        const heading=document.getElementById('tapMonthHeading');
+        heading.classList.add('switching');
+        const all=userThreads.filter(t=>tapGetMonthKey(t.date)===month);
+        setTimeout(()=>{
+            heading.textContent=month; heading.classList.remove('switching');
+            document.getElementById('tapMonthCount').textContent=`${all.length} memor${all.length===1?'y':'ies'}`;
+            ['receiver','giver','business','external'].forEach(role=>{
+                const items=all.filter(t=>t.role===role).sort((a,b)=>new Date(b.date)-new Date(a.date));
+                const row=document.getElementById('tap-row-'+role);
+                const slot=document.getElementById('tap-stack-'+role);
+                const count=document.getElementById('tap-count-'+role);
+                if(!items.length){row.classList.add('hidden');return;}
+                row.classList.remove('hidden');
+                count.textContent=`${items.length} memor${items.length===1?'y':'ies'}`;
+                const top=items[0],pal=tapRolePalette(role),[c1,c2]=pal;
+                const date=new Date(top.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+                slot.innerHTML=`<div class="tap-stack" onclick="openTapRole('${role}','${month}')">
+                    ${items.length>=3?`<div class="tap-stack-layer tap-stack-l2" style="background:${c2};"></div>`:''}
+                    ${items.length>=2?`<div class="tap-stack-layer tap-stack-l1" style="background:${c1};opacity:0.82;"></div>`:''}
+                    <div class="tap-stack-layer tap-stack-l0" style="background:${c1};">
+                        <div class="tap-stack-top">
+                            <div class="tap-stack-left">
+                                <div class="tap-stack-emoji">${top.icon||'🧵'}</div>
+                                <div><div class="tap-stack-title">${top.title}</div><div class="tap-stack-sub">${top.from} · ${date}</div></div>
+                            </div>
+                            <div class="tap-stack-right"><div class="tap-stack-badge">${items.length}</div><div class="tap-stack-chev">›</div></div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('tapStackArea').style.display='block';
+        },180);
+    }
+
+    function switchTapMonth(month,pillEl) {
+        if(month===tapCurrentMonth)return;
+        tapCurrentMonth=month;
+        document.querySelectorAll('.tap-month-pill').forEach(p=>p.classList.remove('active'));
+        if(pillEl)pillEl.classList.add('active');
+        buildTapCollage(month);
+        buildTapStacks(month);
+    }
+
+    function buildTapFullCard(thread) {
+        const pal=tapRolePalette(thread.role),color=pal[0];
+        const date=new Date(thread.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        const roleLabels={giver:'🎁 You Gave',receiver:'💝 You Received',business:'🏢 Business',external:'📌 Saved Scan'};
+        const photos=thread.photos||[]; const hasPhoto=photos.length>0;
+        let photoHtml='';
+        if(photos.length===1){
+            photoHtml=`<div class="tap-fc-photos"><div class="tap-fc-photo"><img src="${photos[0]}" alt=""></div></div>`;
+        } else if(photos.length===2){
+            photoHtml=`<div class="tap-fc-photos"><div class="tap-fc-photo-grid"><div class="tap-fc-photo"><img src="${photos[0]}" alt=""></div><div class="tap-fc-photo"><img src="${photos[1]}" alt=""></div></div></div>`;
+        } else if(photos.length>=3){
+            const extra=photos.length-3;
+            photoHtml=`<div class="tap-fc-photos"><div class="tap-fc-photo"><img src="${photos[0]}" alt=""></div><div class="tap-fc-photo-grid"><div class="tap-fc-photo"><img src="${photos[1]}" alt=""></div><div class="tap-fc-photo" style="position:relative;"><img src="${photos[2]}" alt="">${extra>0?`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:white;font-weight:600;">+${extra}</div>`:''}</div></div></div>`;
+        }
+        const mediaChips=[thread.hasVoice?'<span class="tap-fc-chip">🎙️ voice</span>':'',thread.hasVideo?'<span class="tap-fc-chip">🎬 video</span>':''].join('');
+        const isNote=!hasPhoto;
+        const card=document.createElement('div');
+        card.className='tap-full-card'; card.style.background=color;
+        card.innerHTML=`${photoHtml}<div class="tap-fc-body">
+            <div class="tap-fc-role">${roleLabels[thread.role]||thread.role}${thread.isFavorite?' ⭐':''}</div>
+            <div class="tap-fc-title">${thread.title}</div>
+            <div class="tap-fc-from">${thread.from}</div>
+            <div class="tap-fc-msg ${isNote?'handwritten':''}">${isNote?`"${thread.message}"`:thread.message}</div>
+            ${mediaChips?`<div class="tap-fc-media">${mediaChips}</div>`:''}
+            <div class="tap-fc-date">📅 ${date}</div>
+        </div>`;
+        return card;
+    }
+
+    function openTapSingle(id) {
+        const thread=userThreads.find(t=>t.id===id); if(!thread)return;
+        document.getElementById('tapDetailTitle').textContent=thread.title;
+        document.getElementById('tapDetailSub').textContent=new Date(thread.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+        const container=document.getElementById('tapDetailCards'); container.innerHTML='';
+        const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
+        wrap.appendChild(buildTapFullCard(thread)); container.appendChild(wrap);
+        document.getElementById('tapDetailScreen').classList.add('open');
+        document.getElementById('tapestryContainer').classList.add('tap-tapestryScreen-push','pushed');
+        document.getElementById('tapDetailScreen').scrollTop=0;
+    }
+
+    function openTapRole(role,month) {
+        const roleLabels={giver:'🎁 Given',receiver:'💝 Received',business:'🏢 Business',external:'📌 Saved Scans'};
+        const items=userThreads.filter(t=>t.role===role&&tapGetMonthKey(t.date)===month).sort((a,b)=>new Date(b.date)-new Date(a.date));
+        document.getElementById('tapDetailTitle').textContent=roleLabels[role]||role;
+        document.getElementById('tapDetailSub').textContent=`${month} · ${items.length} memor${items.length===1?'y':'ies'}`;
+        const container=document.getElementById('tapDetailCards'); container.innerHTML='';
+        const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
+        items.forEach(t=>wrap.appendChild(buildTapFullCard(t))); container.appendChild(wrap);
+        document.getElementById('tapDetailScreen').classList.add('open');
+        document.getElementById('tapestryContainer').classList.add('tap-tapestryScreen-push','pushed');
+        document.getElementById('tapDetailScreen').scrollTop=0;
+    }
+
+    function closeTapDetail() {
+        document.getElementById('tapDetailScreen').classList.remove('open');
+        document.getElementById('tapestryContainer').classList.remove('pushed');
+    }
+
+    function buildCollage() {} // superseded
+
+    // ==========================================
+    // TAPESTRY INIT
+    // ==========================================
+    async function initTapestry() {
+        await loadTapestryFromDB();
+        updateStats();
+
+        if (userThreads.length > 0) {
+            document.getElementById('tapestryEmpty').style.display = 'none';
+            document.getElementById('tapCollageOuter').style.display = 'block';
+            document.getElementById('tapCollageHint').style.display = 'block';
+            document.getElementById('tapMonthOuter').style.display = 'block';
+            document.getElementById('timelineSection').style.display = 'block';
+            const months = tapGetMonths();
+            tapCurrentMonth = months[0];
+            buildTapMonthStrip();
+            buildTapCollage(tapCurrentMonth);
+            buildTapStacks(tapCurrentMonth);
+            renderTimeline();
+        } else {
+            document.getElementById('tapestryEmpty').style.display = 'block';
+            document.getElementById('tapCollageOuter').style.display = 'none';
+            document.getElementById('tapCollageHint').style.display = 'none';
+            document.getElementById('tapMonthOuter').style.display = 'none';
+            document.getElementById('tapStackArea').style.display = 'none';
+            document.getElementById('timelineSection').style.display = 'none';
+        }
+    }
 
         if (!userThreads || userThreads.length === 0) {
             outer.style.display = 'none';
@@ -6918,31 +7394,6 @@
             }
             scroll.appendChild(div);
         });
-    }
-
-    // ==========================================
-    // TAPESTRY
-    // ==========================================
-    async function initTapestry() {
-        await loadTapestryFromDB();
-        updateStats();
-
-        if (userThreads.length > 0) {
-            document.getElementById('tapestryEmpty').style.display = 'none';
-            document.getElementById('tapestryFilters').style.display = 'flex';
-            document.getElementById('tapestryGrid').style.display = 'grid';
-            document.getElementById('timelineSection').style.display = 'block';
-            buildCollage();
-            renderTapestry();
-            renderTimeline();
-        } else {
-            document.getElementById('tapestryEmpty').style.display = 'block';
-            document.getElementById('tapestryFilters').style.display = 'none';
-            document.getElementById('tapestryGrid').style.display = 'none';
-            document.getElementById('timelineSection').style.display = 'none';
-            document.getElementById('collageOuter').style.display = 'none';
-            document.getElementById('collageHint').style.display = 'none';
-        }
     }
 
     function updateStats() {
