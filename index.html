@@ -1565,89 +1565,173 @@
         }
 
         /* Thread cards grid */
+        /* ── SCRAPBOOK TAPESTRY ── */
         .threads-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
+            columns: 2;
+            column-gap: 1rem;
             margin-bottom: 2.5rem;
+        }
+        @media (min-width: 600px) { .threads-grid { columns: 3; column-gap: 1.2rem; } }
+        @media (max-width: 380px) { .threads-grid { columns: 1; } }
+
+        /* Role color palettes */
+        :root {
+            --rec-1: #C8406A; --rec-2: #D4503C; --rec-3: #B83858;
+            --giv-1: #3A8C48; --giv-2: #B87828; --giv-3: #5A8060;
+            --biz-1: #4888C0; --biz-2: #5848A8; --biz-3: #2878A0;
+            --ext-1: #8B5E3C; --ext-2: #6B7280; --ext-3: #7C4D3A;
         }
 
         .thread-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(61, 46, 36, 0.06);
-            transition: all 0.3s;
+            break-inside: avoid;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 1rem;
+            position: relative;
             cursor: pointer;
+            animation: scrapRise 0.45s ease both;
+        }
+        @keyframes scrapRise {
+            from { opacity: 0; transform: translateY(14px) rotate(var(--card-tilt, 0deg)); }
+            to   { opacity: 1; transform: translateY(0)    rotate(var(--card-tilt, 0deg)); }
+        }
+        .thread-card:nth-child(3n+1) { --card-tilt: -1.2deg; animation-delay: 0.04s; }
+        .thread-card:nth-child(3n+2) { --card-tilt:  0.8deg; animation-delay: 0.09s; }
+        .thread-card:nth-child(3n)   { --card-tilt: -0.5deg; animation-delay: 0.14s; }
+
+        .thread-card-inner {
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 2px 3px 10px rgba(0,0,0,0.13);
+            transform: rotate(var(--card-tilt, 0deg));
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+        .thread-card:hover .thread-card-inner {
+            transform: rotate(0deg) scale(1.03) translateY(-3px);
+            box-shadow: 4px 8px 22px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        /* washi tape */
+        .thread-card-inner::before {
+            content: '';
+            position: absolute; top: -7px; left: 50%;
+            transform: translateX(-50%) rotate(var(--tape-tilt, -2deg));
+            width: 42px; height: 16px;
+            background: rgba(255,255,255,0.48);
+            border-radius: 2px; z-index: 5;
+        }
+        /* corner fold */
+        .thread-card-inner::after {
+            content: ''; position: absolute; bottom: 0; right: 0;
+            width: 0; height: 0; border-style: solid;
+            border-width: 0 0 13px 13px;
+            border-color: transparent transparent rgba(255,255,255,0.22) transparent;
+            z-index: 5;
         }
 
-        .thread-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 28px rgba(61, 46, 36, 0.12);
+        /* color edge stripe (top of card) */
+        .thread-card-edge {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 4px; z-index: 3;
         }
 
         .thread-card-image {
             width: 100%;
-            height: 180px;
-            background: linear-gradient(135deg, var(--soft-sand), var(--blush));
+            aspect-ratio: 4/3;
+            overflow: hidden;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3.5rem;
+            font-size: 3rem;
+            background: #E8E0D8;
         }
+        .thread-card-image img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        /* color tint overlay on photo */
+        .thread-card-image::after {
+            content: ''; position: absolute; inset: 0;
+            mix-blend-mode: multiply; opacity: 0.28; pointer-events: none;
+        }
+        .tint-receiver  .thread-card-image::after { background: var(--rec-1); }
+        .tint-giver     .thread-card-image::after { background: var(--giv-1); }
+        .tint-business  .thread-card-image::after { background: var(--biz-1); }
+        .tint-external  .thread-card-image::after { background: var(--ext-1); }
 
-        .thread-card-body { padding: 1.25rem; }
+        /* white body (cards with photo) */
+        .thread-card-body {
+            padding: 0.7rem 0.8rem 1rem;
+            background: white;
+        }
+        /* colored body (note cards, no photo) */
+        .thread-card-body.body-color {
+            padding: 0.85rem 0.85rem 1.1rem;
+        }
+        .thread-card-body.body-color .thread-card-title,
+        .thread-card-body.body-color .thread-card-msg { color: white; }
+        .thread-card-body.body-color .thread-card-from { color: rgba(255,255,255,0.68); }
+        .thread-card-body.body-color .thread-card-footer { color: rgba(255,255,255,0.55); border-top-color: rgba(255,255,255,0.15); }
+        .thread-card-body.body-color .thread-card-category { background: rgba(255,255,255,0.2) !important; color: white !important; border-color: rgba(255,255,255,0.3) !important; }
+        .thread-card-body.body-color .media-chip { background: rgba(255,255,255,0.18); color: white; }
 
         .thread-card-category {
             display: inline-block;
-            padding: 0.2rem 0.7rem;
+            padding: 0.15rem 0.6rem;
             border-radius: 10px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 0.6rem;
-        }
-
-        .cat-thing { background: #FFE8E0; color: var(--brand-red); }
-        .cat-person { background: #E0F2E9; color: var(--sage); }
-        .cat-place { background: #E8E0F2; color: #7B68B0; }
-
-        .thread-card-title {
-            font-family: 'Crimson Pro', serif;
-            font-size: 1.2rem;
+            font-size: 0.7rem;
             font-weight: 600;
             margin-bottom: 0.4rem;
         }
-
-        .thread-card-from { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem; }
-
+        .thread-card-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+            line-height: 1.3;
+            color: #1C1410;
+        }
+        .thread-card-from {
+            font-family: 'Caveat', cursive;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin-bottom: 0.35rem;
+        }
         .thread-card-msg {
-            font-size: 0.875rem;
+            font-size: 0.78rem;
             color: var(--text-secondary);
-            line-height: 1.6;
+            line-height: 1.65;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-
         .thread-card-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-top: 0.75rem;
-            margin-top: 0.75rem;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
             border-top: 1px solid var(--border-light);
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
         }
-
-        .thread-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
-
+        .media-chip {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.06);
+            color: var(--text-muted);
+            margin-right: 0.25rem;
+        }
+        .thread-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.4rem; }
         .tag {
-            padding: 0.15rem 0.6rem;
+            padding: 0.1rem 0.5rem;
             background: var(--soft-sand);
             border-radius: 8px;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--text-muted);
         }
 
@@ -6731,33 +6815,80 @@
             return;
         }
 
-        filtered.forEach(thread => {
-            const roleColors = { giver: '#7A9B7E', receiver: '#C47B7B', business: '#8B3A7F', external: '#6B8EC4' };
+        filtered.forEach((thread, index) => {
             const roleLabels = { giver: '🎁 You Gave', receiver: '💝 You Received', business: '🏢 Business', external: '📌 Saved Scan' };
-            const roleColor = roleColors[thread.role] || '#8B7E74';
-            const roleLabel = roleLabels[thread.role] || thread.role;
+            const roleLabel  = roleLabels[thread.role] || thread.role;
             const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const photoThumb = thread.photos && thread.photos.length > 0
-                ? `<img src="${thread.photos[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
+
+            // Color palettes per role — cycle through 3 shades
+            const palettes = {
+                receiver: ['#C8406A','#D4503C','#B83858'],
+                giver:    ['#3A8C48','#B87828','#5A8060'],
+                business: ['#4888C0','#5848A8','#2878A0'],
+                external: ['#8B5E3C','#6B7280','#7C4D3A'],
+            };
+            const palette   = palettes[thread.role] || palettes.external;
+            const cardColor = palette[index % 3];
+            const tapeTilts = [-3, 2, 3, -2, 2, -3];
+            const tapeTilt  = tapeTilts[index % tapeTilts.length];
+
+            const hasPhoto  = thread.photos && thread.photos.length > 0;
+            const photoCount = thread.photos ? thread.photos.length : 0;
+
+            const photoThumb = hasPhoto
+                ? `<img src="${thread.photos[0]}" style="width:100%;height:100%;object-fit:cover;">`
                 : (thread.icon || '🧵');
 
+            const mediaChips = [
+                photoCount > 1 ? `<span class="media-chip">📷 ${photoCount}</span>` : '',
+                thread.hasVoice ? `<span class="media-chip">🎙️ voice</span>` : '',
+                thread.hasVideo ? `<span class="media-chip">🎬 video</span>` : '',
+            ].join('');
+
             const card = document.createElement('div');
-            card.className = 'thread-card';
+            card.className = `thread-card tint-${thread.role}`;
+            card.style.cssText = `--tape-tilt:${tapeTilt}deg;`;
             card.onclick = () => openThread(thread.id);
-            card.innerHTML = `
-                <div class="thread-card-image">${photoThumb}</div>
-                <div class="thread-card-body">
-                    <span class="thread-card-category" style="background: ${roleColor}15; color: ${roleColor}; border: 1px solid ${roleColor}40;">${roleLabel}${thread.isFavorite ? ' ⭐' : ''}</span>
-                    <div class="thread-card-title">${thread.title}</div>
-                    <div class="thread-card-from">From ${thread.from}</div>
-                    <div class="thread-card-msg">${thread.message}</div>
-                    <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
-                    <div class="thread-card-footer">
-                        <span>📅 ${date}</span>
-                        <span>${thread.photos && thread.photos.length > 0 ? '📷 ' + thread.photos.length : ''}${thread.hasVoice ? ' 🎙️' : ''}</span>
-                    </div>
-                </div>
-            `;
+
+            if (hasPhoto) {
+                // White body card with photo + color edge
+                card.innerHTML = `
+                    <div class="thread-card-inner">
+                        <div class="thread-card-edge" style="background:${cardColor};"></div>
+                        <div class="thread-card-image">${photoThumb}</div>
+                        <div class="thread-card-body">
+                            <span class="thread-card-category" style="background:${cardColor}18; color:${cardColor}; border:1px solid ${cardColor}35;">
+                                ${roleLabel}${thread.isFavorite ? ' ⭐' : ''}
+                            </span>
+                            <div class="thread-card-title">${thread.title}</div>
+                            <div class="thread-card-from">${thread.from}</div>
+                            <div class="thread-card-msg">${thread.message}</div>
+                            ${mediaChips ? `<div style="margin-top:0.4rem;">${mediaChips}</div>` : ''}
+                            <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+                            <div class="thread-card-footer">
+                                <span>📅 ${date}</span>
+                            </div>
+                        </div>
+                    </div>`;
+            } else {
+                // Full color body card (note style)
+                card.innerHTML = `
+                    <div class="thread-card-inner">
+                        <div class="thread-card-body body-color" style="background:${cardColor};">
+                            <span class="thread-card-category">
+                                ${roleLabel}${thread.isFavorite ? ' ⭐' : ''}
+                            </span>
+                            <div class="thread-card-title">${thread.title}</div>
+                            <div class="thread-card-from">${thread.from}</div>
+                            <div class="thread-card-msg">${thread.message || ''}</div>
+                            ${mediaChips ? `<div style="margin-top:0.4rem;">${mediaChips}</div>` : ''}
+                            <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag" style="background:rgba(255,255,255,0.18);color:white;">${t}</span>`).join('')}</div>
+                            <div class="thread-card-footer">
+                                <span>📅 ${date}</span>
+                            </div>
+                        </div>
+                    </div>`; 
+            }
             grid.appendChild(card);
         });
     }
