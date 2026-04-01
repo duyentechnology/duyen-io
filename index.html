@@ -1879,45 +1879,85 @@
             display:flex; flex-direction:column; gap:1.5rem;
         }
         .tap-full-card {
-            border-radius:6px; overflow:hidden;
-            box-shadow:0 2px 12px rgba(0,0,0,0.12); position:relative;
+            border-radius:0; overflow:hidden; background:#faf7f4;
+            box-shadow:0 2px 16px rgba(0,0,0,0.08); position:relative;
             animation:tapCardIn 0.4s ease both;
         }
-        .tap-full-card:nth-child(odd)  { transform:rotate(-0.8deg); }
-        .tap-full-card:nth-child(even) { transform:rotate(0.8deg); }
-        .tap-full-card:nth-child(1){animation-delay:.04s}
-        .tap-full-card:nth-child(2){animation-delay:.10s}
-        .tap-full-card:nth-child(3){animation-delay:.16s}
-        .tap-full-card:nth-child(4){animation-delay:.22s}
         @keyframes tapCardIn {
             from { opacity:0; transform:translateY(18px); }
             to   { opacity:1; transform:translateY(0); }
         }
-        .tap-full-card::before {
-            content:''; position:absolute; top:-8px; left:50%;
-            transform:translateX(-50%) rotate(-1.5deg);
-            width:50px; height:18px; background:rgba(255,255,255,0.45); border-radius:2px; z-index:5;
-        }
-        .tap-full-card::after {
-            content:''; position:absolute; bottom:0; right:0;
-            width:0; height:0; border-style:solid; border-width:0 0 16px 16px;
-            border-color:transparent transparent rgba(255,255,255,0.22) transparent; z-index:5;
-        }
         .tap-fc-photos { width:100%; position:relative; }
         .tap-fc-photo  { width:100%; aspect-ratio:4/3; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:4rem; position:relative; }
         .tap-fc-photo img { width:100%; height:100%; object-fit:cover; display:block; }
-        .tap-fc-photo::after { content:''; position:absolute; inset:0; box-shadow:inset 0 0 18px rgba(0,0,0,0.18); pointer-events:none; }
         .tap-fc-photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
         .tap-fc-photo-grid .tap-fc-photo { aspect-ratio:1; }
-        .tap-fc-body { padding:1rem 1rem 1.3rem; }
-        .tap-fc-role  { font-family:'Caveat',cursive; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.68); margin-bottom:0.2rem; }
-        .tap-fc-title { font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:600; color:white; line-height:1.3; margin-bottom:0.2rem; }
-        .tap-fc-from  { font-family:'Caveat',cursive; font-size:0.95rem; color:rgba(255,255,255,0.65); margin-bottom:0.45rem; }
-        .tap-fc-msg   { font-size:0.85rem; color:rgba(255,255,255,0.88); line-height:1.7; }
-        .tap-fc-msg.handwritten { font-family:'Caveat',cursive; font-size:1.02rem; }
-        .tap-fc-date  { font-family:'Caveat',cursive; font-size:0.82rem; color:rgba(255,255,255,0.48); margin-top:0.7rem; text-align:right; }
-        .tap-fc-media { display:flex; gap:0.35rem; flex-wrap:wrap; margin-top:0.5rem; }
-        .tap-fc-chip  { font-family:'Caveat',cursive; font-size:0.75rem; padding:0.1rem 0.45rem; border-radius:8px; background:rgba(255,255,255,0.2); color:white; }
+        .tap-fc-photo-count {
+            position:absolute; bottom:10px; right:10px;
+            background:rgba(0,0,0,0.5); color:white; font-size:12px;
+            padding:3px 10px; border-radius:20px; font-family:'Outfit',sans-serif;
+        }
+        .tap-fc-body { padding:1.4rem 1.4rem 0.5rem; background:#faf7f4; }
+        .tap-fc-role  {
+            font-family:'Outfit',sans-serif; font-size:0.7rem; font-weight:500;
+            letter-spacing:0.14em; text-transform:uppercase; color:#C8956C;
+            margin-bottom:0.6rem;
+        }
+        .tap-fc-title {
+            font-family:'Cormorant Garamond',serif; font-size:2.1rem; font-weight:400;
+            color:#1C1410; line-height:1.15; margin-bottom:0.35rem;
+        }
+        .tap-fc-from  {
+            font-family:'Cormorant Garamond',serif; font-style:italic;
+            font-size:1rem; color:#7a6a72;
+        }
+        .tap-fc-from-name { color:#8B3A7F; font-style:italic; }
+        .tap-fc-divider { border:none; border-top:1px solid #e8e2dd; margin:1.1rem 0; }
+        .tap-fc-quote-block { padding:0 0.2rem; }
+        .tap-fc-quote-mark {
+            font-family:'Cormorant Garamond',serif; font-size:3.5rem; font-weight:600;
+            color:#e0d8d2; line-height:1; margin-bottom:-0.5rem; display:block;
+        }
+        .tap-fc-msg {
+            font-family:'Cormorant Garamond',serif; font-style:italic;
+            font-size:1.25rem; color:#3a2a2e; line-height:1.7;
+        }
+        .tap-fc-date  {
+            font-family:'Caveat',cursive; font-size:0.82rem; color:#bbb;
+            margin-top:1rem; text-align:right; padding-bottom:1rem;
+        }
+        /* Voice note player */
+        .tap-fc-voice { padding:0 1.4rem 1.4rem; background:#faf7f4; }
+        .tap-fc-voice-label {
+            font-family:'Outfit',sans-serif; font-size:0.68rem; font-weight:500;
+            letter-spacing:0.14em; text-transform:uppercase; color:#9a8a96;
+            margin-bottom:0.6rem;
+        }
+        .tap-fc-voice-player {
+            display:flex; align-items:center; gap:12px;
+            background:white; border-radius:14px; padding:10px 14px;
+            box-shadow:0 1px 8px rgba(0,0,0,0.07);
+        }
+        .tap-fc-play-btn {
+            width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
+            background:#3A8C7A; color:white; font-size:14px;
+            display:flex; align-items:center; justify-content:center; flex-shrink:0;
+            transition:transform 0.15s ease, background 0.15s ease;
+        }
+        .tap-fc-play-btn:hover { transform:scale(1.08); background:#2f7a6a; }
+        .tap-fc-waveform {
+            flex:1; display:flex; align-items:center; gap:2px; height:32px;
+        }
+        .tap-fc-waveform-bar {
+            flex:1; border-radius:2px; background:#C8D5D2;
+            transition:background 0.2s;
+        }
+        .tap-fc-waveform-bar.played { background:#3A8C7A; }
+        .tap-fc-duration {
+            font-family:'Outfit',sans-serif; font-size:12px; color:#9a8a96;
+            flex-shrink:0; min-width:28px; text-align:right;
+        }
+        .tap-fc-audio-el { display:none; }
 
         /* Role color palettes */
         :root {
@@ -4556,6 +4596,7 @@
                     icon: icon,
                     photos: photos,
                     hasVoice: hasVoice,
+                    voiceUrl: (bizData && bizData.voice) || (giverData && giverData.voice) || null,
                     isFavorite: entry.is_favorite,
                     note: entry.note,
                     role: entry.role,
@@ -7277,32 +7318,86 @@
     }
 
     function buildTapFullCard(thread) {
-        const pal=tapRolePalette(thread.role),color=pal[0];
         const date=new Date(thread.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-        const roleLabels={giver:'🎁 You Gave',receiver:'💝 You Received',business:'🏢 Business',external:'📌 Saved Scan'};
-        const photos=thread.photos||[]; const hasPhoto=photos.length>0;
+        const roleLabels={giver:'A Memory Given',receiver:'A Memory Received',business:'A Business Memory',external:'A Saved Scan'};
+        const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:'scanned by'};
+        const photos=thread.photos||[];
+        // Build photo section: hero + 2-up grid
         let photoHtml='';
         if(photos.length===1){
             photoHtml=`<div class="tap-fc-photos"><div class="tap-fc-photo"><img src="${photos[0]}" alt=""></div></div>`;
         } else if(photos.length===2){
-            photoHtml=`<div class="tap-fc-photos"><div class="tap-fc-photo-grid"><div class="tap-fc-photo"><img src="${photos[0]}" alt=""></div><div class="tap-fc-photo"><img src="${photos[1]}" alt=""></div></div></div>`;
+            photoHtml=`<div class="tap-fc-photos"><div class="tap-fc-photo"><img src="${photos[0]}" alt=""></div><div class="tap-fc-photo-grid"><div class="tap-fc-photo"><img src="${photos[1]}" alt=""></div></div></div>`;
         } else if(photos.length>=3){
             const extra=photos.length-3;
-            photoHtml=`<div class="tap-fc-photos"><div class="tap-fc-photo"><img src="${photos[0]}" alt=""></div><div class="tap-fc-photo-grid"><div class="tap-fc-photo"><img src="${photos[1]}" alt=""></div><div class="tap-fc-photo" style="position:relative;"><img src="${photos[2]}" alt="">${extra>0?`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:white;font-weight:600;">+${extra}</div>`:''}</div></div></div>`;
+            const countBadge=extra>0?`<div class="tap-fc-photo-count">+${extra} photos</div>`:`<div class="tap-fc-photo-count">${photos.length} photos</div>`;
+            photoHtml=`<div class="tap-fc-photos" style="position:relative;"><div class="tap-fc-photo"><img src="${photos[0]}" alt=""></div><div class="tap-fc-photo-grid"><div class="tap-fc-photo"><img src="${photos[1]}" alt=""></div><div class="tap-fc-photo" style="position:relative;"><img src="${photos[2]}" alt="">${countBadge}</div></div></div>`;
         }
-        const mediaChips=[thread.hasVoice?'<span class="tap-fc-chip">🎙️ voice</span>':'',thread.hasVideo?'<span class="tap-fc-chip">🎬 video</span>':''].join('');
-        const isNote=!hasPhoto;
+        // Voice player HTML
+        let voiceHtml='';
+        if(thread.hasVoice){
+            const uid='vp_'+thread.id;
+            const bars=Array.from({length:28},(_,i)=>{
+                const h=Math.round(20+Math.sin(i*0.7)*10+Math.random()*18);
+                return `<div class="tap-fc-waveform-bar" style="height:${h}px;"></div>`;
+            }).join('');
+            voiceHtml=`<div class="tap-fc-voice">
+                <div class="tap-fc-voice-label">Voice Note</div>
+                <div class="tap-fc-voice-player">
+                    <button class="tap-fc-play-btn" id="btn_${uid}" onclick="toggleVoicePlay('${uid}')">▶</button>
+                    <div class="tap-fc-waveform" id="wave_${uid}">${bars}</div>
+                    <div class="tap-fc-duration" id="dur_${uid}">—</div>
+                </div>
+                ${thread.voiceUrl?`<audio class="tap-fc-audio-el" id="aud_${uid}" src="${thread.voiceUrl}" preload="metadata"></audio>`:''}
+            </div>`;
+        }
         const card=document.createElement('div');
-        card.className='tap-full-card'; card.style.background=color;
-        card.innerHTML=`${photoHtml}<div class="tap-fc-body">
-            <div class="tap-fc-role">${roleLabels[thread.role]||thread.role}${thread.isFavorite?' ⭐':''}</div>
+        card.className='tap-full-card';
+        card.innerHTML=`${photoHtml}
+        <div class="tap-fc-body">
+            <div class="tap-fc-role">${roleLabels[thread.role]||'A Memory'}${thread.isFavorite?' ⭐':''}</div>
             <div class="tap-fc-title">${thread.title}</div>
-            <div class="tap-fc-from">${thread.from}</div>
-            <div class="tap-fc-msg ${isNote?'handwritten':''}">${isNote?`"${thread.message}"`:thread.message}</div>
-            ${mediaChips?`<div class="tap-fc-media">${mediaChips}</div>`:''}
-            <div class="tap-fc-date">📅 ${date}</div>
-        </div>`;
+            <div class="tap-fc-from">${fromPrefixes[thread.role]||'from'} <span class="tap-fc-from-name">${thread.from}</span></div>
+            <hr class="tap-fc-divider">
+            <div class="tap-fc-quote-block">
+                <span class="tap-fc-quote-mark">"</span>
+                <div class="tap-fc-msg">${thread.message||'A meaningful moment'}</div>
+            </div>
+            <div class="tap-fc-date">${date}</div>
+        </div>
+        ${voiceHtml}`;
+        // Wire up audio after insert
+        if(thread.hasVoice && thread.voiceUrl){
+            setTimeout(()=>initVoicePlayer('vp_'+thread.id),100);
+        }
         return card;
+    }
+
+    function initVoicePlayer(uid){
+        const aud=document.getElementById('aud_'+uid); if(!aud)return;
+        const dur=document.getElementById('dur_'+uid);
+        aud.addEventListener('loadedmetadata',()=>{
+            const s=Math.round(aud.duration);
+            dur.textContent=Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0');
+        });
+        aud.addEventListener('timeupdate',()=>{
+            const pct=aud.duration?aud.currentTime/aud.duration:0;
+            const bars=document.querySelectorAll('#wave_'+uid+' .tap-fc-waveform-bar');
+            bars.forEach((b,i)=>b.classList.toggle('played',i/bars.length<pct));
+        });
+        aud.addEventListener('ended',()=>{
+            const btn=document.getElementById('btn_'+uid);
+            if(btn)btn.textContent='▶';
+            document.querySelectorAll('#wave_'+uid+' .tap-fc-waveform-bar').forEach(b=>b.classList.remove('played'));
+        });
+    }
+
+    function toggleVoicePlay(uid){
+        const aud=document.getElementById('aud_'+uid);
+        const btn=document.getElementById('btn_'+uid);
+        if(!aud||!btn)return;
+        if(aud.paused){ aud.play(); btn.textContent='⏸'; }
+        else { aud.pause(); btn.textContent='▶'; }
     }
 
     function openTapSingle(id) {
