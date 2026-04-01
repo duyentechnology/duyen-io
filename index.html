@@ -4641,11 +4641,13 @@
             'tapestry':   'tapestryScreen',
             'externalQr': 'externalQrScreen',
             'threadDetail': 'threadDetailScreen',
-            'about': 'aboutScreen'
+            'about': 'aboutScreen',
+            'profile': 'userScreen'
         };
 
         const targetId = screenMap[screen];
         if (!targetId) { console.warn('Unknown screen:', screen); return; }
+        if (screen === 'profile') { setTimeout(initUserScreen, 80); }
 
         // Track previous screen for back navigation
         const currentActive = document.querySelector('.screen.active');
@@ -5099,6 +5101,159 @@
         'https://qnlaaieyipeglfuepmor.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFubGFhaWV5aXBlZ2xmdWVwbW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NjAxNjgsImV4cCI6MjA4NzAzNjE2OH0.jwAH8E93iPlBJyYuF-HfoB52jVxNLiR2LL64gfqppa8'
     );
+
+    // ==========================================
+    // NAMING MODAL
+    // ==========================================
+    var _nameModalThreadId = null;
+
+    function openNameModal(threadId, currentTitle) {
+        _nameModalThreadId = threadId;
+        const input = document.getElementById('nameModalInput');
+        // Pre-fill only if it's a real title (not a raw QR code)
+        input.value = (currentTitle && !currentTitle.match(/^QR-\d+$/i) && currentTitle !== 'QR Memory') ? currentTitle : '';
+        input.placeholder = 'e.g. gave mom flowers, dinner with Ron…';
+        const overlay = document.getElementById('nameModalOverlay');
+        overlay.classList.add('open');
+        setTimeout(() => input.focus(), 350);
+    }
+
+    function closeNameModal() {
+        document.getElementById('nameModalOverlay').classList.remove('open');
+        _nameModalThreadId = null;
+    }
+
+    async function saveThreadName() {
+        const name = document.getElementById('nameModalInput').value.trim();
+        if (!name) { closeNameModal(); return; }
+        if (!_nameModalThreadId) { closeNameModal(); return; }
+        try {
+            await _supabase.from('tapestry').update({ title: name }).eq('id', _nameModalThreadId);
+            // Update in local userThreads array
+            const t = userThreads.find(t => t.id === _nameModalThreadId);
+            if (t) { t.title = name; buildTapCollage(tapCurrentMonth); buildTapStacks(tapCurrentMonth); }
+        } catch(e) { console.error('Rename error:', e); }
+        closeNameModal();
+    }
+
+    // Close modal on overlay click
+    document.addEventListener('DOMContentLoaded', () => {
+        const overlay = document.getElementById('nameModalOverlay');
+        if (overlay) overlay.addEventListener('click', (e) => { if(e.target===overlay) closeNameModal(); });
+    });
+
+    // ==========================================
+    // DETAIL SCREEN RENAME
+    // ==========================================
+    var _renamingThreadId = null;
+
+    function openTapRename() {
+        const titleEl = document.getElementById('tapDetailTitle');
+        const currentName = titleEl.textContent;
+        const btn = document.getElementById('tapRenameBtn');
+        // Replace title div with input
+        titleEl.style.display = 'none';
+        btn.style.display = 'none';
+        const wrap = titleEl.parentElement;
+        const existing = document.getElementById('tapRenameInput');
+        if (existing) existing.remove();
+        const inp = document.createElement('input');
+        inp.id = 'tapRenameInput';
+        inp.className = 'tap-detail-rename-input';
+        inp.value = currentName;
+        inp.placeholder = 'Name this memory…';
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save';
+        saveBtn.style.cssText = 'font-family:Outfit,sans-serif;font-size:0.82rem;color:#8B3A7F;background:none;border:none;cursor:pointer;flex-shrink:0;padding:0 4px;';
+        saveBtn.onclick = commitTapRename;
+        wrap.appendChild(inp);
+        wrap.appendChild(saveBtn);
+        inp.focus(); inp.select();
+        inp.addEventListener('keydown', (e) => { if(e.key==='Enter') commitTapRename(); if(e.key==='Escape') cancelTapRename(); });
+    }
+
+    async function commitTapRename() {
+        const inp = document.getElementById('tapRenameInput');
+        if (!inp) return;
+        const name = inp.value.trim();
+        if (name && _renamingThreadId) {
+            try {
+                await _supabase.from('tapestry').update({ title: name }).eq('id', _renamingThreadId);
+                const t = userThreads.find(t => t.id === _renamingThreadId);
+                if (t) { t.title = name; buildTapCollage(tapCurrentMonth); buildTapStacks(tapCurrentMonth); }
+            } catch(e) { console.error('Rename error:', e); }
+        }
+        cancelTapRename(name);
+    }
+
+    function cancelTapRename(finalName) {
+        const inp = document.getElementById('tapRenameInput');
+        const titleEl = document.getElementById('tapDetailTitle');
+        const btn = document.getElementById('tapRenameBtn');
+        if (inp) { inp.nextSibling && inp.nextSibling.remove && inp.nextSibling.remove(); inp.remove(); }
+        if (titleEl) { if(finalName) titleEl.textContent = finalName; titleEl.style.display = ''; }
+        if (btn) btn.style.display = '';
+    }
+
+    // ==========================================
+    // USER PROFILE SCREEN
+    // ==========================================
+    async function initUserScreen() {
+        try {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) { navigate('tapestry'); return; }
+            const meta = user.user_metadata || {};
+            const name = meta.full_name || meta.name || user.email.split('@')[0];
+            const email = user.email || '';
+            const provider = user.app_metadata?.provider || 'email';
+
+            // Avatar initials
+            const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+            document.getElementById('userAvatarInitials').textContent = initials;
+            document.getElementById('userDisplayName').textContent = name;
+            document.getElementById('userDisplayEmail').textContent = email;
+            document.getElementById('userEmailDisplay').textContent = email;
+            document.getElementById('userNameInput').value = name;
+
+            // Provider badge
+            const providerLabels = { google: '🟡 Google', apple: '🍎 Apple', email: '📧 Email' };
+            document.getElementById('userProviderBadge').innerHTML =
+                `<span class="user-provider-badge">${providerLabels[provider] || '📧 Email'}</span>`;
+
+            // Hide password reset for social logins
+            if (provider !== 'email') {
+                const sec = document.getElementById('userPasswordSection');
+                if (sec) sec.style.display = 'none';
+            }
+        } catch(e) { console.error('Profile load error:', e); }
+    }
+
+    async function saveUserName() {
+        const name = document.getElementById('userNameInput').value.trim();
+        if (!name) return;
+        try {
+            await _supabase.auth.updateUser({ data: { full_name: name } });
+            document.getElementById('userDisplayName').textContent = name;
+            document.getElementById('userAvatarInitials').textContent =
+                name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+            // Update tapestry title
+            currentUser = name;
+            const tapTitle = document.getElementById('tapestryTitle');
+            if (tapTitle) tapTitle.textContent = name.split(' ')[0] + '\'s Tapestry';
+            alert('Name updated! ✓');
+        } catch(e) { alert('Error saving name'); console.error(e); }
+    }
+
+    async function sendPasswordReset() {
+        try {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) return;
+            await _supabase.auth.resetPasswordForEmail(user.email, {
+                redirectTo: window.location.origin
+            });
+            alert('Password reset email sent to ' + user.email);
+        } catch(e) { alert('Error sending reset email'); console.error(e); }
+    }
 
     function logoutDuyen() {
         try { _supabase.auth.signOut({ scope: 'local' }); } catch(e) {}
@@ -6011,6 +6166,10 @@
                 btn.style.border = '';
                 btn.disabled = false;
             }, 3000);
+            // Prompt user to name this thread
+            if (data && data[0]) {
+                openNameModal(data[0].id, title);
+            }
             return;
             
         } catch(e) {
@@ -7433,6 +7592,7 @@
 
     function openTapSingle(id) {
         const thread=userThreads.find(t=>t.id===id); if(!thread)return;
+        _renamingThreadId = id;
         document.getElementById('tapDetailTitle').textContent=thread.title;
         document.getElementById('tapDetailSub').textContent=new Date(thread.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
         const container=document.getElementById('tapDetailCards'); container.innerHTML='';
