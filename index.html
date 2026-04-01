@@ -4182,12 +4182,77 @@
 <div id="tapDetailScreen">
     <div class="tap-detail-header">
         <button class="tap-back-btn" onclick="closeTapDetail()">←</button>
-        <div>
-            <div class="tap-detail-title" id="tapDetailTitle"></div>
-            <div class="tap-detail-sub"   id="tapDetailSub"></div>
+        <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:6px;">
+                <div class="tap-detail-title" id="tapDetailTitle" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+                <button class="tap-pencil-btn" id="tapRenameBtn" onclick="openTapRename()" title="Rename">✏️</button>
+            </div>
+            <div class="tap-detail-sub" id="tapDetailSub"></div>
         </div>
     </div>
     <div id="tapDetailCards"></div>
+</div>
+
+<!-- NAMING MODAL -->
+<div class="name-modal-overlay" id="nameModalOverlay" onclick="if(event.target===this)closeNameModal()">
+    <div class="name-modal">
+        <div class="name-modal-handle"></div>
+        <div class="name-modal-title">Name this memory</div>
+        <div class="name-modal-sub">Give it a caption you'll recognise later</div>
+        <input class="name-modal-input" id="nameModalInput" type="text" placeholder="e.g. gave mom flowers, dinner with Ron…" maxlength="80">
+        <div class="name-modal-actions">
+            <button class="name-modal-save" onclick="saveThreadName()">Save name</button>
+            <button class="name-modal-skip" onclick="closeNameModal()">Skip</button>
+        </div>
+    </div>
+</div>
+
+<!-- USER PROFILE SCREEN -->
+<div class="screen" id="userScreen">
+    <header class="app-header">
+        <div class="header-inner">
+            <button class="header-btn header-btn-ghost" onclick="navigate('tapestry')" style="font-size:1.2rem;padding:4px 10px;">←</button>
+            <span style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;color:#1C1410;letter-spacing:0.04em;">Your Account</span>
+            <div style="width:60px;"></div>
+        </div>
+    </header>
+    <div class="user-profile-wrap">
+        <div class="user-header">
+            <div class="user-avatar" id="userAvatarInitials">?</div>
+            <div>
+                <div class="user-avatar-name" id="userDisplayName">—</div>
+                <div class="user-avatar-email" id="userDisplayEmail">—</div>
+            </div>
+        </div>
+
+        <div class="user-section-label">Account Info</div>
+
+        <div class="user-field">
+            <div class="user-field-label">Name</div>
+            <div class="user-field-row">
+                <input class="user-field-input" id="userNameInput" type="text" placeholder="Your name">
+                <button class="user-field-edit" onclick="saveUserName()">Save</button>
+            </div>
+        </div>
+
+        <div class="user-field">
+            <div class="user-field-label">Email</div>
+            <div class="user-field-value" id="userEmailDisplay">—</div>
+        </div>
+
+        <div class="user-field">
+            <div class="user-field-label">Signed in with</div>
+            <div id="userProviderBadge"><span class="user-provider-badge">📧 Email</span></div>
+        </div>
+
+        <div class="user-section-label">Security</div>
+        <div id="userPasswordSection">
+            <button class="user-action-btn user-action-btn-secondary" onclick="sendPasswordReset()">🔑 Send password reset email</button>
+        </div>
+
+        <div class="user-section-label">Session</div>
+        <button class="user-action-btn user-action-btn-danger" onclick="logoutDuyen()">Sign Out</button>
+    </div>
 </div>
 
 <!-- =============================================
