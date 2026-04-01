@@ -1827,17 +1827,14 @@
 
         /* ── POLAROID CARDS ── */
         .tap-polaroid-scroll {
-            display:flex; gap:14px; overflow-x:auto; padding:10px 4px 18px;
-            scrollbar-width:none; -webkit-overflow-scrolling:touch;
+            display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:4px 0 8px;
         }
-        .tap-polaroid-scroll::-webkit-scrollbar { display:none; }
         .tap-polaroid {
-            flex-shrink:0; width:130px;
-            background:white; padding:7px 7px 26px;
+            background:white; padding:7px 7px 22px;
             box-shadow:0 4px 14px rgba(0,0,0,0.13);
             cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .tap-polaroid:hover { transform:translateY(-4px) scale(1.03); box-shadow:0 8px 22px rgba(0,0,0,0.18); }
+        .tap-polaroid:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.18); }
         .tap-polaroid-img {
             width:100%; aspect-ratio:1; overflow:hidden; background:#f0ebe6;
             display:flex; align-items:center; justify-content:center;
@@ -2915,7 +2912,81 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-    </style>
+    
+        /* ── USER PROFILE SCREEN ── */
+        #userScreen { background:#faf7f4; }
+        .user-profile-wrap { max-width:480px; margin:0 auto; padding:0 20px 80px; }
+        .user-header {
+            display:flex; align-items:center; gap:16px;
+            padding:28px 0 22px; border-bottom:1px solid #e8e2dd; margin-bottom:24px;
+        }
+        .user-avatar {
+            width:58px; height:58px; border-radius:50%;
+            background:linear-gradient(135deg,#8B3A7F,#C8406A);
+            display:flex; align-items:center; justify-content:center;
+            font-family:'Cormorant Garamond',serif; font-size:1.5rem;
+            font-weight:600; color:white; flex-shrink:0;
+        }
+        .user-avatar-name {
+            font-family:'Cormorant Garamond',serif; font-size:1.4rem;
+            font-weight:400; color:#1C1410;
+        }
+        .user-avatar-email {
+            font-family:'Outfit',sans-serif; font-size:0.82rem;
+            color:#9a8a96; margin-top:3px;
+        }
+        .user-section-label {
+            font-family:'Outfit',sans-serif; font-size:0.68rem; font-weight:500;
+            letter-spacing:0.14em; text-transform:uppercase; color:#9a8a96;
+            margin-bottom:10px; margin-top:24px;
+        }
+        .user-field {
+            background:white; border-radius:14px; padding:14px 16px;
+            margin-bottom:10px; box-shadow:0 1px 6px rgba(0,0,0,0.05);
+        }
+        .user-field-label {
+            font-family:'Outfit',sans-serif; font-size:0.7rem; color:#9a8a96;
+            text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;
+        }
+        .user-field-value {
+            font-family:'Outfit',sans-serif; font-size:0.95rem; color:#1C1410;
+        }
+        .user-field-input {
+            width:100%; border:none; outline:none; background:transparent;
+            font-family:'Outfit',sans-serif; font-size:0.95rem; color:#1C1410; padding:0;
+        }
+        .user-field-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+        .user-field-edit {
+            font-family:'Outfit',sans-serif; font-size:0.78rem; color:#8B3A7F;
+            background:none; border:none; cursor:pointer; padding:0; flex-shrink:0;
+            font-weight:500;
+        }
+        .user-provider-badge {
+            display:inline-flex; align-items:center; gap:5px;
+            background:#f0ebe6; border-radius:20px; padding:5px 12px;
+            font-family:'Outfit',sans-serif; font-size:0.82rem; color:#5a4a56;
+        }
+        .user-action-btn {
+            width:100%; padding:14px; border-radius:14px; border:none;
+            font-family:'Outfit',sans-serif; font-size:0.95rem; font-weight:500;
+            cursor:pointer; margin-bottom:10px; transition:all 0.15s; text-align:center;
+        }
+        .user-action-btn-danger {
+            background:white; color:#C8406A; border:1.5px solid #f0d0d8;
+        }
+        .user-action-btn-danger:hover { background:#fdf0f3; }
+        .user-action-btn-secondary {
+            background:white; color:#1C1410; border:1.5px solid #e0d8d2;
+        }
+        .user-action-btn-secondary:hover { background:#f5f0eb; }
+
+        /* ── PENCIL RENAME ── */
+        .tap-pencil-btn {
+            background:none; border:none; cursor:pointer; font-size:14px;
+            color:#9a8a96; padding:2px 4px; flex-shrink:0; transition:color 0.15s;
+        }
+        .tap-pencil-btn:hover { color:#8B3A7F; }
+        </style>
 </head>
 <body>
 
@@ -4072,6 +4143,7 @@
                 </button>
                 <button class="header-btn header-btn-ghost" onclick="navigate('about')">About</button>
                 <button class="header-btn header-btn-primary" onclick="openScanner()">📸 Scan</button>
+                <button onclick="navigate('profile')" style="width:32px;height:32px;border-radius:50%;border:1.5px solid #e0d8d2;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;" title="Your account">👤</button>
                 <button class="header-btn header-btn-ghost" onclick="logoutDuyen()" style="color: var(--text-muted);">Log Out</button>
             </div>
         </div>
@@ -4182,29 +4254,12 @@
 <div id="tapDetailScreen">
     <div class="tap-detail-header">
         <button class="tap-back-btn" onclick="closeTapDetail()">←</button>
-        <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;gap:6px;">
-                <div class="tap-detail-title" id="tapDetailTitle" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-                <button class="tap-pencil-btn" id="tapRenameBtn" onclick="openTapRename()" title="Rename">✏️</button>
-            </div>
-            <div class="tap-detail-sub" id="tapDetailSub"></div>
+        <div>
+            <div class="tap-detail-title" id="tapDetailTitle"></div>
+            <div class="tap-detail-sub"   id="tapDetailSub"></div>
         </div>
     </div>
     <div id="tapDetailCards"></div>
-</div>
-
-<!-- NAMING MODAL -->
-<div class="name-modal-overlay" id="nameModalOverlay" onclick="if(event.target===this)closeNameModal()">
-    <div class="name-modal">
-        <div class="name-modal-handle"></div>
-        <div class="name-modal-title">Name this memory</div>
-        <div class="name-modal-sub">Give it a caption you'll recognise later</div>
-        <input class="name-modal-input" id="nameModalInput" type="text" placeholder="e.g. gave mom flowers, dinner with Ron…" maxlength="80">
-        <div class="name-modal-actions">
-            <button class="name-modal-save" onclick="saveThreadName()">Save name</button>
-            <button class="name-modal-skip" onclick="closeNameModal()">Skip</button>
-        </div>
-    </div>
 </div>
 
 <!-- USER PROFILE SCREEN -->
@@ -5166,99 +5221,6 @@
         'https://qnlaaieyipeglfuepmor.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFubGFhaWV5aXBlZ2xmdWVwbW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NjAxNjgsImV4cCI6MjA4NzAzNjE2OH0.jwAH8E93iPlBJyYuF-HfoB52jVxNLiR2LL64gfqppa8'
     );
-
-    // ==========================================
-    // NAMING MODAL
-    // ==========================================
-    var _nameModalThreadId = null;
-
-    function openNameModal(threadId, currentTitle) {
-        _nameModalThreadId = threadId;
-        const input = document.getElementById('nameModalInput');
-        // Pre-fill only if it's a real title (not a raw QR code)
-        input.value = (currentTitle && !currentTitle.match(/^QR-\d+$/i) && currentTitle !== 'QR Memory') ? currentTitle : '';
-        input.placeholder = 'e.g. gave mom flowers, dinner with Ron…';
-        const overlay = document.getElementById('nameModalOverlay');
-        overlay.classList.add('open');
-        setTimeout(() => input.focus(), 350);
-    }
-
-    function closeNameModal() {
-        document.getElementById('nameModalOverlay').classList.remove('open');
-        _nameModalThreadId = null;
-    }
-
-    async function saveThreadName() {
-        const name = document.getElementById('nameModalInput').value.trim();
-        if (!name) { closeNameModal(); return; }
-        if (!_nameModalThreadId) { closeNameModal(); return; }
-        try {
-            await _supabase.from('tapestry').update({ title: name }).eq('id', _nameModalThreadId);
-            // Update in local userThreads array
-            const t = userThreads.find(t => t.id === _nameModalThreadId);
-            if (t) { t.title = name; buildTapCollage(tapCurrentMonth); buildTapStacks(tapCurrentMonth); }
-        } catch(e) { console.error('Rename error:', e); }
-        closeNameModal();
-    }
-
-    // Close modal on overlay click
-    document.addEventListener('DOMContentLoaded', () => {
-        const overlay = document.getElementById('nameModalOverlay');
-        if (overlay) overlay.addEventListener('click', (e) => { if(e.target===overlay) closeNameModal(); });
-    });
-
-    // ==========================================
-    // DETAIL SCREEN RENAME
-    // ==========================================
-    var _renamingThreadId = null;
-
-    function openTapRename() {
-        const titleEl = document.getElementById('tapDetailTitle');
-        const currentName = titleEl.textContent;
-        const btn = document.getElementById('tapRenameBtn');
-        // Replace title div with input
-        titleEl.style.display = 'none';
-        btn.style.display = 'none';
-        const wrap = titleEl.parentElement;
-        const existing = document.getElementById('tapRenameInput');
-        if (existing) existing.remove();
-        const inp = document.createElement('input');
-        inp.id = 'tapRenameInput';
-        inp.className = 'tap-detail-rename-input';
-        inp.value = currentName;
-        inp.placeholder = 'Name this memory…';
-        const saveBtn = document.createElement('button');
-        saveBtn.textContent = 'Save';
-        saveBtn.style.cssText = 'font-family:Outfit,sans-serif;font-size:0.82rem;color:#8B3A7F;background:none;border:none;cursor:pointer;flex-shrink:0;padding:0 4px;';
-        saveBtn.onclick = commitTapRename;
-        wrap.appendChild(inp);
-        wrap.appendChild(saveBtn);
-        inp.focus(); inp.select();
-        inp.addEventListener('keydown', (e) => { if(e.key==='Enter') commitTapRename(); if(e.key==='Escape') cancelTapRename(); });
-    }
-
-    async function commitTapRename() {
-        const inp = document.getElementById('tapRenameInput');
-        if (!inp) return;
-        const name = inp.value.trim();
-        if (name && _renamingThreadId) {
-            try {
-                await _supabase.from('tapestry').update({ title: name }).eq('id', _renamingThreadId);
-                const t = userThreads.find(t => t.id === _renamingThreadId);
-                if (t) { t.title = name; buildTapCollage(tapCurrentMonth); buildTapStacks(tapCurrentMonth); }
-            } catch(e) { console.error('Rename error:', e); }
-        }
-        cancelTapRename(name);
-    }
-
-    function cancelTapRename(finalName) {
-        const inp = document.getElementById('tapRenameInput');
-        const titleEl = document.getElementById('tapDetailTitle');
-        const btn = document.getElementById('tapRenameBtn');
-        if (inp) { inp.nextSibling && inp.nextSibling.remove && inp.nextSibling.remove(); inp.remove(); }
-        if (titleEl) { if(finalName) titleEl.textContent = finalName; titleEl.style.display = ''; }
-        if (btn) btn.style.display = '';
-    }
 
     // ==========================================
     // USER PROFILE SCREEN
@@ -6231,10 +6193,6 @@
                 btn.style.border = '';
                 btn.disabled = false;
             }, 3000);
-            // Prompt user to name this thread
-            if (data && data[0]) {
-                openNameModal(data[0].id, title);
-            }
             return;
             
         } catch(e) {
@@ -7545,7 +7503,7 @@
                     const bgColor=pal[i%pal.length];
                     const card=document.createElement('div');
                     card.className='tap-polaroid';
-                    card.style.transform=`rotate(${tilt}deg)`;
+                    // no tilt in grid layout
                     card.onclick=()=>openTapSingle(thread.id);
                     card.innerHTML=`<div class="tap-polaroid-img">${
                         hasPhoto
@@ -7657,7 +7615,6 @@
 
     function openTapSingle(id) {
         const thread=userThreads.find(t=>t.id===id); if(!thread)return;
-        _renamingThreadId = id;
         document.getElementById('tapDetailTitle').textContent=thread.title;
         document.getElementById('tapDetailSub').textContent=new Date(thread.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
         const container=document.getElementById('tapDetailCards'); container.innerHTML='';
