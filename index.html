@@ -1701,45 +1701,52 @@
         .tap-collage-scroll.switching { opacity:0; }
 
         .tap-col-card {
-            flex-shrink:0; width:170px;
-            margin-left:-48px; position:relative;
-            cursor:pointer; border-radius:4px; overflow:hidden;
-            box-shadow:2px 3px 10px rgba(0,0,0,0.16);
+            flex-shrink:0; width:148px;
+            margin-left:-38px; position:relative;
+            cursor:pointer;
+            background:white;
+            padding:6px 6px 0 6px;
+            box-shadow:2px 4px 14px rgba(0,0,0,0.15);
             transition:transform 0.25s ease, box-shadow 0.25s ease;
             transform:rotate(var(--ctilt,0deg));
         }
         .tap-col-card:first-child { margin-left:0; }
         .tap-col-card:hover {
-            transform:rotate(0deg) scale(1.1) translateY(-6px) !important;
-            box-shadow:4px 10px 24px rgba(0,0,0,0.26) !important;
+            transform:rotate(0deg) scale(1.08) translateY(-8px) !important;
+            box-shadow:4px 12px 28px rgba(0,0,0,0.22) !important;
             z-index:50 !important;
         }
         .tap-col-card::before {
-            content:''; position:absolute; top:-7px; left:50%;
+            content:''; position:absolute; top:-8px; left:50%;
             transform:translateX(-50%) rotate(var(--ctape,-2deg));
-            width:38px; height:15px;
-            background:rgba(255,255,255,0.5);
-            border:1px solid rgba(255,255,255,0.65);
+            width:40px; height:16px;
+            background:rgba(200,180,220,0.55);
             border-radius:2px; z-index:5;
         }
-        .tap-col-card::after {
-            content:''; position:absolute; bottom:0; right:0;
-            width:0; height:0; border-style:solid;
-            border-width:0 0 12px 12px;
-            border-color:transparent transparent rgba(255,255,255,0.22) transparent; z-index:5;
-        }
         .tap-col-photo {
-            width:100%; aspect-ratio:4/3; overflow:hidden;
-            display:flex; align-items:center; justify-content:center; font-size:3rem;
-            background:rgba(255,255,255,0.2); position:relative;
+            width:100%; aspect-ratio:1; overflow:hidden;
+            display:flex; align-items:center; justify-content:center;
+            font-size:3rem; background:#f0ebe6; position:relative;
         }
         .tap-col-photo img { width:100%; height:100%; object-fit:cover; }
-        .tap-col-body { padding:0.5rem 0.6rem 0.7rem; }
-        .tap-col-title { font-family:'Cormorant Garamond',serif; font-size:0.9rem; font-weight:600; color:white; line-height:1.25; }
-        .tap-col-date  { font-family:'Caveat',cursive; font-size:0.75rem; color:rgba(255,255,255,0.55); margin-top:0.15rem; }
-        .tap-col-note  { padding:0.75rem 0.65rem 0.85rem; min-height:100px; display:flex; flex-direction:column; justify-content:space-between; }
-        .tap-col-msg   { font-family:'Caveat',cursive; font-size:0.88rem; line-height:1.5; color:white; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
-        .tap-col-new   { position:absolute; top:0.35rem; right:0.35rem; font-family:'Caveat',cursive; font-size:0.65rem; background:rgba(255,255,255,0.92); color:#1C1410; padding:0.05rem 0.35rem; border-radius:6px; z-index:6; }
+        .tap-col-nophoto {
+            width:100%; aspect-ratio:1;
+            display:flex; align-items:center; justify-content:center;
+            font-size:2.8rem; background:#f5f0eb;
+        }
+        .tap-col-body { padding:8px 4px 10px; }
+        .tap-col-caption {
+            font-family:'Caveat',cursive; font-size:13px;
+            color:#2a1a2e; line-height:1.35; text-align:center;
+            display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+        }
+        .tap-col-date  { font-family:'Caveat',cursive; font-size:11px; color:#bbb; margin-top:3px; text-align:center; }
+        .tap-col-new   {
+            position:absolute; top:10px; right:6px;
+            font-family:'Caveat',cursive; font-size:0.62rem;
+            background:#8B3A7F; color:white;
+            padding:0.05rem 0.4rem; border-radius:6px; z-index:6;
+        }
 
         .tap-collage-hint {
             font-family:'Caveat',cursive; font-size:0.8rem;
@@ -7216,6 +7223,25 @@
         return p[role]||p.external;
     }
 
+    function tapPhotoCaption(thread) {
+        // Generate old-school photo caption from thread data
+        const name = (thread.from && thread.from !== 'You' && thread.from !== 'Someone special') ? thread.from : null;
+        const title = thread.title && !thread.title.match(/^QR-\d+$/i) ? thread.title : null;
+        if (thread.role === 'giver') {
+            if (title) return 'gave ' + title + ' a gift';
+            return name ? 'a gift for ' + name : 'gave a gift';
+        }
+        if (thread.role === 'receiver') {
+            if (title) return title;
+            return name ? 'from ' + name : 'a gift received';
+        }
+        if (thread.role === 'business') {
+            return name ? 'visited ' + name : (title || 'a place visited');
+        }
+        if (title) return title;
+        return thread.message ? thread.message.split(' ').slice(0,6).join(' ') : 'a moment saved';
+    }
+
     function buildTapCollage(month) {
         const scroll=document.getElementById('tapCollageScroll');
         scroll.classList.add('switching');
@@ -7225,19 +7251,24 @@
             if(!cards.length){scroll.classList.remove('switching');return;}
             const tilts=[-7,8,-5,6,-8,5,-4,9,-6,7],tapes=[-3,3,2,-2,3,-3,2,-2,3,-1];
             cards.forEach((thread,i)=>{
-                const pal=tapRolePalette(thread.role),color=pal[i%3];
                 const hasPhoto=thread.photos&&thread.photos.length>0;
                 const date=new Date(thread.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
                 const isNew=i===0;
+                const caption=tapPhotoCaption(thread);
                 const div=document.createElement('div');
                 div.className='tap-col-card';
-                div.style.cssText=`z-index:${20-i};--ctilt:${tilts[i%tilts.length]}deg;--ctape:${tapes[i%tapes.length]}deg;background:${color};`;
+                div.style.cssText=`z-index:${20-i};--ctilt:${tilts[i%tilts.length]}deg;--ctape:${tapes[i%tapes.length]}deg;`;
                 div.onclick=()=>openTapSingle(thread.id);
-                if(hasPhoto){
-                    div.innerHTML=`${isNew?'<div class="tap-col-new">new</div>':''}<div class="tap-col-photo"><img src="${thread.photos[0]}" alt="${thread.title}"></div><div class="tap-col-body"><div class="tap-col-title">${thread.title}</div><div class="tap-col-date">${date}</div></div>`;
-                } else {
-                    div.innerHTML=`${isNew?'<div class="tap-col-new">new</div>':''}<div class="tap-col-note"><div class="tap-col-msg">"${thread.message||thread.title}"</div><div class="tap-col-date">${date}</div></div>`;
-                }
+                div.innerHTML=`
+                    ${isNew?'<div class="tap-col-new">new</div>':''}
+                    ${hasPhoto
+                        ? `<div class="tap-col-photo"><img src="${thread.photos[0]}" alt="${caption}" loading="lazy"></div>`
+                        : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
+                    }
+                    <div class="tap-col-body">
+                        <div class="tap-col-caption">${caption}</div>
+                        <div class="tap-col-date">${date}</div>
+                    </div>`;
                 scroll.appendChild(div);
             });
             scroll.classList.remove('switching');
