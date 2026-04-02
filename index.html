@@ -6225,6 +6225,24 @@
         }
     }
 
+    // Handle OAuth redirect (Google sign-in returns here)
+    _supabase.auth.onAuthStateChange(function(event, session) {
+        if (event === 'SIGNED_IN' && session && session.user) {
+            if (isAuthenticated) return; // already handled by getSession
+            isAuthenticated = true;
+            const _meta = session.user.user_metadata || {};
+            currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
+            const tapTitle = document.getElementById('tapestryTitle');
+            const displayName = currentUser.split(' ')[0];
+            tapTitle.textContent = displayName + '\'s Tapestry';
+            const path = window.location.pathname;
+            const hash = window.location.hash;
+            if (!path.startsWith('/q/') && !hash.startsWith('#/q/')) {
+                proceedAfterAuth();
+            }
+        }
+    });
+
     _supabase.auth.getSession().then(({ data: { session } }) => {
         if (session && session.user) {
             // Set auth state but DON'T navigate if we're on a QR scan URL
