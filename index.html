@@ -4588,10 +4588,11 @@
                 handleRoute();
             }, 1500);
         } else {
-            // Normal flow: show splash then welcome
+            // Normal flow: show splash then welcome (unless returning from OAuth)
             setTimeout(function() {
                 var splash = document.getElementById('splash');
                 if (splash) splash.classList.add('hidden');
+                if (isAuthenticated || window._authNavigated) return;
                 try { navigate('home'); } catch(e) {
                     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
                     var ws = document.getElementById('welcomeScreen');
@@ -6230,6 +6231,7 @@
         if (event === 'SIGNED_IN' && session && session.user) {
             if (isAuthenticated) return; // already handled by getSession
             isAuthenticated = true;
+            window._authNavigated = true;
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
@@ -6247,6 +6249,7 @@
         if (session && session.user) {
             // Set auth state but DON'T navigate if we're on a QR scan URL
             isAuthenticated = true;
+            window._authNavigated = true;
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
