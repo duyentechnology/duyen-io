@@ -5208,9 +5208,17 @@
     // ==========================================
     // AUTH
     // ==========================================
-    function handleGoogleAuth() {
+    async function handleGoogleAuth() {
         console.log('🔵 Google auth');
-        simulateAuthSuccess('Google User');
+        const { error } = await _supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + window.location.pathname
+            }
+        });
+        if (error) {
+            alert('Google sign-in failed: ' + error.message);
+        }
     }
 
     function handleAppleAuth() {
