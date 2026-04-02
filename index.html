@@ -3550,6 +3550,30 @@
     </div>
 </div>
 
+<!-- SET NEW PASSWORD SCREEN -->
+<div class="screen" id="setPasswordScreen">
+    <div class="container-narrow">
+        <div class="logo-header" onclick="navigate('home')">
+            <div class="logo-symbol">緣</div>
+            <div class="logo-text">DUYÊN</div>
+        </div>
+        <div class="card">
+            <div style="text-align: center; font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+            <h1>Set New Password</h1>
+            <p class="subtitle">Choose a new password for your account</p>
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="password" id="newPassword" placeholder="At least 8 characters">
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="newPasswordConfirm" placeholder="Repeat your password">
+            </div>
+            <button class="btn btn-primary btn-full" onclick="handleSetNewPassword()">Set New Password</button>
+        </div>
+    </div>
+</div>
+
 <!-- =============================================
      SCREEN 8: BUSINESS FORM
 ============================================= -->
@@ -4149,7 +4173,7 @@
             <div class="logo-text">DUYÊN</div>
             </a>
             <div class="header-actions">
-                <input type="text" class="header-search" placeholder="Search threads..." id="tapestrySearch" oninput="renderTapestry()">
+                <input type="text" class="header-search" placeholder="Search threads..." id="tapestrySearch" oninput="handleTapestrySearch()">
                 <button class="notif-bell" id="notifBell" onclick="toggleNotifPanel()" title="Notifications">
                     🔔
                     <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
@@ -4763,6 +4787,7 @@
             'signup':     'signupScreen',
             'verify':     'verifyScreen',
             'forgot':     'forgotScreen',
+            'setPassword': 'setPasswordScreen',
             'business':    'businessScreen',
             'bizProfile':  'bizProfileScreen',
             'templateEdit':'templateEditScreen',
@@ -6228,6 +6253,11 @@
 
     // Handle OAuth redirect (Google sign-in returns here)
     _supabase.auth.onAuthStateChange(function(event, session) {
+        if (event === 'PASSWORD_RECOVERY') {
+            window._authNavigated = true;
+            navigate('setPassword');
+            return;
+        }
         if (event === 'SIGNED_IN' && session && session.user) {
             if (isAuthenticated) return; // already handled by getSession
             isAuthenticated = true;
@@ -6564,11 +6594,26 @@
         document.getElementById('code1').focus();
     }
 
-    function handleForgotPassword() {
+    async function handleForgotPassword() {
         const email = document.getElementById('resetEmail').value;
         if (!email) { alert('Please enter your email'); return; }
-        alert('Reset link sent to ' + email);
+        const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: 'https://duyen.io'
+        });
+        if (error) { alert('Error: ' + error.message); return; }
+        alert('Reset link sent to ' + email + ' — check your inbox.');
         navigate('login');
+    }
+
+    async function handleSetNewPassword() {
+        const pw = document.getElementById('newPassword').value;
+        const confirm = document.getElementById('newPasswordConfirm').value;
+        if (!pw || pw.length < 8) { alert('Password must be at least 8 characters'); return; }
+        if (pw !== confirm) { alert('Passwords do not match'); return; }
+        const { error } = await _supabase.auth.updateUser({ password: pw });
+        if (error) { alert('Error: ' + error.message); return; }
+        alert('Password updated! You can now sign in on all your devices.');
+        proceedAfterAuth();
     }
 
     function skipAuth() {
@@ -7515,6 +7560,51 @@
             </div>`;
             pill.onclick=()=>switchTapMonth(month,pill);
             strip.appendChild(pill);
+        });
+    }
+
+    function handleTapestrySearch() {
+        const search = (document.getElementById('tapestrySearch')?.value || '').toLowerCase().trim();
+        if (!search) {
+            // Restore normal scrapbook view
+            document.getElementById('tapCollageOuter').style.display = 'block';
+            document.getElementById('tapCollageHint').style.display = 'block';
+            document.getElementById('tapMonthOuter').style.display = 'block';
+            document.getElementById('tapestryGrid').style.display = 'none';
+            buildTapCollage(tapCurrentMonth);
+            buildTapStacks(tapCurrentMonth);
+            return;
+        }
+        // Show flat filtered grid, hide scrapbook
+        const filtered = userThreads.filter(t =>
+            (t.title || '').toLowerCase().includes(search) ||
+            (t.from || '').toLowerCase().includes(search) ||
+            (t.message || '').toLowerCase().includes(search) ||
+            (t.tags && t.tags.some(tag => tag.toLowerCase().includes(search)))
+        );
+        document.getElementById('tapCollageOuter').style.display = 'none';
+        document.getElementById('tapCollageHint').style.display = 'none';
+        document.getElementById('tapMonthOuter').style.display = 'none';
+        const grid = document.getElementById('tapestryGrid');
+        grid.style.display = 'grid';
+        grid.innerHTML = '';
+        if (filtered.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">No threads found</div>';
+            return;
+        }
+        const palettes = { receiver:['#C8406A','#D4503C','#B83858'], giver:['#3A8C48','#B87828','#5A8060'], business:['#4888C0','#5848A8','#2878A0'], external:['#8B5E3C','#6B7280','#7C4D3A'] };
+        filtered.forEach((thread, i) => {
+            const pal = palettes[thread.role] || palettes.external;
+            const color = pal[i % pal.length];
+            const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const roleLabels = { giver:'🎁 You Gave', receiver:'💝 You Received', business:'🏢 Business', external:'📌 Saved Scan' };
+            const card = document.createElement('div');
+            card.className = 'thread-card';
+            card.style.cssText = 'cursor:pointer;border-radius:12px;overflow:hidden;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.1);';
+            card.onclick = () => openTapSingle(thread.id);
+            const photo = thread.photos && thread.photos.length > 0 ? `<img src="${thread.photos[0]}" style="width:100%;height:120px;object-fit:cover;">` : `<div style="width:100%;height:80px;background:${color};display:flex;align-items:center;justify-content:center;font-size:2rem;">${thread.icon||'🧵'}</div>`;
+            card.innerHTML = `${photo}<div style="padding:12px;"><div style="font-size:0.75rem;color:${color};font-weight:600;margin-bottom:4px;">${roleLabels[thread.role]||thread.role}</div><div style="font-weight:600;font-size:0.95rem;margin-bottom:4px;">${thread.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">${date}</div></div>`;
+            grid.appendChild(card);
         });
     }
 
