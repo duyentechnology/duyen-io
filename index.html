@@ -4900,8 +4900,13 @@
             // Receiver can view first, prompted to sign in to save at the bottom
             navigate('qrContent');
         } else {
-            // Business
-            navigate('auth');
+            // Business → send to dayduyen.tech to claim this QR code
+            var qrId = scannedQRData ? scannedQRData.id : null;
+            if (qrId) {
+                window.location.href = 'https://dayduyen.tech/#claim/' + qrId;
+            } else {
+                window.location.href = 'https://dayduyen.tech/';
+            }
         }
     }
 
