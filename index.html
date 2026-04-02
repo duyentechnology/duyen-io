@@ -4604,8 +4604,16 @@
         var path = window.location.pathname;
         var hash = window.location.hash;
         var isQRScan = path.startsWith('/q/') || hash.startsWith('#/q/');
+        var isPasswordRecovery = hash.includes('type=recovery');
 
-        if (isQRScan) {
+        if (isPasswordRecovery) {
+            window._authNavigated = true;
+            setTimeout(function() {
+                var splash = document.getElementById('splash');
+                if (splash) splash.classList.add('hidden');
+                navigate('setPassword');
+            }, 1500);
+        } else if (isQRScan) {
             // Show splash briefly then go straight to role selection
             setTimeout(function() {
                 var splash = document.getElementById('splash');
