@@ -1930,22 +1930,27 @@
         }
         .tap-fc-from-name { color:#8B3A7F; font-style:italic; }
         .tap-fc-divider { border:none; border-top:1px solid #e8e2dd; margin:1.1rem 0; }
-        .tap-fc-link-btn {
+        .tap-fc-link-row {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            background: var(--brand-plum);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            padding: 0.75rem 1.25rem;
-            font-size: 0.95rem;
-            font-weight: 600;
+            gap: 10px;
             margin: 1rem 0 0.5rem;
-            transition: opacity 0.2s;
         }
-        .tap-fc-link-btn:hover { opacity: 0.85; }
+        .tap-fc-link-btn {
+            flex: 1;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 12px 8px;
+            background: transparent;
+            color: #8B3A7F;
+            border: 2px solid #8B3A7F;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tap-fc-link-btn:hover { background: #8B3A7F; color: white; }
         .tap-fc-quote-block { padding:0 0.2rem; }
         .tap-fc-quote-mark {
             font-family:'Cormorant Garamond',serif; font-size:3.5rem; font-weight:600;
@@ -7748,9 +7753,14 @@
         const card=document.createElement('div');
         card.className='tap-full-card';
         const linkHtml = thread.externalUrl ? `
-            <a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" class="tap-fc-link-btn">
-                🔗 Open Link
-            </a>` : '';
+            <div class="tap-fc-link-row">
+                <a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" class="tap-fc-link-btn">
+                    🔗 Open Link
+                </a>
+                <button class="tap-fc-link-btn" onclick="shareExternalLink('${thread.externalUrl}', '${thread.title.replace(/'/g, "\\'")}')">
+                    ↗ Share
+                </button>
+            </div>` : '';
         card.innerHTML=`${photoHtml}
         <div class="tap-fc-body">
             <div class="tap-fc-role">${roleLabels[thread.role]||'A Memory'}${thread.isFavorite?' ⭐':''}</div>
@@ -8096,6 +8106,19 @@
 
         document.getElementById('threadDetailContent').innerHTML = html;
         navigate('threadDetail');
+    }
+
+    function shareExternalLink(url, title) {
+        if (navigator.share) {
+            navigator.share({ title: title || 'Saved from Duyên', url: url })
+                .catch(() => {});
+        } else {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(() => {
+                alert('Link: ' + url);
+            });
+        }
     }
 
     function hideThread(id) {
