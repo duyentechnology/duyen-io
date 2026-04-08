@@ -4774,7 +4774,7 @@
                     isFavorite: entry.is_favorite,
                     note: entry.note,
                     role: entry.role,
-                    externalUrl: (entry.role === 'external' || qr.source === 'external') ? (qr.url || null) : null
+                    externalUrl: (entry.role === 'external') ? (entry.note || qr.url || null) : null
                 };
             });
         } catch(e) {
@@ -5224,7 +5224,8 @@
                         user_id: user.id,
                         qr_code_id: data[0].id,
                         role: 'external',
-                        title: title
+                        title: title,
+                        note: urlToSave
                     });
                 if (tapError) console.error('Tapestry insert error:', tapError);
             }
