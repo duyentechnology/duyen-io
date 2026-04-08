@@ -4774,7 +4774,7 @@
                     isFavorite: entry.is_favorite,
                     note: entry.note,
                     role: entry.role,
-                    externalUrl: (qr.source === 'external') ? qr.url : null
+                    externalUrl: (entry.role === 'external' || qr.source === 'external') ? (qr.url || null) : null
                 };
             });
         } catch(e) {
@@ -7984,7 +7984,8 @@
         const icon = thread.icon || catIcons[thread.category] || '🧵';
         const catLabel = catLabels[thread.category] || 'Thread';
         const date = new Date(thread.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-        const isExternal = thread.source === 'external_scan' || thread.role === 'external';
+        const isExternal = thread.role === 'external';
+        if (isExternal) console.log('🔗 External thread URL:', thread.externalUrl, '| full thread:', thread);
 
         let html = `
             <div class="thread-detail-hero">
