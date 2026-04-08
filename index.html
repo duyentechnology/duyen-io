@@ -5065,6 +5065,9 @@
         if (!isAuthenticated) {
             currentRole = 'receiver';
             window.postAuthDestination = 'externalQr';
+            // Persist URL across potential page reload during auth (OAuth redirect etc.)
+            if (scannedExternalUrl) sessionStorage.setItem('pendingExternalUrl', scannedExternalUrl);
+            sessionStorage.setItem('postAuthDestination', 'externalQr');
             navigate('auth');
             return;
         }
@@ -6653,9 +6656,21 @@
     }
 
     function proceedAfterAuth() {
+        // Restore destination if page was reloaded during auth (e.g. OAuth redirect)
+        if (!window.postAuthDestination) {
+            const saved = sessionStorage.getItem('postAuthDestination');
+            if (saved) window.postAuthDestination = saved;
+        }
+        sessionStorage.removeItem('postAuthDestination');
+
         // Check if we need to return to external QR note page
         if (window.postAuthDestination === 'externalQr') {
             window.postAuthDestination = null;
+            // Restore URL if it was lost during page reload (OAuth redirect etc.)
+            if (!scannedExternalUrl) {
+                scannedExternalUrl = sessionStorage.getItem('pendingExternalUrl') || '';
+            }
+            sessionStorage.removeItem('pendingExternalUrl');
             openExternalQrPage(scannedExternalUrl);
             return;
         }
