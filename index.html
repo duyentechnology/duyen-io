@@ -1930,6 +1930,28 @@
             cursor: pointer; font-family: inherit;
         }
         .tap-edit-mode .tap-fc-delete-btn { display: block; }
+
+        .tap-fc-add-photos-btn {
+            display: none; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; margin: 0.75rem 0 0;
+            padding: 10px; border-radius: 12px;
+            border: 2px dashed #8B3A7F; background: transparent;
+            color: #8B3A7F; font-size: 0.85rem; font-weight: 600;
+            cursor: pointer; font-family: inherit;
+        }
+        .tap-edit-mode .tap-fc-add-photos-btn { display: flex; }
+
+        .tap-fc-photo-edit-grid {
+            display: none; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+        }
+        .tap-edit-mode .tap-fc-photo-edit-grid { display: flex; }
+        .tap-fc-photo-thumb {
+            width: 56px; height: 56px; border-radius: 8px;
+            object-fit: cover; border: 0.5px solid #ddd;
+        }
+        .tap-fc-photo-count-label {
+            font-size: 0.75rem; color: #888; margin-top: 4px;
+        }
         .tap-detail-title { font-family:'Cormorant Garamond',serif; font-size:1.35rem; font-weight:400; letter-spacing:0.04em; color:#1C1410; }
         .tap-detail-sub   { font-family:'Caveat',cursive; font-size:0.88rem; color:var(--text-muted); }
 
@@ -7856,6 +7878,14 @@
             ${thread.externalUrl ? editField('url','Link',thread.externalUrl,'url') : ''}
             ${linkHtml}
             <div class="tap-fc-date">${date}</div>
+            <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}">
+                ${(thread.photos||[]).map(p=>`<img class="tap-fc-photo-thumb" src="${p}" alt="">`).join('')}
+            </div>
+            ${(thread.photos||[]).length > 0 ? `<div class="tap-fc-photo-count-label" id="photo-count-${tid}">${thread.photos.length}/10 photos</div>` : ''}
+            <input type="file" id="photo-input-${tid}" accept="image/*" multiple style="display:none;" onchange="handleEditPhotos('${tid}', this)">
+            <button class="tap-fc-add-photos-btn" onclick="document.getElementById('photo-input-${tid}').click()">
+                📷 Add Photos
+            </button>
             <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')">🗑 Delete Memory</button>
         </div>
         ${voiceHtml}`;
@@ -8284,6 +8314,73 @@
         userThreads = userThreads.filter(t => t.id !== threadId);
         closeTapDetail();
         initTapestry();
+    }
+
+    async function handleEditPhotos(threadId, input) {
+        const thread = userThreads.find(t => t.id === threadId);
+        if (!thread) return;
+
+        const currentPhotos = thread.photos || [];
+        const remaining = 10 - currentPhotos.length;
+        if (remaining <= 0) { alert('Maximum 10 photos reached.'); return; }
+
+        const files = Array.from(input.files).slice(0, remaining);
+        if (!files.length) return;
+
+        const btn = document.querySelector(`#photo-input-${threadId} + button`) || document.querySelector(`[onclick="document.getElementById('photo-input-${threadId}').click()"]`);
+        if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
+
+        try {
+            const user = (await _supabase.auth.getUser()).data.user;
+            if (!user) return;
+
+            const newUrls = [];
+            for (const file of files) {
+                const url = await uploadToStorage(file, 'edit/' + user.id);
+                if (url) newUrls.push({ type: 'image', url });
+            }
+            if (!newUrls.length) return;
+
+            const { data: qrData } = await _supabase
+                .from('qr_codes').select('media').eq('id', thread.qr_code_id).single();
+            const existingMedia = qrData?.media || [];
+            const updatedMedia = [...existingMedia, ...newUrls];
+
+            const { error } = await _supabase
+                .from('qr_codes').update({ media: updatedMedia }).eq('id', thread.qr_code_id);
+            if (error) { alert('Could not save photos: ' + error.message); return; }
+
+            const newPhotoUrls = newUrls.map(m => m.url);
+            thread.photos = [...currentPhotos, ...newPhotoUrls];
+
+            const grid = document.getElementById('photo-grid-' + threadId);
+            if (grid) {
+                newPhotoUrls.forEach(url => {
+                    const img = document.createElement('img');
+                    img.className = 'tap-fc-photo-thumb';
+                    img.src = url;
+                    grid.appendChild(img);
+                });
+            }
+            let countEl = document.getElementById('photo-count-' + threadId);
+            if (!countEl) {
+                countEl = document.createElement('div');
+                countEl.id = 'photo-count-' + threadId;
+                countEl.className = 'tap-fc-photo-count-label';
+                if (grid) grid.after(countEl);
+            }
+            countEl.textContent = thread.photos.length + '/10 photos';
+
+            if (currentPhotos.length === 0 && thread.photos.length > 0) {
+                openTapSingle(threadId);
+            }
+        } catch(e) {
+            console.error('Edit photo error:', e);
+            alert('Error uploading photos.');
+        } finally {
+            if (btn) { btn.textContent = '📷 Add Photos'; btn.disabled = false; }
+            input.value = '';
+        }
     }
 
     function viewSavedThread() {
