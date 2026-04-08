@@ -4175,7 +4175,7 @@
             <p class="subtitle" id="successMsg">Your connection has been saved!</p>
 
             <div class="btn-group">
-                <button class="btn btn-secondary" onclick="navigate('threadView')">View Thread</button>
+                <button class="btn btn-secondary" onclick="viewSavedThread()">View Thread</button>
                 <button class="btn btn-primary" onclick="navigate('tapestry')">View My Tapestry →</button>
             </div>
         </div>
@@ -5239,7 +5239,7 @@
 
             // Also add to tapestry so it shows in the collection
             if (data && data[0]) {
-                var { error: tapError } = await _supabase
+                var { data: tapData, error: tapError } = await _supabase
                     .from('tapestry')
                     .insert({
                         user_id: user.id,
@@ -5247,8 +5247,11 @@
                         role: 'external',
                         title: title,
                         note: urlToSave
-                    });
+                    })
+                    .select();
                 if (tapError) console.error('Tapestry insert error:', tapError);
+                // Store ID so "View Thread" opens the right entry
+                if (tapData && tapData[0]) window.lastSavedExternalId = tapData[0].id;
             }
 
             document.getElementById('successMsg').textContent = 'Woven into your tapestry! This moment is now part of the days of your life.';
@@ -8106,6 +8109,19 @@
 
         document.getElementById('threadDetailContent').innerHTML = html;
         navigate('threadDetail');
+    }
+
+    function viewSavedThread() {
+        if (window.lastSavedExternalId) {
+            var id = window.lastSavedExternalId;
+            window.lastSavedExternalId = null;
+            // Reload tapestry data then open the thread
+            initTapestry().then(function() {
+                openTapSingle(id);
+            });
+        } else {
+            navigate('threadView');
+        }
     }
 
     function shareExternalLink(url, title) {
