@@ -1888,6 +1888,48 @@
             display:flex; align-items:center; justify-content:center;
             font-size:1rem; box-shadow:0 1px 6px rgba(0,0,0,0.1); flex-shrink:0;
         }
+        .tap-edit-btn {
+            width:34px; height:34px; border-radius:50%;
+            background:white; border:0.5px solid #ddd; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:0.9rem; flex-shrink:0; transition: background 0.2s, border-color 0.2s;
+        }
+        .tap-edit-btn.active { background:#8B3A7F; border-color:#8B3A7F; }
+
+        .tap-fc-field-row {
+            display: flex; align-items: flex-start; gap: 8px;
+            margin-bottom: 6px;
+        }
+        .tap-fc-field-value { flex: 1; font-size: 0.9rem; color: #2E2A28; }
+        .tap-fc-edit-icon {
+            display: none; font-size: 0.8rem; cursor: pointer;
+            color: #8B3A7F; padding: 2px 4px; flex-shrink: 0;
+            opacity: 0.7;
+        }
+        .tap-edit-mode .tap-fc-edit-icon { display: inline; }
+
+        .tap-fc-inline-edit {
+            display: flex; align-items: center; gap: 6px; width: 100%;
+        }
+        .tap-fc-inline-input {
+            flex: 1; border: 1.5px solid #8B3A7F; border-radius: 8px;
+            padding: 6px 10px; font-size: 0.88rem; font-family: inherit;
+            background: white; color: #2E2A28; outline: none;
+        }
+        .tap-fc-confirm-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: #8B3A7F; color: white; border: none;
+            font-size: 1rem; cursor: pointer; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .tap-fc-delete-btn {
+            display: none; width: 100%; margin-top: 1rem;
+            padding: 12px; border-radius: 12px;
+            border: 2px solid #C0392B; background: transparent;
+            color: #C0392B; font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; font-family: inherit;
+        }
+        .tap-edit-mode .tap-fc-delete-btn { display: block; }
         .tap-detail-title { font-family:'Cormorant Garamond',serif; font-size:1.35rem; font-weight:400; letter-spacing:0.04em; color:#1C1410; }
         .tap-detail-sub   { font-family:'Caveat',cursive; font-size:0.88rem; color:var(--text-muted); }
 
@@ -4316,6 +4358,7 @@
             <div class="tap-detail-title" id="tapDetailTitle"></div>
             <div class="tap-detail-sub"   id="tapDetailSub"></div>
         </div>
+        <button class="tap-edit-btn" id="tapEditBtn" onclick="toggleTapEditMode()" title="Edit or delete">✏️</button>
     </div>
     <div id="tapDetailCards"></div>
 </div>
@@ -7755,6 +7798,8 @@
         }
         const card=document.createElement('div');
         card.className='tap-full-card';
+        card.dataset.threadId = thread.id;
+        const tid = thread.id;
         const linkHtml = thread.externalUrl ? `
             <div class="tap-fc-link-row">
                 <a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" class="tap-fc-link-btn">
@@ -7764,18 +7809,30 @@
                     ↗ Share
                 </button>
             </div>` : '';
+
+        // Editable field helper
+        const editField = (fieldId, label, value, fieldKey) => {
+            if (!value) return '';
+            return `<div class="tap-fc-field-row" id="field-${tid}-${fieldKey}">
+                <div class="tap-fc-field-value" id="val-${tid}-${fieldKey}">${value}</div>
+                <span class="tap-fc-edit-icon" onclick="startInlineEdit('${tid}','${fieldKey}','${value.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">✎</span>
+            </div>`;
+        };
+
         card.innerHTML=`${photoHtml}
         <div class="tap-fc-body">
             <div class="tap-fc-role">${roleLabels[thread.role]||'A Memory'}${thread.isFavorite?' ⭐':''}</div>
-            <div class="tap-fc-title">${thread.title}</div>
+            ${editField('title','Title',thread.title,'title')}
             <div class="tap-fc-from">${fromPrefixes[thread.role]||'from'} <span class="tap-fc-from-name">${thread.from}</span></div>
             <hr class="tap-fc-divider">
             <div class="tap-fc-quote-block">
                 <span class="tap-fc-quote-mark">"</span>
-                <div class="tap-fc-msg">${thread.message||'A meaningful moment'}</div>
+                ${editField('msg','Message',thread.message||'A meaningful moment','message')}
             </div>
+            ${thread.externalUrl ? editField('url','Link',thread.externalUrl,'url') : ''}
             ${linkHtml}
             <div class="tap-fc-date">${date}</div>
+            <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')">🗑 Delete Memory</button>
         </div>
         ${voiceHtml}`;
         // Wire up audio after insert
@@ -7838,6 +7895,10 @@
     }
 
     function closeTapDetail() {
+        tapEditModeActive = false;
+        const btn = document.getElementById('tapEditBtn');
+        if (btn) btn.classList.remove('active');
+        document.getElementById('tapDetailCards').classList.remove('tap-edit-mode');
         document.getElementById('tapDetailScreen').classList.remove('open');
         document.getElementById('tapestryContainer').classList.remove('pushed');
     }
@@ -8109,6 +8170,96 @@
 
         document.getElementById('threadDetailContent').innerHTML = html;
         navigate('threadDetail');
+    }
+
+    var tapEditModeActive = false;
+
+    function toggleTapEditMode() {
+        tapEditModeActive = !tapEditModeActive;
+        const btn = document.getElementById('tapEditBtn');
+        const cards = document.getElementById('tapDetailCards');
+        if (tapEditModeActive) {
+            btn.classList.add('active');
+            cards.classList.add('tap-edit-mode');
+        } else {
+            btn.classList.remove('active');
+            cards.classList.remove('tap-edit-mode');
+        }
+    }
+
+    function startInlineEdit(threadId, fieldKey, currentValue) {
+        const fieldRow = document.getElementById('field-' + threadId + '-' + fieldKey);
+        if (!fieldRow) return;
+        fieldRow.innerHTML = `
+            <div class="tap-fc-inline-edit">
+                <input class="tap-fc-inline-input" id="inline-input-${threadId}-${fieldKey}"
+                    value="${currentValue.replace(/"/g,'&quot;')}"
+                    ${fieldKey === 'message' ? '' : ''}>
+                <button class="tap-fc-confirm-btn" onclick="confirmInlineEdit('${threadId}','${fieldKey}')">✓</button>
+            </div>`;
+        const input = document.getElementById('inline-input-' + threadId + '-' + fieldKey);
+        if (input) { input.focus(); input.select(); }
+    }
+
+    async function confirmInlineEdit(threadId, fieldKey) {
+        const input = document.getElementById('inline-input-' + threadId + '-' + fieldKey);
+        if (!input) return;
+        const newValue = input.value.trim();
+        if (!newValue) return;
+
+        // Map fieldKey to DB column
+        const colMap = { title: 'title', message: 'note', url: 'note' };
+        const dbCol = colMap[fieldKey] || fieldKey;
+
+        // Update Supabase
+        const updateData = {};
+        if (fieldKey === 'title') {
+            updateData.title = newValue;
+        } else if (fieldKey === 'message' || fieldKey === 'url') {
+            updateData.note = newValue;
+        }
+
+        const { error } = await _supabase.from('tapestry').update(updateData).eq('id', threadId);
+        if (error) { alert('Could not save: ' + error.message); return; }
+
+        // Update local userThreads cache
+        const thread = userThreads.find(t => t.id === threadId);
+        if (thread) {
+            if (fieldKey === 'title') thread.title = newValue;
+            if (fieldKey === 'message') thread.message = newValue;
+            if (fieldKey === 'url') thread.externalUrl = newValue;
+        }
+
+        // Update the header title if title changed
+        if (fieldKey === 'title') {
+            document.getElementById('tapDetailTitle').textContent = newValue;
+        }
+
+        // Restore field row display
+        const fieldRow = document.getElementById('field-' + threadId + '-' + fieldKey);
+        if (fieldRow) {
+            fieldRow.innerHTML = `
+                <div class="tap-fc-field-value" id="val-${threadId}-${fieldKey}">${newValue}</div>
+                <span class="tap-fc-edit-icon" onclick="startInlineEdit('${threadId}','${fieldKey}','${newValue.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">✎</span>`;
+        }
+    }
+
+    async function confirmDeleteThread(threadId) {
+        const thread = userThreads.find(t => t.id === threadId);
+        if (!thread) return;
+        if (!confirm('Delete "' + thread.title + '"? This cannot be undone.')) return;
+
+        // Delete from tapestry
+        await _supabase.from('tapestry').delete().eq('id', threadId);
+        // Delete from qr_codes too (wipe all data)
+        if (thread.qr_code_id) {
+            await _supabase.from('qr_codes').delete().eq('id', thread.qr_code_id);
+        }
+
+        // Remove from local cache and close panel
+        userThreads = userThreads.filter(t => t.id !== threadId);
+        closeTapDetail();
+        initTapestry();
     }
 
     function viewSavedThread() {
