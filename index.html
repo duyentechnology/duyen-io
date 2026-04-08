@@ -4393,9 +4393,9 @@
         </div>
 
         <!-- Scanned URL display -->
-        <div class="external-qr-url">
-            <span class="url-icon">🔗</span>
-            <span id="externalUrl"></span>
+        <div class="form-group">
+            <label>Link URL</label>
+            <input type="url" id="externalUrl" placeholder="https://..." style="font-size: 0.85rem; word-break: break-all;">
         </div>
 
         <!-- Title -->
@@ -5076,11 +5076,12 @@
 
     function openExternalQrPage(url) {
         scannedExternalUrl = url;
+        console.log('📌 openExternalQrPage — URL:', JSON.stringify(url));
         extSelectedCategory = 'thing';
         extPhotos = [];
 
         // Populate screen
-        document.getElementById('externalUrl').textContent = url;
+        document.getElementById('externalUrl').value = url;
 
         // Auto-suggest title from URL
         let suggestedTitle = '';
@@ -5191,11 +5192,13 @@
             }
 
             // Insert into qr_codes table as external source
+            var urlToSave = document.getElementById('externalUrl').value.trim() || scannedExternalUrl;
+            console.log('📌 Saving external scan — URL value:', JSON.stringify(urlToSave));
             var { data, error } = await _supabase
                 .from('qr_codes')
                 .insert({
                     user_id: user.id,
-                    url: scannedExternalUrl,
+                    url: urlToSave,
                     label: title,
                     details: notes || '',
                     source: 'external',
