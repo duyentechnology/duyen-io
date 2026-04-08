@@ -1941,6 +1941,24 @@
         }
         .tap-edit-mode .tap-fc-add-photos-btn { display: flex; }
 
+        .tap-fc-voice-edit {
+            display: none; flex-direction: column; gap: 8px;
+            margin: 0.75rem 0 0; padding: 12px;
+            background: #faf7f4; border-radius: 12px;
+            border: 1px solid #ede8e3;
+        }
+        .tap-edit-mode .tap-fc-voice-edit { display: flex; }
+        .tap-fc-voice-edit-label {
+            font-size: 0.75rem; font-weight: 600; color: #888;
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .tap-fc-voice-edit-player {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .tap-fc-voice-edit-player audio {
+            flex: 1; height: 34px;
+        }
+
         .tap-fc-photo-edit-grid {
             display: none; flex-wrap: wrap; gap: 6px; margin-top: 8px;
         }
@@ -7886,6 +7904,22 @@
             <button class="tap-fc-add-photos-btn" onclick="document.getElementById('photo-input-${tid}').click()">
                 📷 Add Photos
             </button>
+            <div class="tap-fc-voice-edit" id="voice-edit-${tid}">
+                <div class="tap-fc-voice-edit-label">Voice Memo</div>
+                ${thread.hasVoice && thread.voiceUrl ? `
+                <div class="tap-fc-voice-edit-player">
+                    <audio controls src="${thread.voiceUrl}" id="voice-edit-audio-${tid}"></audio>
+                </div>` : ''}
+                <button class="voice-btn" id="edit-voice-btn-${tid}" onclick="toggleEditRecording('${tid}')">
+                    ${thread.hasVoice ? '🎙️ Re-record' : '🎙️ Record Voice Memo'}
+                </button>
+                <div id="edit-voice-timer-${tid}" style="display:none; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="edit-timer-text-${tid}">0:00</span></div>
+                <div id="edit-voice-preview-${tid}" style="display:none;" class="tap-fc-voice-edit-player">
+                    <audio id="edit-voice-audio-${tid}" controls></audio>
+                    <button onclick="cancelEditRecording('${tid}')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--text-muted);">🗑️</button>
+                    <button onclick="saveEditVoice('${tid}')" style="background:#8B3A7F;color:white;border:none;border-radius:20px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;">✓ Save</button>
+                </div>
+            </div>
             <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')">🗑 Delete Memory</button>
         </div>
         ${voiceHtml}`;
@@ -7950,6 +7984,7 @@
 
     function closeTapDetail() {
         tapEditModeActive = false;
+        editVoiceRecorders = {};
         const btn = document.getElementById('tapEditBtn');
         if (btn) btn.classList.remove('active');
         document.getElementById('tapDetailCards').classList.remove('tap-edit-mode');
@@ -8314,6 +8349,120 @@
         userThreads = userThreads.filter(t => t.id !== threadId);
         closeTapDetail();
         initTapestry();
+    }
+
+    var editVoiceRecorders = {}; // { threadId: { recorder, chunks, blob, timer, seconds } }
+
+    async function toggleEditRecording(threadId) {
+        var slot = editVoiceRecorders[threadId];
+        if (slot && slot.recorder && slot.recorder.state === 'recording') {
+            // Stop recording
+            slot.recorder.stop();
+            clearInterval(slot.timer);
+            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '🎙️ Re-record';
+            document.getElementById('edit-voice-timer-' + threadId).style.display = 'none';
+        } else {
+            // Start recording
+            try {
+                var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                if (!editVoiceRecorders[threadId]) editVoiceRecorders[threadId] = {};
+                slot = editVoiceRecorders[threadId];
+                slot.chunks = []; slot.seconds = 0;
+
+                var mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
+                    : MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+                slot.recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+                slot.mimeType = mimeType || 'audio/mp4';
+
+                slot.recorder.ondataavailable = e => { if (e.data.size > 0) slot.chunks.push(e.data); };
+                slot.recorder.onstop = () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    slot.blob = new Blob(slot.chunks, { type: slot.recorder.mimeType || slot.mimeType });
+                    var reader = new FileReader();
+                    reader.onload = e => {
+                        var preview = document.getElementById('edit-voice-preview-' + threadId);
+                        var audio = document.getElementById('edit-voice-audio-' + threadId);
+                        audio.src = e.target.result;
+                        preview.style.display = 'flex';
+                    };
+                    reader.readAsDataURL(slot.blob);
+                };
+
+                slot.recorder.start();
+                document.getElementById('edit-voice-btn-' + threadId).innerHTML = '⏹️ Stop Recording';
+                document.getElementById('edit-voice-btn-' + threadId).classList.add('recording');
+                document.getElementById('edit-voice-timer-' + threadId).style.display = 'block';
+                document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
+
+                slot.timer = setInterval(() => {
+                    slot.seconds++;
+                    var m = Math.floor(slot.seconds / 60), s = slot.seconds % 60;
+                    document.getElementById('edit-timer-text-' + threadId).textContent = m + ':' + (s < 10 ? '0' : '') + s;
+                }, 1000);
+
+            } catch(e) {
+                alert('Could not access microphone. Please allow microphone access.');
+            }
+        }
+    }
+
+    function cancelEditRecording(threadId) {
+        var slot = editVoiceRecorders[threadId];
+        if (slot) { slot.blob = null; slot.chunks = []; }
+        document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
+        const thread = userThreads.find(t => t.id === threadId);
+        document.getElementById('edit-voice-btn-' + threadId).innerHTML = thread && thread.hasVoice ? '🎙️ Re-record' : '🎙️ Record Voice Memo';
+        document.getElementById('edit-voice-btn-' + threadId).classList.remove('recording');
+    }
+
+    async function saveEditVoice(threadId) {
+        var slot = editVoiceRecorders[threadId];
+        if (!slot || !slot.blob) return;
+
+        var saveBtn = document.querySelector('#edit-voice-preview-' + threadId + ' button:last-child');
+        if (saveBtn) { saveBtn.textContent = 'Saving...'; saveBtn.disabled = true; }
+
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (!user) return;
+
+            var thread = userThreads.find(t => t.id === threadId);
+            if (!thread) return;
+
+            var voiceUrl = await uploadBlobToStorage(slot.blob, 'edit/' + user.id, 'voice');
+            if (!voiceUrl) { alert('Could not upload voice memo.'); return; }
+
+            var { error } = await _supabase
+                .from('qr_codes').update({ voice: voiceUrl }).eq('id', thread.qr_code_id);
+            if (error) { alert('Could not save voice: ' + error.message); return; }
+
+            // Update local thread
+            thread.hasVoice = true;
+            thread.voiceUrl = voiceUrl;
+
+            // Update UI — replace preview with saved player
+            var editSection = document.getElementById('voice-edit-' + threadId);
+            if (editSection) {
+                var playerDiv = editSection.querySelector('.tap-fc-voice-edit-player');
+                if (playerDiv) {
+                    playerDiv.innerHTML = `<audio controls src="${voiceUrl}" id="voice-edit-audio-${threadId}"></audio>`;
+                } else {
+                    var newPlayer = document.createElement('div');
+                    newPlayer.className = 'tap-fc-voice-edit-player';
+                    newPlayer.innerHTML = `<audio controls src="${voiceUrl}" id="voice-edit-audio-${threadId}"></audio>`;
+                    editSection.insertBefore(newPlayer, editSection.children[1]);
+                }
+            }
+            document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
+            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '🎙️ Re-record';
+            slot.blob = null;
+
+        } catch(e) {
+            console.error('Save voice error:', e);
+            alert('Error saving voice memo.');
+        } finally {
+            if (saveBtn) { saveBtn.textContent = '✓ Save'; saveBtn.disabled = false; }
+        }
     }
 
     async function handleEditPhotos(threadId, input) {
