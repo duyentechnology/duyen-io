@@ -1930,6 +1930,22 @@
         }
         .tap-fc-from-name { color:#8B3A7F; font-style:italic; }
         .tap-fc-divider { border:none; border-top:1px solid #e8e2dd; margin:1.1rem 0; }
+        .tap-fc-link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: var(--brand-plum);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 1rem 0 0.5rem;
+            transition: opacity 0.2s;
+        }
+        .tap-fc-link-btn:hover { opacity: 0.85; }
         .tap-fc-quote-block { padding:0 0.2rem; }
         .tap-fc-quote-mark {
             font-family:'Cormorant Garamond',serif; font-size:3.5rem; font-weight:600;
@@ -7731,6 +7747,10 @@
         }
         const card=document.createElement('div');
         card.className='tap-full-card';
+        const linkHtml = thread.externalUrl ? `
+            <a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" class="tap-fc-link-btn">
+                🔗 Open Link
+            </a>` : '';
         card.innerHTML=`${photoHtml}
         <div class="tap-fc-body">
             <div class="tap-fc-role">${roleLabels[thread.role]||'A Memory'}${thread.isFavorite?' ⭐':''}</div>
@@ -7741,6 +7761,7 @@
                 <span class="tap-fc-quote-mark">"</span>
                 <div class="tap-fc-msg">${thread.message||'A meaningful moment'}</div>
             </div>
+            ${linkHtml}
             <div class="tap-fc-date">${date}</div>
         </div>
         ${voiceHtml}`;
