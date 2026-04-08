@@ -5043,7 +5043,7 @@
                 <a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; text-decoration: none; display: block; box-sizing: border-box;">
                     🌐 Open Link
                 </a>
-                <button class="btn btn-primary" onclick="promptSaveExternal()" style="width: 100%;">
+                <button class="btn btn-primary" onclick="promptSaveExternal('${url}')" style="width: 100%;">
                     🧵 Save to My Tapestry
                 </button>
                 <button class="btn btn-secondary" onclick="navigate('tapestry')" style="width: 100%; border: none; color: var(--text-muted);">
@@ -5061,11 +5061,11 @@
         navigate('threadDetail');
     }
 
-    function promptSaveExternal() {
+    function promptSaveExternal(url) {
+        if (url) scannedExternalUrl = url;
         if (!isAuthenticated) {
             currentRole = 'receiver';
             window.postAuthDestination = 'externalQr';
-            // Persist URL across potential page reload during auth (OAuth redirect etc.)
             if (scannedExternalUrl) sessionStorage.setItem('pendingExternalUrl', scannedExternalUrl);
             sessionStorage.setItem('postAuthDestination', 'externalQr');
             navigate('auth');
