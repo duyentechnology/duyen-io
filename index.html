@@ -7990,6 +7990,8 @@
         document.getElementById('tapDetailCards').classList.remove('tap-edit-mode');
         document.getElementById('tapDetailScreen').classList.remove('open');
         document.getElementById('tapestryContainer').classList.remove('pushed');
+        // Rebuild collage now that edits are done — smooth, no flicker
+        if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
     }
 
     function buildCollage() {} // superseded
@@ -8334,9 +8336,6 @@
                 <div class="tap-fc-field-value" id="val-${threadId}-${fieldKey}">${newValue}</div>
                 <span class="tap-fc-edit-icon" onclick="startInlineEdit('${threadId}','${fieldKey}','${newValue.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">✎</span>`;
         }
-
-        // Rebuild collage so photo/title changes reflect immediately
-        if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
     }
 
     async function confirmDeleteThread(threadId) {
@@ -8525,9 +8524,6 @@
                 if (grid) grid.after(countEl);
             }
             countEl.textContent = thread.photos.length + '/10 photos';
-
-            // Always rebuild collage so polaroid card updates
-            if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
 
             if (currentPhotos.length === 0 && thread.photos.length > 0) {
                 openTapSingle(threadId);
