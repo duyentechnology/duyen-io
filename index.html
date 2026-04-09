@@ -4352,7 +4352,7 @@
                     <div style="font-size:13px; font-weight:700; color:#2E2A28; white-space:nowrap;">Add to Home Screen</div>
                     <div style="font-size:11px; color:#888; white-space:nowrap;">Open like an app</div>
                 </div>
-                <button id="pwaAddBtn" onclick="triggerPWAInstall()" style="background:#8B3A7F;color:white;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">Add ＋</button>
+                <button id="pwaAddBtn" onclick="triggerPWAInstall()" style="background:#8B3A7F;color:white;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">How to Install</button>
             </div>
             <!-- Fallback logo shown when already installed or iOS instructions dismissed -->
             <a class="header-logo" id="logoFallback" onclick="navigate('home')" style="display:flex;">
@@ -5665,16 +5665,25 @@
         modal.id = 'iosInstallModal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;';
         modal.innerHTML = `
-            <div style="background:white;border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:500px;text-align:center;">
+            <div style="background:white;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:500px;">
                 <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 20px;"></div>
-                <div style="font-size:2rem;margin-bottom:10px;">📱</div>
-                <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#2E2A28;margin-bottom:8px;">Add Duyên to your Home Screen</div>
-                <div style="font-size:0.85rem;color:#888;line-height:1.6;margin-bottom:20px;">
-                    Tap <strong>Share</strong> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 50 50" style="vertical-align:middle;display:inline-block;"><rect x="5" y="18" width="40" height="28" rx="5" ry="5" fill="none" stroke="#555" stroke-width="4"/><line x1="25" y1="32" x2="25" y2="4" stroke="#555" stroke-width="4" stroke-linecap="round"/><polyline points="15,12 25,2 35,12" fill="none" stroke="#555" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/></svg> at the bottom of Safari,<br>
-                    then tap <strong>"Add to Home Screen"</strong>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:#2E2A28;margin-bottom:18px;text-align:center;">Install Duyên on your iPhone</div>
+                <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:28px;height:28px;border-radius:50%;background:#8B3A7F;color:white;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+                        <div style="font-size:0.9rem;color:#2E2A28;">Tap the <strong>Share</strong> button <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 50 50" style="vertical-align:middle;"><rect x="5" y="18" width="40" height="28" rx="5" ry="5" fill="none" stroke="#555" stroke-width="4"/><line x1="25" y1="32" x2="25" y2="4" stroke="#555" stroke-width="4" stroke-linecap="round"/><polyline points="15,12 25,2 35,12" fill="none" stroke="#555" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/></svg> at the bottom of Safari</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:28px;height:28px;border-radius:50%;background:#8B3A7F;color:white;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+                        <div style="font-size:0.9rem;color:#2E2A28;">Scroll down and tap <strong>"Add to Home Screen"</strong></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:28px;height:28px;border-radius:50%;background:#8B3A7F;color:white;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+                        <div style="font-size:0.9rem;color:#2E2A28;">Tap <strong>"Add"</strong> in the top right corner</div>
+                    </div>
                 </div>
-                <button onclick="localStorage.setItem('pwaDismissed','true');document.getElementById('iosInstallModal').style.display='none';hidePWAPrompt();" style="background:#8B3A7F;color:white;border:none;border-radius:12px;padding:12px 28px;font-size:0.95rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:10px;">Got it</button>
-                <button onclick="document.getElementById('iosInstallModal').style.display='none';" style="background:transparent;border:none;color:#aaa;font-size:0.85rem;cursor:pointer;">Maybe later</button>
+                <button onclick="localStorage.setItem('pwaDismissed','true');document.getElementById('iosInstallModal').style.display='none';hidePWAPrompt();" style="background:#8B3A7F;color:white;border:none;border-radius:12px;padding:13px;font-size:0.95rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:10px;">Done — I've added it!</button>
+                <button onclick="document.getElementById('iosInstallModal').style.display='none';" style="background:transparent;border:none;color:#aaa;font-size:0.85rem;cursor:pointer;width:100%;">Maybe later</button>
             </div>`;
         document.body.appendChild(modal);
     }
