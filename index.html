@@ -8222,11 +8222,41 @@
     }
 
     function seekVideoThumbnails(container) {
-        // Force video thumbnails to show a frame instead of black screen
         (container || document).querySelectorAll('video[preload="metadata"]:not([controls])').forEach(vid => {
-            if (vid.readyState >= 1) { vid.currentTime = 0.5; }
-            else { vid.addEventListener('loadedmetadata', () => { vid.currentTime = 0.5; }, { once: true }); }
+            captureVideoThumb(vid);
         });
+    }
+
+    function captureVideoThumb(vid) {
+        const tryCapture = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = vid.videoWidth || 320;
+                canvas.height = vid.videoHeight || 240;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                // Only replace if we got actual content (not blank)
+                if (dataUrl && dataUrl.length > 5000) {
+                    const img = document.createElement('img');
+                    img.src = dataUrl;
+                    img.style.cssText = vid.style.cssText;
+                    vid.parentNode.replaceChild(img, vid);
+                }
+            } catch(e) {
+                // Cross-origin or draw failed — leave video as-is
+            }
+        };
+
+        if (vid.readyState >= 2 && vid.videoWidth > 0) {
+            tryCapture();
+        } else {
+            vid.addEventListener('loadeddata', () => {
+                vid.currentTime = 0.5;
+                vid.addEventListener('seeked', tryCapture, { once: true });
+            }, { once: true });
+            vid.currentTime = 0.5;
+        }
     }
 
     function openTapSingle(id) {
@@ -8868,6 +8898,7 @@
             countEl.textContent = [imgCount && imgCount + ' photo' + (imgCount > 1 ? 's' : ''), vidCount && vidCount + ' video' + (vidCount > 1 ? 's' : '')].filter(Boolean).join(', ') + ' / 10';
 
             // Don't re-render card — thumbnails update in place, collage rebuilds on Done
+            setTimeout(() => seekVideoThumbnails(document.getElementById('photo-grid-' + threadId)), 100);
 
         } catch(e) {
             console.error('Edit media error:', e);
