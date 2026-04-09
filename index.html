@@ -8603,6 +8603,12 @@
         if (cards) cards.classList.remove('tap-edit-mode');
         // Rebuild collage with any changes made
         if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
+        // Re-render the card so voice player, new photos etc show in view mode
+        const activeCard = document.querySelector('.tap-full-card[data-thread-id]');
+        if (activeCard) {
+            const tid = activeCard.dataset.threadId;
+            if (tid) openTapSingle(tid);
+        }
     }
 
     function startInlineEdit(threadId, fieldKey, currentValue) {
