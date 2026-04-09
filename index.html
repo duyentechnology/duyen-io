@@ -2002,6 +2002,17 @@
             background:rgba(0,0,0,0.5); color:white; font-size:12px;
             padding:3px 10px; border-radius:20px; font-family:'Outfit',sans-serif;
         }
+        .tap-fc-all-strip {
+            display:flex; gap:6px; overflow-x:auto; padding:8px 12px;
+            background:#f0ebe5; -webkit-overflow-scrolling:touch;
+            scrollbar-width:none;
+        }
+        .tap-fc-all-strip::-webkit-scrollbar { display:none; }
+        .tap-fc-strip-item { position:relative; flex-shrink:0; }
+        .tap-fc-strip-thumb {
+            width:72px; height:72px; object-fit:cover;
+            border-radius:8px; display:block; flex-shrink:0;
+        }
         .tap-fc-body { padding:1.4rem 1.4rem 0.5rem; background:#faf7f4; }
         .tap-fc-role  {
             font-family:'Outfit',sans-serif; font-size:0.7rem; font-weight:500;
@@ -7900,7 +7911,13 @@
         } else if(media.length>=3){
             const extra=media.length-3;
             const countBadge=extra>0?`<div class="tap-fc-photo-count">+${extra} more</div>`:`<div class="tap-fc-photo-count">${media.length} items</div>`;
-            photoHtml=`<div class="tap-fc-photos" style="position:relative;">${mediaEl(media[0])}<div class="tap-fc-photo-grid">${mediaEl(media[1])}<div class="tap-fc-photo" style="position:relative;">${mediaEl(media[2]).replace('<div class="tap-fc-photo"','<div class="tap-fc-photo" style="position:relative;"')}${countBadge}</div></div></div>`;
+            const allStrip = media.length > 3 ? `<div class="tap-fc-all-strip">${media.map(m=>{
+                const url=m.url||m; const isVid=m.type==='video';
+                return isVid
+                    ? `<div class="tap-fc-strip-item" style="position:relative;"><video src="${url}" class="tap-fc-strip-thumb" muted playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.6rem;pointer-events:none;">▶</div></div>`
+                    : `<img class="tap-fc-strip-thumb" src="${url}" alt="">`;
+            }).join('')}</div>` : '';
+            photoHtml=`<div class="tap-fc-photos" style="position:relative;">${mediaEl(media[0])}<div class="tap-fc-photo-grid">${mediaEl(media[1])}<div class="tap-fc-photo" style="position:relative;">${mediaEl(media[2]).replace('<div class="tap-fc-photo"','<div class="tap-fc-photo" style="position:relative;"')}${countBadge}</div></div></div>${allStrip}`;
         }
         // Voice player HTML
         let voiceHtml='';
