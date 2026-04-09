@@ -8090,7 +8090,11 @@
 
             // Rest grid (2-col)
             const rest = media.length > 1 ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:2px;">${
-                media.slice(1).map((m,i)=>`<div style="aspect-ratio:1;overflow:hidden;">${gridCell(m, i+1)}</div>`).join('')
+                media.slice(1).map((m,i,arr)=>{
+                    const isLast = i === arr.length - 1;
+                    const spanFull = isLast && arr.length % 2 !== 0;
+                    return `<div style="aspect-ratio:1;overflow:hidden;${spanFull?'grid-column:span 2;aspect-ratio:2/1;':''}">${gridCell(m, i+1)}</div>`;
+                }).join('')
             }</div>` : '';
 
             // Strip
