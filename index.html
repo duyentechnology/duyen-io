@@ -8582,8 +8582,8 @@
             const newPhotoUrls = newUrls.map(m => m.url);
             thread.photos = [...currentPhotos, ...newPhotoUrls];
             // Keep thread.media in sync so buildTapFullCard shows new photos
-            const existingMedia = (thread.media || currentPhotos.map(u => ({ type: 'image', url: u })));
-            thread.media = [...existingMedia, ...newUrls];
+            const prevMedia = (thread.media || currentPhotos.map(u => ({ type: 'image', url: u })));
+            thread.media = [...prevMedia, ...newUrls];
 
             const grid = document.getElementById('photo-grid-' + threadId);
             if (grid) {
