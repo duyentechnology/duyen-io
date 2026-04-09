@@ -7887,7 +7887,7 @@
         <div class="tap-fc-body">
             <div class="tap-fc-role">${roleLabels[thread.role]||'A Memory'}${thread.isFavorite?' ⭐':''}</div>
             ${editField('title','Title',thread.title,'title')}
-            <div class="tap-fc-from">${fromPrefixes[thread.role]||'from'} <span class="tap-fc-from-name">${thread.from}</span></div>
+            ${thread.role === 'external' && (!thread.from || thread.from === 'Scanned QR') ? '' : `<div class="tap-fc-from">${fromPrefixes[thread.role]||'from'} <span class="tap-fc-from-name">${thread.from}</span></div>`}
             <hr class="tap-fc-divider">
             <div class="tap-fc-quote-block">
                                 ${editField('msg','Message',thread.message||'A meaningful moment','message')}
