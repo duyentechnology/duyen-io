@@ -4345,9 +4345,19 @@
     <!-- Sticky header -->
     <header class="app-header">
         <div class="header-inner">
-            <a class="header-logo" onclick="navigate('home')">
+            <!-- Add to Home Screen prompt (hidden once installed) -->
+            <div id="pwaPromptArea" style="display:none; align-items:center; gap:6px; flex-shrink:0;">
+                <span style="font-size:1.1rem; color:#DA251D; flex-shrink:0;">緣</span>
+                <div style="flex-shrink:0; line-height:1.3;">
+                    <div style="font-size:9.5px; font-weight:700; color:#2E2A28; white-space:nowrap;">Add to Home Screen</div>
+                    <div style="font-size:8px; color:#888; white-space:nowrap;">Open like an app</div>
+                </div>
+                <button id="pwaAddBtn" onclick="triggerPWAInstall()" style="background:#8B3A7F;color:white;border:none;border-radius:8px;padding:5px 10px;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">Add ＋</button>
+            </div>
+            <!-- Fallback logo shown when already installed or iOS instructions dismissed -->
+            <a class="header-logo" id="logoFallback" onclick="navigate('home')" style="display:flex;">
                 <div class="logo-symbol">緣</div>
-            <div class="logo-text">DUYÊN</div>
+                <div class="logo-text">DUYÊN</div>
             </a>
             <div class="header-actions">
                 <input type="text" class="header-search" placeholder="Search threads..." id="tapestrySearch" oninput="handleTapestrySearch()">
@@ -5084,7 +5094,7 @@
         }
         if (screen === 'threadView') displayContent();
         if (screen === 'receiver') populateReceiver();
-        if (screen === 'tapestry') { initTapestry(); startNotifPolling(); } else { stopNotifPolling(); }
+        if (screen === 'tapestry') { initTapestry(); startNotifPolling(); initPWAPrompt(); } else { stopNotifPolling(); }
         if (screen === 'bizProfile') populateProfileForm();
         if (screen === 'bizClaim') initClaimScreen();
     }
@@ -5602,6 +5612,86 @@
             });
             alert('Password reset email sent to ' + user.email);
         } catch(e) { alert('Error sending reset email'); console.error(e); }
+    }
+
+    // ── PWA INSTALL PROMPT ──────────────────────────────
+    var pwaInstallEvent = null;
+
+    // Catch the browser's beforeinstallprompt (Android/Chrome)
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        pwaInstallEvent = e;
+        showPWAPrompt();
+    });
+
+    function isPWAInstalled() {
+        return window.matchMedia('(display-mode: standalone)').matches
+            || window.navigator.standalone === true
+            || localStorage.getItem('pwaInstalled') === 'true';
+    }
+
+    function showPWAPrompt() {
+        if (isPWAInstalled()) return;
+        if (localStorage.getItem('pwaDismissed') === 'true') return;
+        document.getElementById('pwaPromptArea').style.display = 'flex';
+        document.getElementById('logoFallback').style.display = 'none';
+    }
+
+    function hidePWAPrompt() {
+        document.getElementById('pwaPromptArea').style.display = 'none';
+        document.getElementById('logoFallback').style.display = 'flex';
+    }
+
+    async function triggerPWAInstall() {
+        if (pwaInstallEvent) {
+            // Android/Chrome — native prompt
+            pwaInstallEvent.prompt();
+            const result = await pwaInstallEvent.userChoice;
+            if (result.outcome === 'accepted') {
+                localStorage.setItem('pwaInstalled', 'true');
+                hidePWAPrompt();
+            }
+            pwaInstallEvent = null;
+        } else {
+            // iOS Safari — show instructions
+            showIOSInstructions();
+        }
+    }
+
+    function showIOSInstructions() {
+        var existing = document.getElementById('iosInstallModal');
+        if (existing) { existing.style.display = 'flex'; return; }
+        var modal = document.createElement('div');
+        modal.id = 'iosInstallModal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;';
+        modal.innerHTML = `
+            <div style="background:white;border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:500px;text-align:center;">
+                <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 20px;"></div>
+                <div style="font-size:2rem;margin-bottom:10px;">📱</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#2E2A28;margin-bottom:8px;">Add Duyên to your Home Screen</div>
+                <div style="font-size:0.85rem;color:#888;line-height:1.6;margin-bottom:20px;">
+                    Tap <strong>Share</strong> <span style="font-size:1.1rem;">⎋</span> at the bottom of Safari,<br>
+                    then tap <strong>"Add to Home Screen"</strong>
+                </div>
+                <button onclick="localStorage.setItem('pwaDismissed','true');document.getElementById('iosInstallModal').style.display='none';hidePWAPrompt();" style="background:#8B3A7F;color:white;border:none;border-radius:12px;padding:12px 28px;font-size:0.95rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:10px;">Got it</button>
+                <button onclick="document.getElementById('iosInstallModal').style.display='none';" style="background:transparent;border:none;color:#aaa;font-size:0.85rem;cursor:pointer;">Maybe later</button>
+            </div>`;
+        document.body.appendChild(modal);
+    }
+
+    // Check on tapestry load
+    window.addEventListener('appinstalled', function() {
+        localStorage.setItem('pwaInstalled', 'true');
+        hidePWAPrompt();
+    });
+
+    function initPWAPrompt() {
+        if (!isPWAInstalled() && localStorage.getItem('pwaDismissed') !== 'true') {
+            // Show for iOS Safari (no beforeinstallprompt support)
+            var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            var isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+            if (isIOS && isSafari) showPWAPrompt();
+        }
     }
 
     function logoutDuyen() {
