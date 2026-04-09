@@ -8296,32 +8296,35 @@
         const newValue = input.value.trim();
         if (!newValue) return;
 
-        // Map fieldKey to DB column
-        const colMap = { title: 'title', message: 'note', url: 'note' };
-        const dbCol = colMap[fieldKey] || fieldKey;
-
-        // Update Supabase
-        const updateData = {};
-        if (fieldKey === 'title') {
-            updateData.title = newValue;
-        } else if (fieldKey === 'message' || fieldKey === 'url') {
-            updateData.note = newValue;
-        }
-
-        const { error } = await _supabase.from('tapestry').update(updateData).eq('id', threadId);
-        if (error) { alert('Could not save: ' + error.message); return; }
-
-        // Update local userThreads cache
         const thread = userThreads.find(t => t.id === threadId);
-        if (thread) {
-            if (fieldKey === 'title') thread.title = newValue;
-            if (fieldKey === 'message') thread.message = newValue;
-            if (fieldKey === 'url') thread.externalUrl = newValue;
-        }
+        if (!thread) return;
 
-        // Update the header title if title changed
-        if (fieldKey === 'title') {
-            document.getElementById('tapDetailTitle').textContent = newValue;
+        try {
+            if (fieldKey === 'title') {
+                const { error: e1 } = await _supabase.from('tapestry').update({ title: newValue }).eq('id', threadId);
+                if (e1) { alert('Could not save: ' + e1.message); return; }
+                if (thread.qr_code_id) {
+                    await _supabase.from('qr_codes').update({ label: newValue }).eq('id', thread.qr_code_id);
+                }
+                thread.title = newValue;
+                document.getElementById('tapDetailTitle').textContent = newValue;
+
+            } else if (fieldKey === 'message') {
+                if (!thread.qr_code_id) { alert('Cannot update — no QR code linked.'); return; }
+                const { error } = await _supabase.from('qr_codes').update({ details: newValue }).eq('id', thread.qr_code_id);
+                if (error) { alert('Could not save: ' + error.message); return; }
+                thread.message = newValue;
+
+            } else if (fieldKey === 'url') {
+                const { error } = await _supabase.from('tapestry').update({ note: newValue }).eq('id', threadId);
+                if (error) { alert('Could not save: ' + error.message); return; }
+                thread.externalUrl = newValue;
+                thread.note = newValue;
+            }
+        } catch(e) {
+            console.error('Inline edit error:', e);
+            alert('Error saving.');
+            return;
         }
 
         // Restore field row display
@@ -8331,6 +8334,9 @@
                 <div class="tap-fc-field-value" id="val-${threadId}-${fieldKey}">${newValue}</div>
                 <span class="tap-fc-edit-icon" onclick="startInlineEdit('${threadId}','${fieldKey}','${newValue.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">✎</span>`;
         }
+
+        // Rebuild collage so photo/title changes reflect immediately
+        if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
     }
 
     async function confirmDeleteThread(threadId) {
@@ -8519,6 +8525,9 @@
                 if (grid) grid.after(countEl);
             }
             countEl.textContent = thread.photos.length + '/10 photos';
+
+            // Always rebuild collage so polaroid card updates
+            if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
 
             if (currentPhotos.length === 0 && thread.photos.length > 0) {
                 openTapSingle(threadId);
