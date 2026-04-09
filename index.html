@@ -2029,16 +2029,17 @@
 
         /* Lightbox */
         .tap-lightbox {
-            display:none; position:fixed; inset:0; z-index:9999;
+            display:none; position:fixed; inset:0; z-index:10000;
             background:rgba(0,0,0,0.95); flex-direction:column;
             align-items:center; justify-content:center;
         }
         .tap-lightbox.open { display:flex; }
         .tap-lightbox-close {
             position:absolute; top:16px; right:16px;
-            background:rgba(255,255,255,0.15); color:white; border:none;
-            border-radius:50%; width:36px; height:36px; font-size:1.1rem;
+            background:rgba(255,255,255,0.2); color:white; border:none;
+            border-radius:50%; width:40px; height:40px; font-size:1.2rem;
             cursor:pointer; display:flex; align-items:center; justify-content:center;
+            z-index:10001; pointer-events:all; -webkit-tap-highlight-color:transparent;
         }
         .tap-lightbox-main {
             flex:1; display:flex; align-items:center; justify-content:center;
@@ -4731,7 +4732,7 @@
 </div>
 
 <!-- LIGHTBOX -->
-<div class="tap-lightbox" id="tapLightbox">
+<div class="tap-lightbox" id="tapLightbox" onclick="if(event.target===this)closeLightbox()">
     <button class="tap-lightbox-close" onclick="closeLightbox()">✕</button>
     <div class="tap-lightbox-main" id="tapLightboxMain">
         <button class="tap-lightbox-arrow prev" onclick="lightboxNav(-1)">‹</button>
