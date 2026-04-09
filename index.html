@@ -4845,9 +4845,10 @@
                     message = qr.details || '';
                     icon = '📌';
                     category = (giverData && giverData.category) || 'thing';
-                    // Media from storage
+                    // Media from storage — keep full objects for type detection
                     if (qr.media && qr.media.length > 0) {
-                        photos = qr.media.map(function(m) { return m.url || m; });
+                        // photos = image URLs only (for collage polaroid)
+                        photos = qr.media.filter(function(m){ return m.type !== 'video'; }).map(function(m){ return m.url || m; });
                     }
                     // Voice from qr_codes.voice
                     if (qr.voice) { hasVoice = true; }
@@ -4892,7 +4893,7 @@
                     note: entry.note,
                     role: entry.role,
                     externalUrl: (entry.role === 'external') ? (entry.note || qr.url || null) : null,
-                    media: qr.media || null
+                    media: (qr.media && qr.media.length > 0) ? qr.media : null
                 };
             });
         } catch(e) {
@@ -7868,15 +7869,17 @@
         const roleLabels={giver:'A Memory Given',receiver:'A Memory Received',business:'A Business Memory',external:'A Saved Scan'};
         const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:''};
         const photos=thread.photos||[];
-        const media=thread.media||photos.map(url=>({type:'image',url}));
+        // Use full media array with types if available, else fall back to photos array
+        const media=(thread.media && thread.media.length > 0) ? thread.media : photos.map(url=>({type:'image',url}));
 
         // Helper: render one media item (image or video)
         const mediaEl = (item, extra='') => {
             const url = item.url || item;
-            const isVid = item.type === 'video' || (typeof url === 'string' && /\.(mp4|mov|webm|ogg)(\?|$)/i.test(url));
-            if (isVid) return `<div class="tap-fc-photo" style="position:relative;${extra}">
-                <video src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" muted playsinline></video>
-                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.45);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;pointer-events:none;">▶</div>
+            // Rely on type field first, then fall back to extension check
+            const isVid = item.type === 'video';
+            if (isVid) return `<div class="tap-fc-photo" style="position:relative;background:#000;${extra}" onclick="event.stopPropagation();this.querySelector('video').paused?this.querySelector('video').play():this.querySelector('video').pause();this.querySelector('.vid-play-icon').style.display=this.querySelector('video').paused?'flex':'none';">
+                <video src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline preload="metadata"></video>
+                <div class="vid-play-icon" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;pointer-events:none;">▶</div>
             </div>`;
             return `<div class="tap-fc-photo"${extra?` style="${extra}"`:''}><img src="${url}" alt=""></div>`;
         };
