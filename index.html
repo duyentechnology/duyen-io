@@ -8164,9 +8164,9 @@
                 ${(thread.photos||[]).map(p=>`<img class="tap-fc-photo-thumb" src="${p}" alt="">`).join('')}
             </div>
             ${(thread.photos||[]).length > 0 ? `<div class="tap-fc-photo-count-label" id="photo-count-${tid}">${thread.photos.length}/10 photos</div>` : ''}
-            <input type="file" id="photo-input-${tid}" accept="image/*" multiple style="display:none;" onchange="handleEditPhotos('${tid}', this)">
+            <input type="file" id="photo-input-${tid}" accept="image/*,video/*" multiple style="display:none;" onchange="handleEditPhotos('${tid}', this)">
             <button class="tap-fc-add-photos-btn" onclick="document.getElementById('photo-input-${tid}').click()">
-                📷 Add Photos
+                📷 Add Photos & Videos
             </button>
             <div class="tap-fc-voice-edit" id="voice-edit-${tid}">
                 <div class="tap-fc-voice-edit-label">Voice Memo</div>
@@ -8754,24 +8754,55 @@
         const thread = userThreads.find(t => t.id === threadId);
         if (!thread) return;
 
-        const currentPhotos = thread.photos || [];
-        const remaining = 10 - currentPhotos.length;
-        if (remaining <= 0) { alert('Maximum 10 photos reached.'); return; }
+        const currentCount = (thread.media || thread.photos || []).length;
+        const remaining = 10 - currentCount;
+        if (remaining <= 0) { alert('Maximum 10 photos & videos reached.'); return; }
 
-        const files = Array.from(input.files).slice(0, remaining);
-        if (!files.length) return;
+        const allFiles = Array.from(input.files).slice(0, remaining);
+        if (!allFiles.length) return;
 
-        const btn = document.querySelector(`#photo-input-${threadId} + button`) || document.querySelector(`[onclick="document.getElementById('photo-input-${threadId}').click()"]`);
+        const btn = document.querySelector(`[onclick="document.getElementById('photo-input-${threadId}').click()"]`);
         if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
+
+        const MAX_VIDEO_SECONDS = 120;
+        const validatedFiles = [];
+        for (const file of allFiles) {
+            if (file.type.startsWith('video/')) {
+                await new Promise(resolve => {
+                    const vid = document.createElement('video');
+                    const objUrl = URL.createObjectURL(file);
+                    vid.preload = 'metadata';
+                    vid.src = objUrl;
+                    vid.onloadedmetadata = () => {
+                        URL.revokeObjectURL(objUrl);
+                        if (vid.duration > MAX_VIDEO_SECONDS) {
+                            alert('Videos must be 2 minutes or shorter. This video is ' + Math.round(vid.duration) + ' seconds.');
+                        } else {
+                            validatedFiles.push(file);
+                        }
+                        resolve();
+                    };
+                    vid.onerror = () => { URL.revokeObjectURL(objUrl); resolve(); };
+                });
+            } else {
+                validatedFiles.push(file);
+            }
+        }
+
+        if (!validatedFiles.length) {
+            if (btn) { btn.textContent = '📷 Add Photos & Videos'; btn.disabled = false; }
+            input.value = '';
+            return;
+        }
 
         try {
             const user = (await _supabase.auth.getUser()).data.user;
             if (!user) return;
 
             const newUrls = [];
-            for (const file of files) {
+            for (const file of validatedFiles) {
                 const url = await uploadToStorage(file, 'edit/' + user.id);
-                if (url) newUrls.push({ type: 'image', url });
+                if (url) newUrls.push({ type: file.type.startsWith('video/') ? 'video' : 'image', url });
             }
             if (!newUrls.length) return;
 
@@ -8782,23 +8813,29 @@
 
             const { error } = await _supabase
                 .from('qr_codes').update({ media: updatedMedia }).eq('id', thread.qr_code_id);
-            if (error) { alert('Could not save photos: ' + error.message); return; }
+            if (error) { alert('Could not save: ' + error.message); return; }
 
-            const newPhotoUrls = newUrls.map(m => m.url);
-            thread.photos = [...currentPhotos, ...newPhotoUrls];
-            // Keep thread.media in sync so buildTapFullCard shows new photos
-            const prevMedia = (thread.media || currentPhotos.map(u => ({ type: 'image', url: u })));
+            const prevMedia = (thread.media || (thread.photos||[]).map(u => ({ type: 'image', url: u })));
             thread.media = [...prevMedia, ...newUrls];
+            thread.photos = thread.media.filter(m => m.type !== 'video').map(m => m.url);
 
             const grid = document.getElementById('photo-grid-' + threadId);
             if (grid) {
-                newPhotoUrls.forEach(url => {
-                    const img = document.createElement('img');
-                    img.className = 'tap-fc-photo-thumb';
-                    img.src = url;
-                    grid.appendChild(img);
+                newUrls.forEach(item => {
+                    if (item.type === 'video') {
+                        const wrap = document.createElement('div');
+                        wrap.style.cssText = 'position:relative;width:90px;height:90px;border-radius:10px;overflow:hidden;border:0.5px solid #ddd;flex-shrink:0;display:inline-block;';
+                        wrap.innerHTML = `<video src="${item.url}" style="width:100%;height:100%;object-fit:cover;" muted playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.65rem;">▶</div>`;
+                        grid.appendChild(wrap);
+                    } else {
+                        const img = document.createElement('img');
+                        img.className = 'tap-fc-photo-thumb';
+                        img.src = item.url;
+                        grid.appendChild(img);
+                    }
                 });
             }
+
             let countEl = document.getElementById('photo-count-' + threadId);
             if (!countEl) {
                 countEl = document.createElement('div');
@@ -8806,19 +8843,21 @@
                 countEl.className = 'tap-fc-photo-count-label';
                 if (grid) grid.after(countEl);
             }
-            countEl.textContent = thread.photos.length + '/10 photos';
+            const imgCount = thread.media.filter(m => m.type !== 'video').length;
+            const vidCount = thread.media.filter(m => m.type === 'video').length;
+            countEl.textContent = [imgCount && imgCount + ' photo' + (imgCount > 1 ? 's' : ''), vidCount && vidCount + ' video' + (vidCount > 1 ? 's' : '')].filter(Boolean).join(', ') + ' / 10';
 
-            if (currentPhotos.length === 0 && thread.photos.length > 0) {
-                openTapSingle(threadId);
-            }
+            if (currentCount === 0) openTapSingle(threadId);
+
         } catch(e) {
-            console.error('Edit photo error:', e);
-            alert('Error uploading photos.');
+            console.error('Edit media error:', e);
+            alert('Error uploading.');
         } finally {
-            if (btn) { btn.textContent = '📷 Add Photos'; btn.disabled = false; }
+            if (btn) { btn.textContent = '📷 Add Photos & Videos'; btn.disabled = false; }
             input.value = '';
         }
     }
+
 
     function viewSavedThread() {
         if (window.lastSavedExternalId) {
