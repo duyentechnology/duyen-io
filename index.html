@@ -7829,7 +7829,7 @@
     function buildTapFullCard(thread) {
         const date=new Date(thread.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
         const roleLabels={giver:'A Memory Given',receiver:'A Memory Received',business:'A Business Memory',external:'A Saved Scan'};
-        const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:'scanned by'};
+        const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:''};
         const photos=thread.photos||[];
         // Build photo section: hero + 2-up grid
         let photoHtml='';
@@ -7890,8 +7890,7 @@
             <div class="tap-fc-from">${fromPrefixes[thread.role]||'from'} <span class="tap-fc-from-name">${thread.from}</span></div>
             <hr class="tap-fc-divider">
             <div class="tap-fc-quote-block">
-                <span class="tap-fc-quote-mark">"</span>
-                ${editField('msg','Message',thread.message||'A meaningful moment','message')}
+                                ${editField('msg','Message',thread.message||'A meaningful moment','message')}
             </div>
             ${thread.externalUrl ? editField('url','Link',thread.externalUrl,'url') : ''}
             ${linkHtml}
