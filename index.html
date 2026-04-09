@@ -5448,7 +5448,11 @@
             var voiceUrl = null;
             var extVoiceSlot = voiceRecorders['external'];
             if (extVoiceSlot && extVoiceSlot.blob) {
+                console.log('🎙️ Uploading voice blob, size:', extVoiceSlot.blob.size, 'type:', extVoiceSlot.blob.type);
                 voiceUrl = await uploadBlobToStorage(extVoiceSlot.blob, 'external/' + user.id, 'voice');
+                console.log('🎙️ Voice upload result:', voiceUrl);
+            } else {
+                console.log('🎙️ No voice blob found', extVoiceSlot);
             }
 
             // Insert into qr_codes table as external source
