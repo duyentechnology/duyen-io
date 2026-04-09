@@ -2013,6 +2013,62 @@
             width:72px; height:72px; object-fit:cover;
             border-radius:8px; display:block; flex-shrink:0;
         }
+
+        .tap-fc-media-wrap { background:#000; }
+        .tap-fc-media-strip {
+            display:flex; gap:3px; overflow-x:auto; padding:6px 8px;
+            background:#111; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+        }
+        .tap-fc-media-strip::-webkit-scrollbar { display:none; }
+        .tap-fc-strip-cell {
+            width:52px; height:52px; flex-shrink:0; border-radius:5px;
+            overflow:hidden; cursor:pointer; border:2px solid transparent;
+            transition:border-color 0.15s;
+        }
+        .tap-fc-strip-cell.active { border-color:#8B3A7F; }
+
+        /* Lightbox */
+        .tap-lightbox {
+            display:none; position:fixed; inset:0; z-index:9999;
+            background:rgba(0,0,0,0.95); flex-direction:column;
+            align-items:center; justify-content:center;
+        }
+        .tap-lightbox.open { display:flex; }
+        .tap-lightbox-close {
+            position:absolute; top:16px; right:16px;
+            background:rgba(255,255,255,0.15); color:white; border:none;
+            border-radius:50%; width:36px; height:36px; font-size:1.1rem;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+        }
+        .tap-lightbox-main {
+            flex:1; display:flex; align-items:center; justify-content:center;
+            width:100%; position:relative; overflow:hidden;
+        }
+        .tap-lightbox-main img, .tap-lightbox-main video {
+            max-width:100%; max-height:100%; object-fit:contain;
+        }
+        .tap-lightbox-arrow {
+            position:absolute; top:50%; transform:translateY(-50%);
+            background:rgba(255,255,255,0.15); color:white; border:none;
+            border-radius:50%; width:36px; height:36px; font-size:1.1rem;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+        }
+        .tap-lightbox-arrow.prev { left:12px; }
+        .tap-lightbox-arrow.next { right:12px; }
+        .tap-lightbox-strip {
+            display:flex; gap:4px; padding:8px 12px; overflow-x:auto;
+            scrollbar-width:none; flex-shrink:0;
+        }
+        .tap-lightbox-strip::-webkit-scrollbar { display:none; }
+        .tap-lightbox-strip-cell {
+            width:48px; height:48px; flex-shrink:0; border-radius:5px;
+            overflow:hidden; cursor:pointer; border:2px solid transparent;
+            opacity:0.6; transition:opacity 0.15s, border-color 0.15s;
+        }
+        .tap-lightbox-strip-cell.active { border-color:#8B3A7F; opacity:1; }
+        .tap-lightbox-strip-cell img, .tap-lightbox-strip-cell video {
+            width:100%; height:100%; object-fit:cover; display:block;
+        }
         .tap-fc-body { padding:1.4rem 1.4rem 0.5rem; background:#faf7f4; }
         .tap-fc-role  {
             font-family:'Outfit',sans-serif; font-size:0.7rem; font-weight:500;
@@ -4672,6 +4728,17 @@
       <button class="about-back-btn" onclick="navigate('tapestry')">← Back to Tapestry</button>
     </div>
   </section>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="tap-lightbox" id="tapLightbox">
+    <button class="tap-lightbox-close" onclick="closeLightbox()">✕</button>
+    <div class="tap-lightbox-main" id="tapLightboxMain">
+        <button class="tap-lightbox-arrow prev" onclick="lightboxNav(-1)">‹</button>
+        <div id="tapLightboxContent" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"></div>
+        <button class="tap-lightbox-arrow next" onclick="lightboxNav(1)">›</button>
+    </div>
+    <div class="tap-lightbox-strip" id="tapLightboxStrip"></div>
 </div>
 
 <!-- =============================================
@@ -7893,7 +7960,6 @@
         // Helper: render one media item (image or video)
         const mediaEl = (item, extra='') => {
             const url = item.url || item;
-            // Rely on type field first, then fall back to extension check
             const isVid = item.type === 'video';
             if (isVid) return `<div class="tap-fc-photo" style="position:relative;background:#000;${extra}" onclick="event.stopPropagation();this.querySelector('video').paused?this.querySelector('video').play():this.querySelector('video').pause();this.querySelector('.vid-play-icon').style.display=this.querySelector('video').paused?'flex':'none';">
                 <video src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline preload="metadata"></video>
@@ -7902,22 +7968,45 @@
             return `<div class="tap-fc-photo"${extra?` style="${extra}"`:''}><img src="${url}" alt=""></div>`;
         };
 
-        // Build photo/video section
+        // Build photo/video section — Option B: hero + 2-col grid + swipeable strip + lightbox
         let photoHtml='';
-        if(media.length===1){
-            photoHtml=`<div class="tap-fc-photos">${mediaEl(media[0])}</div>`;
-        } else if(media.length===2){
-            photoHtml=`<div class="tap-fc-photos">${mediaEl(media[0])}<div class="tap-fc-photo-grid">${mediaEl(media[1])}</div></div>`;
-        } else if(media.length>=3){
-            const extra=media.length-3;
-            const countBadge=extra>0?`<div class="tap-fc-photo-count">+${extra} more</div>`:`<div class="tap-fc-photo-count">${media.length} items</div>`;
-            const allStrip = media.length > 3 ? `<div class="tap-fc-all-strip">${media.map(m=>{
-                const url=m.url||m; const isVid=m.type==='video';
-                return isVid
-                    ? `<div class="tap-fc-strip-item" style="position:relative;"><video src="${url}" class="tap-fc-strip-thumb" muted playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.6rem;pointer-events:none;">▶</div></div>`
-                    : `<img class="tap-fc-strip-thumb" src="${url}" alt="">`;
-            }).join('')}</div>` : '';
-            photoHtml=`<div class="tap-fc-photos" style="position:relative;">${mediaEl(media[0])}<div class="tap-fc-photo-grid">${mediaEl(media[1])}<div class="tap-fc-photo" style="position:relative;">${mediaEl(media[2]).replace('<div class="tap-fc-photo"','<div class="tap-fc-photo" style="position:relative;"')}${countBadge}</div></div></div>${allStrip}`;
+        if(media.length > 0){
+            const tid2 = thread.id;
+            // Helper: one grid cell
+            const gridCell = (item, idx) => {
+                const url = item.url||item;
+                const isVid = item.type==='video';
+                const inner = isVid
+                    ? `<video src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;pointer-events:none;">▶</div>`
+                    : `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+                return `<div style="position:relative;cursor:pointer;overflow:hidden;" onclick="openLightbox('${tid2}',${idx})">${inner}</div>`;
+            };
+
+            // Hero
+            const hero = `<div style="position:relative;width:100%;aspect-ratio:16/9;cursor:pointer;overflow:hidden;" onclick="openLightbox('${tid2}',0)">${
+                (media[0].type==='video')
+                    ? `<video src="${media[0].url||media[0]}" style="width:100%;height:100%;object-fit:cover;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">▶</div>`
+                    : `<img src="${media[0].url||media[0]}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">`
+            }</div>`;
+
+            // Rest grid (2-col)
+            const rest = media.length > 1 ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:2px;">${
+                media.slice(1).map((m,i)=>`<div style="aspect-ratio:1;overflow:hidden;">${gridCell(m, i+1)}</div>`).join('')
+            }</div>` : '';
+
+            // Strip
+            const strip = media.length > 1 ? `<div class="tap-fc-media-strip" id="strip-${tid2}">${
+                media.map((m,i)=>{
+                    const url=m.url||m; const isVid=m.type==='video';
+                    return `<div class="tap-fc-strip-cell${i===0?' active':''}" id="scell-${tid2}-${i}" onclick="openLightbox('${tid2}',${i})">${
+                        isVid
+                            ? `<div style="position:relative;width:100%;height:100%;"><video src="${url}" style="width:100%;height:100%;object-fit:cover;" muted playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.55rem;">▶</div></div>`
+                            : `<img src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">`
+                    }</div>`;
+                }).join('')
+            }</div>` : '';
+
+            photoHtml = `<div class="tap-fc-media-wrap">${hero}${rest}${strip}</div>`;
         }
         // Voice player HTML
         let voiceHtml='';
@@ -8644,6 +8733,97 @@
             navigate('threadView');
         }
     }
+
+    var lightboxMedia = [];
+    var lightboxIdx = 0;
+    var lightboxThreadId = null;
+
+    function openLightbox(threadId, idx) {
+        const thread = userThreads.find(t => t.id === threadId);
+        if (!thread) return;
+        const media = (thread.media && thread.media.length > 0)
+            ? thread.media
+            : (thread.photos || []).map(u => ({ type: 'image', url: u }));
+        if (!media.length) return;
+
+        lightboxMedia = media;
+        lightboxIdx = idx;
+        lightboxThreadId = threadId;
+
+        // Build strip
+        const strip = document.getElementById('tapLightboxStrip');
+        strip.innerHTML = media.map((m, i) => {
+            const url = m.url || m;
+            const isVid = m.type === 'video';
+            return `<div class="tap-lightbox-strip-cell${i===idx?' active':''}" id="lsc-${i}" onclick="lightboxGoTo(${i})">
+                ${isVid
+                    ? `<video src="${url}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video>`
+                    : `<img src="${url}" alt="">`}
+            </div>`;
+        }).join('');
+
+        renderLightboxItem();
+        document.getElementById('tapLightbox').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function renderLightboxItem() {
+        const item = lightboxMedia[lightboxIdx];
+        const url = item.url || item;
+        const isVid = item.type === 'video';
+        const content = document.getElementById('tapLightboxContent');
+        content.innerHTML = isVid
+            ? `<video src="${url}" controls autoplay playsinline style="max-width:100%;max-height:70vh;"></video>`
+            : `<img src="${url}" alt="" style="max-width:100%;max-height:70vh;object-fit:contain;">`;
+
+        // Update strip active state
+        document.querySelectorAll('.tap-lightbox-strip-cell').forEach((el, i) => {
+            el.classList.toggle('active', i === lightboxIdx);
+        });
+        // Update card strip active state
+        if (lightboxThreadId) {
+            document.querySelectorAll(`[id^="scell-${lightboxThreadId}-"]`).forEach(el => el.classList.remove('active'));
+            const activeCell = document.getElementById(`scell-${lightboxThreadId}-${lightboxIdx}`);
+            if (activeCell) activeCell.classList.add('active');
+        }
+        // Show/hide arrows
+        document.querySelector('.tap-lightbox-arrow.prev').style.opacity = lightboxIdx === 0 ? '0.3' : '1';
+        document.querySelector('.tap-lightbox-arrow.next').style.opacity = lightboxIdx === lightboxMedia.length - 1 ? '0.3' : '1';
+    }
+
+    function lightboxNav(dir) {
+        const newIdx = lightboxIdx + dir;
+        if (newIdx < 0 || newIdx >= lightboxMedia.length) return;
+        lightboxIdx = newIdx;
+        renderLightboxItem();
+    }
+
+    function lightboxGoTo(idx) {
+        lightboxIdx = idx;
+        renderLightboxItem();
+    }
+
+    function closeLightbox() {
+        document.getElementById('tapLightbox').classList.remove('open');
+        document.body.style.overflow = '';
+        const vid = document.querySelector('#tapLightboxContent video');
+        if (vid) vid.pause();
+    }
+
+    // Swipe gestures for lightbox on mobile
+    (function() {
+        var startX = 0;
+        document.addEventListener('touchstart', function(e) {
+            if (document.getElementById('tapLightbox').classList.contains('open')) {
+                startX = e.touches[0].clientX;
+            }
+        }, { passive: true });
+        document.addEventListener('touchend', function(e) {
+            if (!document.getElementById('tapLightbox').classList.contains('open')) return;
+            const diff = startX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) lightboxNav(diff > 0 ? 1 : -1);
+        }, { passive: true });
+    })();
 
     function shareExternalLink(url, title) {
         if (navigator.share) {
