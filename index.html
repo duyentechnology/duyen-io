@@ -4393,7 +4393,13 @@
         <!-- Welcome stats -->
         <div class="tapestry-welcome">
             <h1 id="tapestryTitle">Your Tapestry</h1>
-            <p class="subtitle" style="margin-bottom: 0;">people · places · things · events</p>
+            <p class="subtitle" style="margin-bottom: 0.75rem;">people · places · things · events</p>
+            <div style="position:relative; max-width:420px; margin:0 auto;">
+                <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;">🔍</span>
+                <input type="text" id="tapestrySearchMobile" placeholder="Search your memories..."
+                    oninput="document.getElementById('tapestrySearch').value=this.value; handleTapestrySearch();"
+                    style="width:100%;box-sizing:border-box;padding:11px 16px 11px 40px;border-radius:24px;border:1.5px solid #d4c8d0;background:white;font-family:'Outfit',sans-serif;font-size:0.95rem;color:#2E2A28;outline:none;">
+            </div>
         </div>
 
         <!-- Collage strip -->
@@ -8330,6 +8336,11 @@
     async function initTapestry() {
         await loadTapestryFromDB();
         updateStats();
+        // Clear search
+        const s1 = document.getElementById('tapestrySearch');
+        const s2 = document.getElementById('tapestrySearchMobile');
+        if (s1) s1.value = '';
+        if (s2) s2.value = '';
 
         if (userThreads.length > 0) {
             document.getElementById('tapestryEmpty').style.display = 'none';
