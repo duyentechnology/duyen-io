@@ -8604,22 +8604,27 @@
         }
     }
 
-    function exitEditMode() {
+    async function exitEditMode() {
         tapEditModeActive = false;
         const btn = document.getElementById('tapEditBtn');
         const doneBtn = document.getElementById('tapDoneBtn');
         const cards = document.getElementById('tapDetailCards');
         if (btn) btn.classList.remove('active');
-        if (doneBtn) doneBtn.style.display = 'none';
+        if (doneBtn) { doneBtn.textContent = 'Saving...'; doneBtn.disabled = true; }
         if (cards) cards.classList.remove('tap-edit-mode');
-        // Rebuild collage with any changes made
-        if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
-        // Re-render the card so voice player, new photos etc show in view mode
+
+        // Auto-save any pending voice recording
         const activeCard = document.querySelector('.tap-full-card[data-thread-id]');
-        if (activeCard) {
-            const tid = activeCard.dataset.threadId;
-            if (tid) openTapSingle(tid);
+        const tid = activeCard ? activeCard.dataset.threadId : null;
+        if (tid && editVoiceRecorders[tid] && editVoiceRecorders[tid].blob) {
+            await saveEditVoice(tid);
         }
+
+        if (doneBtn) { doneBtn.textContent = 'Done'; doneBtn.disabled = false; doneBtn.style.display = 'none'; }
+
+        // Rebuild collage and re-render card
+        if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
+        if (tid) openTapSingle(tid);
     }
 
     function startInlineEdit(threadId, fieldKey, currentValue) {
