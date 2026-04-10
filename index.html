@@ -4397,8 +4397,9 @@
             <div style="position:relative; max-width:420px; margin:0 auto;">
                 <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;">🔍</span>
                 <input type="text" id="tapestrySearchMobile" placeholder="Search your memories..."
-                    oninput="document.getElementById('tapestrySearch').value=this.value; handleTapestrySearch();"
-                    style="width:100%;box-sizing:border-box;padding:11px 16px 11px 40px;border-radius:24px;border:1.5px solid #d4c8d0;background:white;font-family:'Outfit',sans-serif;font-size:0.95rem;color:#2E2A28;outline:none;">
+                    oninput="document.getElementById('tapestrySearch').value=this.value; handleTapestrySearch(); document.getElementById('searchClearBtn').style.display=this.value?'flex':'none';"
+                    style="width:100%;box-sizing:border-box;padding:11px 36px 11px 40px;border-radius:24px;border:1.5px solid #d4c8d0;background:white;font-family:'Outfit',sans-serif;font-size:0.95rem;color:#2E2A28;outline:none;">
+                <button id="searchClearBtn" onclick="clearTapestrySearch()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#aaa;width:24px;height:24px;align-items:center;justify-content:center;padding:0;">✕</button>
             </div>
         </div>
 
@@ -7975,49 +7976,76 @@
         });
     }
 
+    function clearTapestrySearch() {
+        document.getElementById('tapestrySearchMobile').value = '';
+        document.getElementById('tapestrySearch').value = '';
+        document.getElementById('searchClearBtn').style.display = 'none';
+        handleTapestrySearch();
+    }
+
     function handleTapestrySearch() {
         const search = (document.getElementById('tapestrySearch')?.value || '').toLowerCase().trim();
+
+        // Always keep collage/polaroids visible but dim when searching
+        document.getElementById('tapCollageOuter').style.opacity = search ? '0.3' : '1';
+        document.getElementById('tapCollageOuter').style.pointerEvents = search ? 'none' : '';
+        document.getElementById('tapCollageHint').style.opacity = search ? '0' : '1';
+
+        // Show/hide month stacks
+        document.getElementById('tapMonthOuter').style.display = search ? 'none' : 'block';
+
+        // Search results container — inline in body
+        let resultsEl = document.getElementById('tapSearchResults');
+        if (!resultsEl) {
+            resultsEl = document.createElement('div');
+            resultsEl.id = 'tapSearchResults';
+            // Insert after collage hint
+            const hint = document.getElementById('tapCollageHint');
+            hint.parentNode.insertBefore(resultsEl, hint.nextSibling);
+        }
+
         if (!search) {
-            // Restore normal scrapbook view
-            document.getElementById('tapCollageOuter').style.display = 'block';
-            document.getElementById('tapCollageHint').style.display = 'block';
-            document.getElementById('tapMonthOuter').style.display = 'block';
-            document.getElementById('tapestryGrid').style.display = 'none';
+            resultsEl.innerHTML = '';
+            resultsEl.style.display = 'none';
             buildTapCollage(tapCurrentMonth);
             buildTapStacks(tapCurrentMonth);
             return;
         }
-        // Show flat filtered grid, hide scrapbook
+
         const filtered = userThreads.filter(t =>
             (t.title || '').toLowerCase().includes(search) ||
             (t.from || '').toLowerCase().includes(search) ||
             (t.message || '').toLowerCase().includes(search) ||
             (t.tags && t.tags.some(tag => tag.toLowerCase().includes(search)))
         );
-        document.getElementById('tapCollageOuter').style.display = 'none';
-        document.getElementById('tapCollageHint').style.display = 'none';
-        document.getElementById('tapMonthOuter').style.display = 'none';
-        const grid = document.getElementById('tapestryGrid');
-        grid.style.display = 'grid';
-        grid.innerHTML = '';
+
+        resultsEl.style.display = 'block';
+        resultsEl.style.padding = '0 0 6rem';
+
         if (filtered.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">No threads found</div>';
+            resultsEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.9rem;">No memories found</div>';
             return;
         }
-        const palettes = { receiver:['#C8406A','#D4503C','#B83858'], giver:['#3A8C48','#B87828','#5A8060'], business:['#4888C0','#5848A8','#2878A0'], external:['#8B5E3C','#6B7280','#7C4D3A'] };
-        filtered.forEach((thread, i) => {
-            const pal = palettes[thread.role] || palettes.external;
-            const color = pal[i % pal.length];
-            const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const roleLabels = { giver:'🎁 You Gave', receiver:'💝 You Received', business:'🏢 Business', external:'📌 Saved Scan' };
-            const card = document.createElement('div');
-            card.className = 'thread-card';
-            card.style.cssText = 'cursor:pointer;border-radius:12px;overflow:hidden;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.1);';
-            card.onclick = () => openTapSingle(thread.id);
-            const photo = thread.photos && thread.photos.length > 0 ? `<img src="${thread.photos[0]}" style="width:100%;height:120px;object-fit:cover;">` : `<div style="width:100%;height:80px;background:${color};display:flex;align-items:center;justify-content:center;font-size:2rem;">${thread.icon||'🧵'}</div>`;
-            card.innerHTML = `${photo}<div style="padding:12px;"><div style="font-size:0.75rem;color:${color};font-weight:600;margin-bottom:4px;">${roleLabels[thread.role]||thread.role}</div><div style="font-weight:600;font-size:0.95rem;margin-bottom:4px;">${thread.title}</div><div style="font-size:0.8rem;color:var(--text-muted);">${date}</div></div>`;
-            grid.appendChild(card);
-        });
+
+        const roleLabels = { giver:'🎁 Given', receiver:'💝 Received', business:'🏢 Business', external:'📌 Saved Scan' };
+        const palettes = { receiver:'#C8406A', giver:'#3A8C48', business:'#4888C0', external:'#8B5E3C' };
+
+        resultsEl.innerHTML = `<div style="font-size:0.75rem;font-weight:600;color:#8B3A7F;text-transform:uppercase;letter-spacing:0.08em;padding:10px 0 8px;">${filtered.length} result${filtered.length===1?'':'s'}</div>` +
+            filtered.map(thread => {
+                const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const color = palettes[thread.role] || '#8B5E3C';
+                const photo = thread.photos && thread.photos.length > 0
+                    ? `<img src="${thread.photos[0]}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0;">`
+                    : `<div style="width:48px;height:48px;background:${color};border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">${thread.icon||'🧵'}</div>`;
+                return `<div onclick="openTapSingle('${thread.id}')" style="display:flex;align-items:center;gap:12px;background:white;border-radius:12px;border:0.5px solid #ede8e3;padding:10px 12px;margin-bottom:8px;cursor:pointer;">
+                    ${photo}
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;font-size:0.9rem;color:#2E2A28;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${thread.title}</div>
+                        <div style="font-size:0.75rem;color:${color};font-weight:600;">${roleLabels[thread.role]||thread.role}</div>
+                        <div style="font-size:0.75rem;color:#aaa;">${date}</div>
+                    </div>
+                </div>`;
+            }).join('');
     }
 
     function buildTapStacks(month) {
@@ -8341,6 +8369,12 @@
         const s2 = document.getElementById('tapestrySearchMobile');
         if (s1) s1.value = '';
         if (s2) s2.value = '';
+        const sr = document.getElementById('tapSearchResults');
+        if (sr) { sr.innerHTML = ''; sr.style.display = 'none'; }
+        const clearBtn = document.getElementById('searchClearBtn');
+        if (clearBtn) clearBtn.style.display = 'none';
+        const collage = document.getElementById('tapCollageOuter');
+        if (collage) { collage.style.opacity = '1'; collage.style.pointerEvents = ''; }
 
         if (userThreads.length > 0) {
             document.getElementById('tapestryEmpty').style.display = 'none';
