@@ -1707,18 +1707,18 @@
             overflow-x:auto; overflow-y:visible;
             -webkit-overflow-scrolling:touch;
             scrollbar-width:none;
-            padding:40px 64px 28px 64px;
+            padding:50px 72px 36px 72px;
             transition:opacity 0.25s ease;
         }
         .tap-collage-scroll::-webkit-scrollbar { display:none; }
         .tap-collage-scroll.switching { opacity:0; }
 
         .tap-col-card {
-            flex-shrink:0; width:148px;
-            margin-left:-38px; position:relative;
+            flex-shrink:0; width:190px;
+            margin-left:-48px; position:relative;
             cursor:pointer;
             background:white;
-            padding:6px 6px 0 6px;
+            padding:8px 8px 0 8px;
             box-shadow:2px 4px 14px rgba(0,0,0,0.15);
             transition:transform 0.25s ease, box-shadow 0.25s ease;
             transform:rotate(var(--ctilt,0deg));
@@ -1732,28 +1732,28 @@
         .tap-col-card::before {
             content:''; position:absolute; top:-8px; left:50%;
             transform:translateX(-50%) rotate(var(--ctape,-2deg));
-            width:40px; height:16px;
+            width:50px; height:18px;
             background:rgba(200,180,220,0.55);
             border-radius:2px; z-index:5;
         }
         .tap-col-photo {
             width:100%; aspect-ratio:1; overflow:hidden;
             display:flex; align-items:center; justify-content:center;
-            font-size:3rem; background:#f0ebe6; position:relative;
+            font-size:3.5rem; background:#f0ebe6; position:relative;
         }
         .tap-col-photo img { width:100%; height:100%; object-fit:cover; }
         .tap-col-nophoto {
             width:100%; aspect-ratio:1;
             display:flex; align-items:center; justify-content:center;
-            font-size:2.8rem; background:#f5f0eb;
+            font-size:3.4rem; background:#f5f0eb;
         }
-        .tap-col-body { padding:8px 4px 10px; }
+        .tap-col-body { padding:10px 6px 14px; }
         .tap-col-caption {
-            font-family:'Caveat',cursive; font-size:13px;
+            font-family:'Caveat',cursive; font-size:16px;
             color:#2a1a2e; line-height:1.35; text-align:center;
             display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
         }
-        .tap-col-date  { font-family:'Caveat',cursive; font-size:11px; color:#bbb; margin-top:3px; text-align:center; }
+        .tap-col-date  { font-family:'Caveat',cursive; font-size:18px; color:#bbb; margin-top:3px; text-align:center; }
         .tap-col-new   {
             position:absolute; top:10px; right:6px;
             font-family:'Caveat',cursive; font-size:0.62rem;
@@ -1762,9 +1762,10 @@
         }
 
         .tap-collage-hint {
-            font-family:'Caveat',cursive; font-size:0.8rem;
-            color:var(--text-muted); text-align:center;
-            padding:0.15rem 0 0.4rem;
+            font-family:'Caveat',cursive; font-size:1.1rem;
+            color:#6b5c78; text-align:center;
+            padding:0.25rem 0 0.5rem;
+            font-weight:600;
         }
 
         /* ── MONTH STRIP ── */
