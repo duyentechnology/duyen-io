@@ -5444,13 +5444,24 @@
                 }
             }
 
-            // Upload voice memo if recorded
+            // Upload voice memo if recorded — wait for blob if still processing
             var voiceUrl = null;
             var extVoiceSlot = voiceRecorders['external'];
-            if (extVoiceSlot && extVoiceSlot.blob) {
-                console.log('🎙️ Uploading voice blob, size:', extVoiceSlot.blob.size, 'type:', extVoiceSlot.blob.type);
-                voiceUrl = await uploadBlobToStorage(extVoiceSlot.blob, 'external/' + user.id, 'voice');
-                console.log('🎙️ Voice upload result:', voiceUrl);
+            if (extVoiceSlot && (extVoiceSlot.blob || extVoiceSlot.chunks.length > 0)) {
+                // If recorder stopped but blob not yet assembled, wait for it
+                if (!extVoiceSlot.blob && extVoiceSlot.recorder && extVoiceSlot.recorder.state !== 'recording') {
+                    await new Promise(resolve => {
+                        var check = setInterval(() => {
+                            if (extVoiceSlot.blob) { clearInterval(check); resolve(); }
+                        }, 100);
+                        setTimeout(() => { clearInterval(check); resolve(); }, 3000); // 3s timeout
+                    });
+                }
+                if (extVoiceSlot.blob) {
+                    console.log('🎙️ Uploading voice blob, size:', extVoiceSlot.blob.size, 'type:', extVoiceSlot.blob.type);
+                    voiceUrl = await uploadBlobToStorage(extVoiceSlot.blob, 'external/' + user.id, 'voice');
+                    console.log('🎙️ Voice upload result:', voiceUrl);
+                }
             } else {
                 console.log('🎙️ No voice blob found', extVoiceSlot);
             }
