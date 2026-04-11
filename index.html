@@ -5060,6 +5060,7 @@
         const targetId = screenMap[screen];
         if (!targetId) { console.warn('Unknown screen:', screen); return; }
         if (screen === 'profile') { setTimeout(initUserScreen, 80); }
+        if (screen === 'tapestry') { setTimeout(updateHeaderAvatar, 80); }
 
         // Track previous screen for back navigation
         const currentActive = document.querySelector('.screen.active');
@@ -5765,6 +5766,18 @@
             var isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
             if (isIOS && isSafari) showPWAPrompt();
         }
+    }
+
+    async function updateHeaderAvatar() {
+        try {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) return;
+            const meta = user.user_metadata || {};
+            const name = meta.full_name || meta.name || user.email.split('@')[0];
+            const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+            const btn = document.getElementById('headerAvatarBtn');
+            if (btn) btn.textContent = initials;
+        } catch(e) {}
     }
 
     function logoutDuyen() {
