@@ -2122,7 +2122,7 @@
             font-size:1.25rem; color:#3a2a2e; line-height:1.7;
         }
         .tap-fc-date  {
-            font-family:'Caveat',cursive; font-size:1.05rem; color:#6B5751;
+            font-family:'Caveat',cursive; font-size:1.4rem; color:#6B5751;
             margin-top:1rem; text-align:right; padding-bottom:1rem;
         }
         /* Voice note player */
@@ -8275,7 +8275,7 @@
 
         card.innerHTML=`${photoHtml}
         <div class="tap-fc-body">
-            <div class="tap-fc-role">${roleLabels[thread.role]||'A Memory'}${thread.isFavorite?' ⭐':''}</div>
+            ${thread.isFavorite ? '<div class="tap-fc-role">⭐</div>' : ''}
             ${editField('title','Title',thread.title,'title')}
             ${thread.role === 'external' && (!thread.from || thread.from === 'Scanned QR') ? '' : `<div class="tap-fc-from">${fromPrefixes[thread.role]||'from'} <span class="tap-fc-from-name">${thread.from}</span></div>`}
             <hr class="tap-fc-divider">
