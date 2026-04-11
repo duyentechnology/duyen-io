@@ -8,6 +8,9 @@
     <meta name="theme-color" content="#8B3A7F">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.anthropic.com; frame-ancestors 'none';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
     <meta name="apple-mobile-web-app-title" content="Duyên">
     <link rel="apple-touch-icon" href="/icon-192.png">
     <script>
@@ -5564,6 +5567,23 @@
         simulateAuthSuccess('Apple User');
     }
 
+    // ==========================================
+    // SECURITY HELPERS
+    // ==========================================
+    function sanitize(str) {
+        if (str === null || str === undefined) return '';
+        var el = document.createElement('div');
+        el.textContent = String(str);
+        return el.innerHTML;
+    }
+    function safeUrl(url) {
+        if (!url) return '#';
+        var s = String(url).trim();
+        if (/^https?:\/\//i.test(s)) return s;
+        return '#'; // block javascript: and other schemes
+    }
+    // ==========================================
+
     // SUPABASE
     // If returning from logout, wipe storage before Supabase initializes
     if (window.location.search.includes('logged_out=')) {
@@ -6421,18 +6441,35 @@
         }
     }
 
+    var _phraseAttempts = 0;
+    var _phraseLocked = false;
     function unlockContent() {
+        if (_phraseLocked) return;
         var input = document.getElementById('qcSecretInput').value.trim().toLowerCase();
         var stored = window._lockedGiverData && window._lockedGiverData.secret_phrase;
         if (!input) return;
         if (input === stored) {
+            _phraseAttempts = 0;
             window._contentUnlocked = true;
             document.getElementById('qcSecretError').style.display = 'none';
             populateQRContent();
         } else {
-            document.getElementById('qcSecretError').style.display = 'block';
+            _phraseAttempts++;
             document.getElementById('qcSecretInput').value = '';
             document.getElementById('qcSecretInput').focus();
+            if (_phraseAttempts >= 5) {
+                _phraseLocked = true;
+                var errEl = document.getElementById('qcSecretError');
+                errEl.textContent = 'Too many incorrect attempts. Please contact the sender for help.';
+                errEl.style.display = 'block';
+                document.getElementById('qcSecretInput').disabled = true;
+                var unlockBtn = document.querySelector('[onclick="unlockContent()"]');
+                if (unlockBtn) unlockBtn.disabled = true;
+            } else {
+                var errEl = document.getElementById('qcSecretError');
+                errEl.textContent = 'Incorrect phrase. ' + (5 - _phraseAttempts) + ' attempt' + (5 - _phraseAttempts === 1 ? '' : 's') + ' remaining.';
+                errEl.style.display = 'block';
+            }
         }
     }
 
@@ -7505,7 +7542,7 @@
         if (businessData.links && businessData.links.length > 0) {
             linksEl.innerHTML = '<div class="section-title">Connect With Us</div>';
             businessData.links.forEach(link => {
-                linksEl.innerHTML += `<a href="${link}" class="link-item" target="_blank"><div class="contact-icon">🌐</div><div style="flex:1; word-break:break-all;">${link}</div><div style="color:var(--text-muted);">→</div></a>`;
+                linksEl.innerHTML += `<a href="${safeUrl(link)}" class="link-item" target="_blank" rel="noopener noreferrer"><div class="contact-icon">🌐</div><div style="flex:1; word-break:break-all;">${sanitize(link)}</div><div style="color:var(--text-muted);">→</div></a>`;
             });
         }
 
@@ -7676,7 +7713,7 @@
 
         const msgEl = document.getElementById('receiverMessageView');
         if (giverData.giverName) {
-            msgEl.innerHTML = `<div class="message-block"><div class="message-from">Message from ${giverData.giverName}</div><p class="message-text">"${giverData.message}"</p>${giverData.occasion ? `<div style="margin-top:0.75rem; font-style:italic; color:var(--text-muted); font-size:0.9rem;">Occasion: ${giverData.occasion}</div>` : ''}</div>`;
+            msgEl.innerHTML = `<div class="message-block"><div class="message-from">Message from ${sanitize(giverData.giverName)}</div><p class="message-text">"${sanitize(giverData.message)}"</p>${giverData.occasion ? `<div style="margin-top:0.75rem; font-style:italic; color:var(--text-muted); font-size:0.9rem;">Occasion: ${sanitize(giverData.occasion)}</div>` : ''}</div>`;
         } else {
             msgEl.innerHTML = '<div class="alert alert-info"><strong>📝 Note:</strong> This is a gift without a personal message yet.</div>';
         }
