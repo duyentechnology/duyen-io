@@ -36,7 +36,7 @@
             --sage: #81B29A;
             --text-primary: #3D2E24;
             --text-secondary: #5D4E44;
-            --text-muted: #9A8478;
+            --text-muted: #6B5751;
             --border-light: #E8DDD6;
             --card-shadow: 0 8px 32px rgba(61, 46, 36, 0.08);
             --surface: #F0EFED;
@@ -1514,8 +1514,7 @@
             margin-top: 2rem;
             font-size: 0.72rem;
             letter-spacing: 0.15em;
-            color: #bbb;
-            text-transform: uppercase;
+            color: #6B5751;
         }
 
         /* =============================================
@@ -1756,7 +1755,7 @@
             color:#2a1a2e; line-height:1.35; text-align:center;
             display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
         }
-        .tap-col-date  { font-family:'Caveat',cursive; font-size:18px; color:#bbb; margin-top:3px; text-align:center; }
+        .tap-col-date  { font-family:'Caveat',cursive; font-size:18px; color:#6B5751; margin-top:3px; text-align:center; }
         .tap-col-new   {
             position:absolute; top:10px; right:6px;
             font-family:'Caveat',cursive; font-size:0.62rem;
@@ -2121,14 +2120,14 @@
             font-size:1.25rem; color:#3a2a2e; line-height:1.7;
         }
         .tap-fc-date  {
-            font-family:'Caveat',cursive; font-size:0.82rem; color:#bbb;
+            font-family:'Caveat',cursive; font-size:1.05rem; color:#6B5751;
             margin-top:1rem; text-align:right; padding-bottom:1rem;
         }
         /* Voice note player */
         .tap-fc-voice { padding:0 1.4rem 1.4rem; background:#faf7f4; }
         .tap-fc-voice-label {
             font-family:'Outfit',sans-serif; font-size:0.68rem; font-weight:500;
-            letter-spacing:0.14em; text-transform:uppercase; color:#9a8a96;
+            letter-spacing:0.14em; text-transform:uppercase; color:#5a4a56;
             margin-bottom:0.6rem;
         }
         .tap-fc-voice-player {
@@ -2152,7 +2151,7 @@
         }
         .tap-fc-waveform-bar.played { background:#3A8C7A; }
         .tap-fc-duration {
-            font-family:'Outfit',sans-serif; font-size:12px; color:#9a8a96;
+            font-family:'Outfit',sans-serif; font-size:12px; color:#5a4a56;
             flex-shrink:0; min-width:28px; text-align:right;
         }
         .tap-fc-audio-el { display:none; }
@@ -3127,11 +3126,11 @@
         }
         .user-avatar-email {
             font-family:'Outfit',sans-serif; font-size:0.82rem;
-            color:#9a8a96; margin-top:3px;
+            color:#5a4a56; margin-top:3px;
         }
         .user-section-label {
             font-family:'Outfit',sans-serif; font-size:0.68rem; font-weight:500;
-            letter-spacing:0.14em; text-transform:uppercase; color:#9a8a96;
+            letter-spacing:0.14em; text-transform:uppercase; color:#5a4a56;
             margin-bottom:10px; margin-top:24px;
         }
         .user-field {
@@ -3139,7 +3138,7 @@
             margin-bottom:10px; box-shadow:0 1px 6px rgba(0,0,0,0.05);
         }
         .user-field-label {
-            font-family:'Outfit',sans-serif; font-size:0.7rem; color:#9a8a96;
+            font-family:'Outfit',sans-serif; font-size:0.7rem; color:#5a4a56;
             text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;
         }
         .user-field-value {
@@ -3177,7 +3176,7 @@
         /* ── PENCIL RENAME ── */
         .tap-pencil-btn {
             background:none; border:none; cursor:pointer; font-size:14px;
-            color:#9a8a96; padding:2px 4px; flex-shrink:0; transition:color 0.15s;
+            color:#5a4a56; padding:2px 4px; flex-shrink:0; transition:color 0.15s;
         }
         .tap-pencil-btn:hover { color:#8B3A7F; }
         </style>
@@ -3498,7 +3497,7 @@
                     <p style="font-weight:700; color:#3d1a38; font-size:0.95rem; margin-bottom:0.3rem;">Want to keep this memory?</p>
                     <p id="qcGuestBannerMsg" style="color:#7D6E64; font-size:0.82rem; margin-bottom:1rem; line-height:1.5;">Create a free account to save this to your tapestry and send a thank you.</p>
                     <button class="btn btn-primary" onclick="window.postAuthDestination='qrContent'; navigate('auth');" style="width:100%; padding:12px; font-size:0.95rem;">✨ Sign In to Save</button>
-                    <p style="font-size:0.75rem; color:#aaa; margin-top:0.75rem;">It's free — takes 30 seconds</p>
+                    <p style="font-size:0.75rem; color:#6B5751; margin-top:0.75rem;">It's free — takes 30 seconds</p>
                 </div>
             </div>
         </div>
@@ -4402,7 +4401,7 @@
                 <input type="text" id="tapestrySearchMobile" placeholder="Search your memories..."
                     oninput="document.getElementById('tapestrySearch').value=this.value; handleTapestrySearch(); document.getElementById('searchClearBtn').style.display=this.value?'flex':'none';"
                     style="width:100%;box-sizing:border-box;padding:11px 36px 11px 40px;border-radius:24px;border:1.5px solid #d4c8d0;background:white;font-family:'Outfit',sans-serif;font-size:0.95rem;color:#2E2A28;outline:none;">
-                <button id="searchClearBtn" onclick="clearTapestrySearch()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#aaa;width:24px;height:24px;align-items:center;justify-content:center;padding:0;">✕</button>
+                <button id="searchClearBtn" onclick="clearTapestrySearch()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#6B5751;width:24px;height:24px;align-items:center;justify-content:center;padding:0;">✕</button>
             </div>
         </div>
 
@@ -4450,7 +4449,7 @@
             <div class="tap-role-row" id="tap-row-external">
                 <div class="tap-role-label">
                     <div class="tap-role-icon" style="background:rgba(139,94,60,0.12);">📌</div>
-                    <div class="tap-role-name">Saved Scans</div>
+                    <div class="tap-role-name"></div>
                     <div class="tap-role-count" id="tap-count-external"></div>
                 </div>
                 <div id="tap-stack-external"></div>
@@ -5730,7 +5729,7 @@
                     </div>
                 </div>
                 <button onclick="localStorage.setItem('pwaDismissed','true');document.getElementById('iosInstallModal').style.display='none';hidePWAPrompt();" style="background:#8B3A7F;color:white;border:none;border-radius:12px;padding:13px;font-size:0.95rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:10px;">Done — I've added it!</button>
-                <button onclick="document.getElementById('iosInstallModal').style.display='none';" style="background:transparent;border:none;color:#aaa;font-size:0.85rem;cursor:pointer;width:100%;">Maybe later</button>
+                <button onclick="document.getElementById('iosInstallModal').style.display='none';" style="background:transparent;border:none;color:#6B5751;font-size:0.85rem;cursor:pointer;width:100%;">Maybe later</button>
             </div>`;
         document.body.appendChild(modal);
     }
@@ -8064,7 +8063,7 @@
             return;
         }
 
-        const roleLabels = { giver:'🎁 Given', receiver:'💝 Received', business:'🏢 Business', external:'📌 Saved Scan' };
+        const roleLabels = { giver:'🎁 Given', receiver:'💝 Received', business:'🏢 Business', external:'' };
         const palettes = { receiver:'#C8406A', giver:'#3A8C48', business:'#4888C0', external:'#8B5E3C' };
 
         resultsEl.innerHTML = `<div style="font-size:0.75rem;font-weight:600;color:#8B3A7F;text-transform:uppercase;letter-spacing:0.08em;padding:10px 0 8px;">${filtered.length} result${filtered.length===1?'':'s'}</div>` +
@@ -8079,7 +8078,7 @@
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;font-size:0.9rem;color:#2E2A28;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${thread.title}</div>
                         <div style="font-size:0.75rem;color:${color};font-weight:600;">${roleLabels[thread.role]||thread.role}</div>
-                        <div style="font-size:0.75rem;color:#aaa;">${date}</div>
+                        <div style="font-size:0.75rem;color:#6B5751;">${date}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -8141,7 +8140,7 @@
 
     function buildTapFullCard(thread) {
         const date=new Date(thread.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-        const roleLabels={giver:'A Memory Given',receiver:'A Memory Received',business:'A Business Memory',external:'A Saved Scan'};
+        const roleLabels={giver:'A Memory Given',receiver:'A Memory Received',business:'A Business Memory',external:''};
         const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:''};
         const photos=thread.photos||[];
         // Use full media array with types if available, else fall back to photos array
@@ -8368,7 +8367,7 @@
     }
 
     function openTapRole(role,month) {
-        const roleLabels={giver:'🎁 Given',receiver:'💝 Received',business:'🏢 Business',external:'📌 Saved Scans'};
+        const roleLabels={giver:'🎁 Given',receiver:'💝 Received',business:'🏢 Business',external:''};
         const items=userThreads.filter(t=>t.role===role&&tapGetMonthKey(t.date)===month).sort((a,b)=>new Date(b.date)-new Date(a.date));
         document.getElementById('tapDetailTitle').textContent=roleLabels[role]||role;
         document.getElementById('tapDetailSub').textContent=`${month} · ${items.length} memor${items.length===1?'y':'ies'}`;
@@ -8466,7 +8465,7 @@
         }
 
         filtered.forEach((thread, index) => {
-            const roleLabels = { giver: '🎁 You Gave', receiver: '💝 You Received', business: '🏢 Business', external: '📌 Saved Scan' };
+            const roleLabels = { giver: '🎁 You Gave', receiver: '💝 You Received', business: '🏢 Business', external: '' };
             const roleLabel  = roleLabels[thread.role] || thread.role;
             const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
