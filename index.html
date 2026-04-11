@@ -5632,7 +5632,7 @@
             const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
             document.getElementById('userAvatarInitials').textContent = initials;
             const headerAvatar = document.getElementById('headerAvatarBtn');
-            if (headerAvatar) headerAvatar.textContent = initials.charAt(0);
+            if (headerAvatar) headerAvatar.textContent = initials;
             document.getElementById('userDisplayName').textContent = name;
             document.getElementById('userDisplayEmail').textContent = email;
             document.getElementById('userEmailDisplay').textContent = email;
