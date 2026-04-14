@@ -5795,6 +5795,61 @@
     // Store fetched QR data globally so role screens can use it later
     var scannedQRData = null;
 
+    function showBusinessProfile(data, biz) {
+        // Build a clean business profile page directly — no role selection needed
+        scannedQRData = data;
+        var container = document.getElementById('qrLandingContent') || document.body;
+        var socialLinks = '';
+        if (biz.social) {
+            var s = biz.social;
+            var icons = {
+                facebook:  { color:'#1877F2', label:'Facebook' },
+                pinterest: { color:'#E60023', label:'Pinterest' },
+                youtube:   { color:'#FF0000', label:'YouTube' },
+                yelp:      { color:'#D32323', label:'Yelp' },
+                linkedin:  { color:'#0A66C2', label:'LinkedIn' },
+                x:         { color:'#000',    label:'X' }
+            };
+            Object.keys(icons).forEach(function(k) {
+                if (s[k] && s[k].trim()) {
+                    var url = s[k].match(/^https?:\/\//) ? s[k] : 'https://' + s[k];
+                    socialLinks += '<a href="' + url + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:' + icons[k].color + ';color:#fff;text-decoration:none;font-size:13px;font-weight:700;font-family:Outfit,sans-serif;">' + icons[k].label[0] + '</a>';
+                }
+            });
+        }
+        var addrLine = biz.address && biz.address.full ? biz.address.full : '';
+        var html = '<div style="background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 8px 40px rgba(46,42,40,.18);max-width:420px;margin:24px auto;">' +
+            '<div style="background:linear-gradient(135deg,#f9f4f9,#e8d5e8);padding:32px 24px 24px;text-align:center;">' +
+                '<div style="width:80px;height:80px;border-radius:50%;background:#8B3A7F;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;border:3px solid #fff;box-shadow:0 4px 16px rgba(139,58,127,.25);font-size:28px;font-weight:700;color:#fff;font-family:Cormorant Garamond,serif;">' + (biz.name ? biz.name[0].toUpperCase() : 'B') + '</div>' +
+                '<div style="font-family:Cormorant Garamond,serif;font-size:24px;font-weight:700;color:#2E2A28;margin-bottom:6px;">' + (biz.name || '') + '</div>' +
+                (biz.description ? '<div style="font-size:13px;color:#7D6E64;line-height:1.5;font-family:Outfit,sans-serif;max-width:280px;margin:0 auto;">' + biz.description + '</div>' : '') +
+            '</div>' +
+            '<div style="padding:18px 20px;">' +
+                (biz.phone ? '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><span style="font-size:16px;">📞</span><a href="tel:' + biz.phone + '" style="font-family:Outfit,sans-serif;font-size:14px;color:#2E2A28;text-decoration:none;">' + biz.phone + '</a></div>' : '') +
+                (biz.email ? '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><span style="font-size:16px;">✉️</span><a href="mailto:' + biz.email + '" style="font-family:Outfit,sans-serif;font-size:14px;color:#2E2A28;text-decoration:none;">' + biz.email + '</a></div>' : '') +
+                (biz.website ? '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><span style="font-size:16px;">🌐</span><a href="' + biz.website + '" target="_blank" style="font-family:Outfit,sans-serif;font-size:14px;color:#8B3A7F;text-decoration:none;">' + biz.website.replace(/^https?:\/\//, '') + '</a></div>' : '') +
+                (addrLine ? '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;"><span style="font-size:16px;">📍</span><span style="font-family:Outfit,sans-serif;font-size:14px;color:#2E2A28;">' + addrLine + '</span></div>' : '') +
+                (socialLinks ? '<div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:10px;">' + socialLinks + '</div>' : '') +
+            '</div>' +
+            '<div style="border-top:1px solid #F0EAE6;padding:14px;text-align:center;">' +
+                '<span style="font-size:11px;color:#C9A0C4;font-family:Outfit,sans-serif;letter-spacing:.5px;">Shared with 緣 DUYÊN</span>' +
+            '</div>' +
+        '</div>';
+        // Find or create a host element
+        var host = document.getElementById('bizProfileDisplay');
+        if (!host) {
+            host = document.createElement('div');
+            host.id = 'bizProfileDisplay';
+            host.style.cssText = 'position:fixed;inset:0;overflow-y:auto;background:#FAF7F2;z-index:9999;padding:16px;';
+            document.body.appendChild(host);
+        }
+        host.innerHTML = html;
+        host.style.display = 'block';
+        // Hide the role selection screen
+        var roleScreen = document.getElementById('qrIdentityScreen');
+        if (roleScreen) roleScreen.style.display = 'none';
+    }
+
     async function loadScannedQR(code) {
         const notFound = document.getElementById('qrNotFound');
         const bizOption = document.getElementById('roleBusinessOption');
@@ -5848,6 +5903,14 @@
             var subtitle = document.getElementById('qrRoleSubtitle');
             var giverTitle = document.getElementById('roleGiverTitle');
             var receiverTitle = document.getElementById('roleReceiverTitle');
+
+            // If business_data has a name, skip role selection and show profile directly
+            var bizDataCheck = data.business_data;
+            if (typeof bizDataCheck === 'string') { try { bizDataCheck = JSON.parse(bizDataCheck); } catch(e) { bizDataCheck = null; } }
+            if (bizDataCheck && bizDataCheck.name) {
+                showBusinessProfile(data, bizDataCheck);
+                return;
+            }
 
             if (hasBusinessData) {
                 // Business already claimed — only show giver/receiver with gift-focused labels
