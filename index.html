@@ -6880,13 +6880,7 @@
         btn.disabled = false; btn.textContent = 'Create Account';
         if (error) { alert('Signup failed: ' + error.message); return; }
         signupUserData = { name, email, password: pw };
-        document.getElementById('verifyEmailDisplay').textContent = email;
-        document.getElementById('demoCodeDisplay').textContent = '(check your email for a verification link)';
-        document.getElementById('verifySuccessOverlay').style.display = 'none';
-        clearCodeInputs();
-        navigate('verify');
-        startResendTimer(30);
-        setTimeout(() => { document.getElementById('code1').focus(); }, 500);
+        simulateAuthSuccess(name);
     }
 
     function isValidEmail(email) {
