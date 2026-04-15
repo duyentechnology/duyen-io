@@ -44,12 +44,15 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        html { overflow-x: hidden; }
+
         body {
             font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--warm-cream);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* =============================================
@@ -4448,7 +4451,7 @@
             </div>
             <div class="tap-role-row" id="tap-row-giver">
                 <div class="tap-role-label">
-                    <div class="tap-role-icon" style="background:rgba(58,140,72,0.12);">🎁</div>
+                    <div class="tap-role-icon" style="background:rgba(58,140,72,0.12);"></div>
                     <div class="tap-role-name">Given</div>
                     <div class="tap-role-count" id="tap-count-giver"></div>
                 </div>
