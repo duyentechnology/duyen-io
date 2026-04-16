@@ -6739,7 +6739,18 @@
             btn.style.cursor = both ? 'pointer' : 'not-allowed';
         }
     }
-    function qcToggleCheck(n) { qcSetCheck(n, !qcChecked[n]); }
+    function qcToggleCheck(n) {
+        if (n === 2 && !qcChecked[2]) {
+            // Tapping box 2 = save to tapestry
+            saveToTapestry().then(function() {
+                qcSetCheck(2, true);
+            }).catch(function() {
+                // saveToTapestry shows its own error alert
+            });
+        } else {
+            qcSetCheck(n, !qcChecked[n]);
+        }
+    }
     function qcShowShareLink() {
         var box = document.getElementById('qcShareLinkBox');
         if (box) box.style.display = 'block';
@@ -6836,19 +6847,15 @@
         }
         
         var btn = document.querySelector('#qcTapestryBtn button');
-        var origText = btn.innerHTML;
-        btn.innerHTML = '⏳ Saving...';
-        btn.disabled = true;
+        if (btn) { btn.innerHTML = '⏳ Saving...'; btn.disabled = true; }
         
         try {
             var user = (await _supabase.auth.getUser()).data.user;
             if (!user) { alert('Please sign in first'); return; }
             
-            // Build title from available data
             var title = '';
             var bizData = scannedQRData.business_data;
             if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
-            
             if (bizData && bizData.name) {
                 title = bizData.name;
             } else if (scannedQRData.label) {
@@ -6862,42 +6869,39 @@
                 .insert({
                     user_id: user.id,
                     qr_code_id: scannedQRData.id,
-                    role: currentRole || 'receiver',
+                    role: currentRole || 'giver',
                     title: title
                 })
                 .select();
             
             if (error) {
                 if (error.code === '23505') {
-                    // Duplicate — already saved
-                    alert('Already in your tapestry! 🧵');
+                    // Already saved — treat as success for checkbox
+                    console.log('Already in tapestry');
                 } else {
                     console.error('Tapestry save error:', error);
-                    alert('Error saving. Please try again.');
+                    alert('Error saving to tapestry. Please try again.');
+                    throw error;
                 }
-                return;
             }
             
-            // Update button to show saved
-            btn.innerHTML = '✅ Saved to Tapestry!';
-            btn.style.background = '#7A9B7E';
-            btn.style.color = 'white';
-            btn.style.border = 'none';
-            setTimeout(function() {
-                btn.innerHTML = origText;
-                btn.style.background = '';
-                btn.style.color = '';
-                btn.style.border = '';
-                btn.disabled = false;
-            }, 3000);
-            return;
+            if (btn) {
+                btn.innerHTML = '✅ Saved to Tapestry!';
+                btn.style.background = '#7A9B7E';
+                btn.style.color = 'white';
+                btn.style.border = 'none';
+                setTimeout(function() {
+                    btn.innerHTML = '🧵 Save to My Tapestry';
+                    btn.style.background = '';
+                    btn.style.color = '';
+                    btn.style.border = '';
+                    btn.disabled = false;
+                }, 3000);
+            }
             
         } catch(e) {
-            console.error('Tapestry save error:', e);
-            alert('Error saving. Please try again.');
-        } finally {
-            btn.disabled = false;
-            if (btn.innerHTML === '⏳ Saving...') btn.innerHTML = origText;
+            if (btn) { btn.innerHTML = '🧵 Save to My Tapestry'; btn.disabled = false; }
+            throw e;
         }
     }
 
