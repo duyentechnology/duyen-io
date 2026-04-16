@@ -3356,8 +3356,19 @@
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.6rem;">Lock your message with a word or phrase only the receiver would know. Leave blank to keep it open.</p>
                     <input type="text" id="qcGiverSecretPhrase" placeholder="e.g. sunflower, our first road trip, lucky cat…" style="width: 100%; border: 2px solid #c99bc4; border-radius: 10px; padding: 0.65rem 1rem; font-family: inherit; font-size: 0.95rem; box-sizing: border-box; background: white;">
                 </div>
-                <button class="btn btn-primary" onclick="saveGiverData()" style="width: 100%; margin-top: 1.5rem;">🎁 Send Gift Message</button>
+                <button class="btn btn-primary" onclick="saveGiverData()" style="width: 100%; margin-top: 1.5rem;">💾 Save Message</button>
                 <p id="qcGiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Create an account to send your message and get notified</p>
+            </div>
+
+            <!-- Share link — shown after message saved -->
+            <div id="qcGiverShareBox" style="display:none;background:#f9f4f9;border:1.5px solid #C9A0C4;border-radius:14px;padding:18px 16px;margin-top:16px;">
+                <div style="font-size:13px;font-weight:600;color:#8B3A7F;margin-bottom:6px;">✅ Message saved! Share this link with the recipient:</div>
+                <div id="qcShareUrl" style="font-size:13px;color:#3D2E24;font-family:monospace;background:#fff;border:1px solid #E8DDD6;border-radius:8px;padding:10px 12px;word-break:break-all;margin-bottom:10px;line-height:1.4;"></div>
+                <div style="display:flex;gap:8px;">
+                    <button onclick="copyQcLink()" id="qcCopyBtn" style="flex:1;background:#8B3A7F;color:#fff;border:none;border-radius:10px;padding:11px;font-family:sans-serif;font-weight:600;font-size:13px;cursor:pointer;">📋 Copy Link</button>
+                    <button onclick="shareQcLink()" id="qcNativeShareBtn" style="flex:1;background:#fff;color:#8B3A7F;border:1.5px solid #8B3A7F;border-radius:10px;padding:11px;font-family:sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:none;">🔗 Share</button>
+                </div>
+                <div style="font-size:11px;color:#9A8478;margin-top:8px;line-height:1.5;">They can open this on any device — no card scan needed.</div>
             </div>
             
             <!-- Giver view: shows when role=giver and giver data exists (waiting for response) -->
@@ -4063,92 +4074,6 @@
 <!-- =============================================
      SCREEN 9: GIVER FORM
 ============================================= -->
-<div class="screen" id="giverScreen">
-    <div class="container">
-        <div class="logo-header" onclick="navigate('home')">
-            <div class="logo-symbol">緣</div>
-            <div class="logo-text">DUYÊN</div>
-        </div>
-        <div class="card">
-            <h1>Make It Personal</h1>
-            <p class="subtitle">Add your message to make this gift unforgettable</p>
-
-            <div class="form-group">
-                <label>Your Name <span class="required">*</span></label>
-                <input type="text" id="giverName" required>
-            </div>
-            <div class="form-group">
-                <label>Recipient's Name</label>
-                <input type="text" id="recipName">
-            </div>
-            <div class="form-group">
-                <label>Your Message <span class="required">*</span></label>
-                <textarea id="giverMsg" required></textarea>
-                <div class="hint">This will be preserved forever in their tapestry</div>
-            </div>
-            <div class="form-group">
-                <label>Occasion</label>
-                <input type="text" id="occasion" placeholder="Birthday, Anniversary, Just Because...">
-            </div>
-            <div class="form-group">
-                <label>Add Photos or Videos</label>
-                <div class="upload-area" onclick="document.getElementById('giverMedia').click()">
-                    <input type="file" id="giverMedia" multiple accept="image/*,video/*" style="display:none" onchange="handleMedia(this,'giver')">
-                    <div class="upload-icon">📸</div>
-                    <div>Upload Photos or Videos</div>
-                </div>
-                <div class="previews" id="giverPreviews"></div>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="navigate('threadView')">← Back</button>
-                <button class="btn btn-secondary" onclick="showGiverPreview()" style="border:2px solid #8B3A7F;color:#8B3A7F;background:transparent;">👁 Preview</button>
-                <button class="btn btn-primary" onclick="saveGiver()">Send →</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Giver Preview Modal -->
-    <div id="giverPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(30,20,40,0.7);z-index:9999;overflow-y:auto;padding:20px 16px 40px;backdrop-filter:blur(4px);">
-        <div style="max-width:420px;margin:0 auto;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                <div style="font-size:13px;font-weight:600;color:#fff;opacity:.85;">What the recipient will see</div>
-                <button onclick="closeGiverPreview()" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;width:34px;height:34px;border-radius:50%;cursor:pointer;">✕</button>
-            </div>
-
-            <div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4);">
-                <!-- Header -->
-                <div style="background:linear-gradient(135deg,#f9f0f9,#ede0f0);padding:24px 20px 18px;text-align:center;">
-                    <div style="font-size:32px;margin-bottom:8px;">🎁</div>
-                    <div id="gpOccasion" style="display:none;background:#8B3A7F;color:#fff;border-radius:20px;padding:3px 14px;font-size:12px;font-weight:600;display:inline-block;margin-bottom:10px;font-family:sans-serif;"></div>
-                    <div id="gpFrom" style="font-size:18px;font-weight:700;color:#2E2A28;font-family:'Cormorant Garamond',serif;margin-bottom:2px;"></div>
-                    <div id="gpTo" style="font-size:13px;color:#9A8478;font-family:sans-serif;"></div>
-                </div>
-
-                <!-- Message -->
-                <div style="padding:20px;">
-                    <div style="font-size:11px;font-weight:700;color:#8B3A7F;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-family:sans-serif;">Their Message</div>
-                    <div id="gpMsg" style="font-size:15px;color:#3D2E24;line-height:1.7;white-space:pre-wrap;font-family:sans-serif;"></div>
-                </div>
-
-                <!-- Photos -->
-                <div id="gpPhotos" style="display:none;padding:0 20px 16px;display:flex;gap:8px;flex-wrap:wrap;"></div>
-
-                <!-- Watermark -->
-                <div style="border-top:1px solid #F0EAE6;padding:10px;text-align:center;">
-                    <span style="font-size:11px;color:#C9A0C4;font-family:sans-serif;letter-spacing:.5px;">Shared with 緣 DUYÊN</span>
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div style="display:flex;gap:10px;margin-top:14px;">
-                <button onclick="closeGiverPreview()" style="flex:1;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.35);color:#fff;font-family:sans-serif;font-weight:600;font-size:14px;padding:13px;border-radius:12px;cursor:pointer;">✏️ Edit</button>
-                <button onclick="closeGiverPreview(); saveGiver();" style="flex:2;background:#8B3A7F;border:none;color:#fff;font-family:sans-serif;font-weight:700;font-size:14px;padding:13px;border-radius:12px;cursor:pointer;">🎁 Send Gift Message</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- =============================================
      SCREEN 10: THREAD VIEW (content display)
 ============================================= -->
@@ -5111,8 +5036,7 @@
             'bizProfile':  'bizProfileScreen',
             'templateEdit':'templateEditScreen',
             'bizClaim':    'bizClaimScreen',
-            'giver':       'giverScreen',
-            'threadView': 'threadViewScreen',
+                        'threadView': 'threadViewScreen',
             'receiver':   'receiverScreen',
             'response':   'responseScreen',
             'success':    'successScreen',
@@ -5233,7 +5157,7 @@
         }
 
         if (action === 'giver') {
-            if (isAuthenticated) navigate('giver');
+            if (isAuthenticated) navigate('qrContent');
             else { currentRole = 'giver'; navigate('auth'); }
         }
         else if (action === 'respond') {
@@ -6729,7 +6653,19 @@
             }
             
             scannedQRData.giver_data = giverData;
-            populateQRContent();
+
+            // Show share link instead of reloading the form
+            var shareBox = document.getElementById('qcGiverShareBox');
+            var shareUrlEl = document.getElementById('qcShareUrl');
+            var nativeBtn = document.getElementById('qcNativeShareBtn');
+            var shareUrl = 'https://duyen.io/q/' + scannedQRData.id;
+            if (shareUrlEl) shareUrlEl.textContent = shareUrl;
+            if (shareBox) shareBox.style.display = 'block';
+            if (nativeBtn && navigator.share) nativeBtn.style.display = 'block';
+            // Hide the form, keep share box visible
+            var form = document.getElementById('qcGiverForm');
+            if (form) form.style.display = 'none';
+
         } catch(e) {
             console.error('Save giver error:', e);
             alert('Error saving. Please try again.');
@@ -7295,7 +7231,7 @@
                 navigate('bizProfile');
             }
         }
-        else if (currentRole === 'giver') navigate('giver');
+        else if (currentRole === 'giver') navigate('qrContent');
         else if (currentRole === 'receiver') navigate('threadView');
         else navigate('tapestry');
     }
@@ -7632,131 +7568,6 @@
     // ==========================================
     // GIVER FORM
     // ==========================================
-    function showGiverPreview() {
-        var name    = (document.getElementById('giverName') || {}).value || '';
-        var msg     = (document.getElementById('giverMsg')  || {}).value || '';
-        if (!name || !msg) { alert('Please fill in your name and message first'); return; }
-
-        var recip   = (document.getElementById('recipName') || {}).value || '';
-        var occasion= (document.getElementById('occasion')  || {}).value || '';
-
-        var fromEl = document.getElementById('gpFrom');
-        var toEl   = document.getElementById('gpTo');
-        var msgEl  = document.getElementById('gpMsg');
-        var occEl  = document.getElementById('gpOccasion');
-        var photosEl = document.getElementById('gpPhotos');
-
-        if (fromEl) fromEl.textContent = 'From ' + name;
-        if (toEl)   toEl.textContent   = recip ? 'To ' + recip : '';
-        if (msgEl)  msgEl.textContent  = msg;
-
-        if (occEl) {
-            if (occasion) { occEl.textContent = occasion; occEl.style.display = 'inline-block'; }
-            else           { occEl.style.display = 'none'; }
-        }
-
-        // Photo previews
-        if (photosEl) {
-            photosEl.innerHTML = '';
-            var files = mediaFiles.giver || [];
-            if (files.length > 0) {
-                photosEl.style.display = 'flex';
-                files.slice(0,4).forEach(function(f) {
-                    if (f.type && f.type.startsWith('image/')) {
-                        var url = URL.createObjectURL(f);
-                        var img = document.createElement('img');
-                        img.src = url;
-                        img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0;';
-                        photosEl.appendChild(img);
-                    }
-                });
-            } else {
-                photosEl.style.display = 'none';
-            }
-        }
-
-        var modal = document.getElementById('giverPreviewModal');
-        if (modal) { modal.style.display = 'block'; modal.scrollTop = 0; }
-    }
-
-    function closeGiverPreview() {
-        var modal = document.getElementById('giverPreviewModal');
-        if (modal) modal.style.display = 'none';
-    }
-
-    function saveGiver() {
-        const name = document.getElementById('giverName').value;
-        const msg = document.getElementById('giverMsg').value;
-        if (!name || !msg) { alert('Please fill in your name and message'); return; }
-
-        giverData = {
-            giverName: name,
-            recipientName: document.getElementById('recipName').value,
-            message: msg,
-            occasion: document.getElementById('occasion').value,
-            media: mediaFiles.giver
-        };
-
-        console.log('💾 Giver saved:', giverData);
-        giverUserId = currentUser;
-        qrAnalytics.giverMessages++;
-
-        // Build shareable link from scanned QR code id
-        var shareUrl = '';
-        if (scannedQRData && scannedQRData.id) {
-            shareUrl = 'https://duyen.io/q/' + scannedQRData.id;
-        } else if (window.scannedQRCode) {
-            shareUrl = 'https://duyen.io/q/' + window.scannedQRCode;
-        }
-
-        var shareSection = document.getElementById('giverShareSection');
-        var shareUrlEl = document.getElementById('giverShareUrl');
-        var nativeBtn = document.getElementById('nativeShareBtn');
-
-        if (shareUrl && shareSection && shareUrlEl) {
-            shareUrlEl.textContent = shareUrl;
-            shareSection.style.display = 'block';
-            // Show native share button if supported (mobile)
-            if (navigator.share && nativeBtn) nativeBtn.style.display = 'block';
-            document.getElementById('successMsg').textContent = 'Message saved — share the link so they can open it on any device.';
-        } else {
-            document.getElementById('successMsg').textContent = 'Your personal message has been added! The recipient will see it when they scan the card.';
-        }
-
-        navigate('success');
-    }
-
-    function copyGiverLink() {
-        var url = document.getElementById('giverShareUrl').textContent;
-        if (!url) return;
-        navigator.clipboard.writeText(url).then(function() {
-            var btn = document.getElementById('copyGiverBtn');
-            if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy Link'; }, 2000); }
-        }).catch(function() {
-            // Fallback for older browsers
-            var el = document.createElement('textarea');
-            el.value = url;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            var btn = document.getElementById('copyGiverBtn');
-            if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy Link'; }, 2000); }
-        });
-    }
-
-    function shareGiverLink() {
-        var url = document.getElementById('giverShareUrl').textContent;
-        var recipName = giverData.recipientName ? ' for ' + giverData.recipientName : '';
-        if (navigator.share) {
-            navigator.share({
-                title: 'A gift message from DUYÊN',
-                text: 'I left you a personal message' + recipName + ' — open this link to see it 🎁',
-                url: url
-            }).catch(function(){});
-        }
-    }
-
     // ==========================================
     // RESPONSE FORM
     // ==========================================
