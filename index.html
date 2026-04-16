@@ -4093,7 +4093,48 @@
 
             <div class="btn-group">
                 <button class="btn btn-secondary" onclick="navigate('threadView')">← Back</button>
-                <button class="btn btn-primary" onclick="saveGiver()">Add My Message →</button>
+                <button class="btn btn-secondary" onclick="showGiverPreview()" style="border:2px solid #8B3A7F;color:#8B3A7F;background:transparent;">👁 Preview</button>
+                <button class="btn btn-primary" onclick="saveGiver()">Send →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Giver Preview Modal -->
+    <div id="giverPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(30,20,40,0.7);z-index:9999;overflow-y:auto;padding:20px 16px 40px;backdrop-filter:blur(4px);">
+        <div style="max-width:420px;margin:0 auto;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <div style="font-size:13px;font-weight:600;color:#fff;opacity:.85;">What the recipient will see</div>
+                <button onclick="closeGiverPreview()" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;width:34px;height:34px;border-radius:50%;cursor:pointer;">✕</button>
+            </div>
+
+            <div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+                <!-- Header -->
+                <div style="background:linear-gradient(135deg,#f9f0f9,#ede0f0);padding:24px 20px 18px;text-align:center;">
+                    <div style="font-size:32px;margin-bottom:8px;">🎁</div>
+                    <div id="gpOccasion" style="display:none;background:#8B3A7F;color:#fff;border-radius:20px;padding:3px 14px;font-size:12px;font-weight:600;display:inline-block;margin-bottom:10px;font-family:sans-serif;"></div>
+                    <div id="gpFrom" style="font-size:18px;font-weight:700;color:#2E2A28;font-family:'Cormorant Garamond',serif;margin-bottom:2px;"></div>
+                    <div id="gpTo" style="font-size:13px;color:#9A8478;font-family:sans-serif;"></div>
+                </div>
+
+                <!-- Message -->
+                <div style="padding:20px;">
+                    <div style="font-size:11px;font-weight:700;color:#8B3A7F;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-family:sans-serif;">Their Message</div>
+                    <div id="gpMsg" style="font-size:15px;color:#3D2E24;line-height:1.7;white-space:pre-wrap;font-family:sans-serif;"></div>
+                </div>
+
+                <!-- Photos -->
+                <div id="gpPhotos" style="display:none;padding:0 20px 16px;display:flex;gap:8px;flex-wrap:wrap;"></div>
+
+                <!-- Watermark -->
+                <div style="border-top:1px solid #F0EAE6;padding:10px;text-align:center;">
+                    <span style="font-size:11px;color:#C9A0C4;font-family:sans-serif;letter-spacing:.5px;">Shared with 緣 DUYÊN</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:10px;margin-top:14px;">
+                <button onclick="closeGiverPreview()" style="flex:1;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.35);color:#fff;font-family:sans-serif;font-weight:600;font-size:14px;padding:13px;border-radius:12px;cursor:pointer;">✏️ Edit</button>
+                <button onclick="closeGiverPreview(); saveGiver();" style="flex:2;background:#8B3A7F;border:none;color:#fff;font-family:sans-serif;font-weight:700;font-size:14px;padding:13px;border-radius:12px;cursor:pointer;">🎁 Send Gift Message</button>
             </div>
         </div>
     </div>
@@ -7554,6 +7595,58 @@
     // ==========================================
     // GIVER FORM
     // ==========================================
+    function showGiverPreview() {
+        var name    = (document.getElementById('giverName') || {}).value || '';
+        var msg     = (document.getElementById('giverMsg')  || {}).value || '';
+        if (!name || !msg) { alert('Please fill in your name and message first'); return; }
+
+        var recip   = (document.getElementById('recipName') || {}).value || '';
+        var occasion= (document.getElementById('occasion')  || {}).value || '';
+
+        var fromEl = document.getElementById('gpFrom');
+        var toEl   = document.getElementById('gpTo');
+        var msgEl  = document.getElementById('gpMsg');
+        var occEl  = document.getElementById('gpOccasion');
+        var photosEl = document.getElementById('gpPhotos');
+
+        if (fromEl) fromEl.textContent = 'From ' + name;
+        if (toEl)   toEl.textContent   = recip ? 'To ' + recip : '';
+        if (msgEl)  msgEl.textContent  = msg;
+
+        if (occEl) {
+            if (occasion) { occEl.textContent = occasion; occEl.style.display = 'inline-block'; }
+            else           { occEl.style.display = 'none'; }
+        }
+
+        // Photo previews
+        if (photosEl) {
+            photosEl.innerHTML = '';
+            var files = mediaFiles.giver || [];
+            if (files.length > 0) {
+                photosEl.style.display = 'flex';
+                files.slice(0,4).forEach(function(f) {
+                    if (f.type && f.type.startsWith('image/')) {
+                        var url = URL.createObjectURL(f);
+                        var img = document.createElement('img');
+                        img.src = url;
+                        img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0;';
+                        photosEl.appendChild(img);
+                    }
+                });
+            } else {
+                photosEl.style.display = 'none';
+            }
+        }
+
+        var modal = document.getElementById('giverPreviewModal');
+        if (modal) { modal.style.display = 'block'; modal.scrollTop = 0; }
+    }
+
+    function closeGiverPreview() {
+        var modal = document.getElementById('giverPreviewModal');
+        if (modal) modal.style.display = 'none';
+    }
+
     function saveGiver() {
         const name = document.getElementById('giverName').value;
         const msg = document.getElementById('giverMsg').value;
