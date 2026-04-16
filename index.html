@@ -3528,23 +3528,6 @@
                 </div>
                 <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">Personal messages between givers and receivers are private.</p>
             </div>
-            
-            <!-- Save to tapestry section -->
-            <div id="qcTapestryBtn" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
-                <!-- Logged-in: show save button -->
-                <div id="qcSaveBtnWrap" style="text-align:center;">
-                    <button class="btn btn-secondary" onclick="saveToTapestry()" style="width: 100%;">🧵 Save to My Tapestry</button>
-                    <a href="#" onclick="navigate('tapestry'); return false;" style="display:inline-block; margin-top:0.75rem; font-size:0.85rem; color:#8B3A7F; text-decoration:none; font-weight:600;">Go to My Tapestry →</a>
-                </div>
-                <!-- Guest receiver: prompt to sign in to save -->
-                <div id="qcGuestBanner" style="display:none; background:#f3eaf1; border:1.5px solid #c9a0c4; border-radius:14px; padding:1.1rem 1.25rem; text-align:center;">
-                    <div style="font-size:1.5rem; margin-bottom:0.5rem;">🧵</div>
-                    <p style="font-weight:700; color:#3d1a38; font-size:0.95rem; margin-bottom:0.3rem;">Want to keep this memory?</p>
-                    <p id="qcGuestBannerMsg" style="color:#7D6E64; font-size:0.82rem; margin-bottom:1rem; line-height:1.5;">Create a free account to save this to your tapestry and send a thank you.</p>
-                    <button class="btn btn-primary" onclick="window.postAuthDestination='qrContent'; navigate('auth');" style="width:100%; padding:12px; font-size:0.95rem;">✨ Sign In to Save</button>
-                    <p style="font-size:0.75rem; color:#6B5751; margin-top:0.75rem;">It's free — takes 30 seconds</p>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -6343,27 +6326,11 @@
         document.getElementById('qcBizLocked').style.display = 'none';
         document.getElementById('qcSecretLock').style.display = 'none';
         
-        // Show save button or guest banner depending on auth state
-        var guestBanner = document.getElementById('qcGuestBanner');
-        var saveBtnWrap = document.getElementById('qcSaveBtnWrap');
-        var guestMsg = document.getElementById('qcGuestBannerMsg');
-        if (!isAuthenticated && currentRole === 'receiver') {
-            if (guestBanner) guestBanner.style.display = 'block';
-            if (saveBtnWrap) saveBtnWrap.style.display = 'none';
-        } else {
-            if (guestBanner) guestBanner.style.display = 'none';
-            if (saveBtnWrap) saveBtnWrap.style.display = 'block';
-        }
-        
         // Show login hints on buttons for guests
         var giverHint = document.getElementById('qcGiverLoginHint');
         var receiverHint = document.getElementById('qcReceiverLoginHint');
         if (giverHint) giverHint.style.display = isAuthenticated ? 'none' : 'block';
         if (receiverHint) receiverHint.style.display = isAuthenticated ? 'none' : 'block';
-        
-        // Hide tapestry button for business
-        var tapBtn = document.getElementById('qcTapestryBtn');
-        if (tapBtn) tapBtn.style.display = (currentRole === 'business') ? 'none' : 'block';
         
         // Show business info if it exists (for giver/receiver to see)
         if (data.label || data.details || data.photo) {
@@ -6846,7 +6813,7 @@
             return;
         }
         
-        var btn = document.querySelector('#qcTapestryBtn button');
+        var btn = null; // tapestry button removed — called from checkbox now
         if (btn) { btn.innerHTML = '⏳ Saving...'; btn.disabled = true; }
         
         try {
