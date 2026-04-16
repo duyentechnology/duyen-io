@@ -3360,15 +3360,39 @@
                 <p id="qcGiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Create an account to send your message and get notified</p>
             </div>
 
-            <!-- Share link — shown after message saved -->
-            <div id="qcGiverShareBox" style="display:none;background:#f9f4f9;border:1.5px solid #C9A0C4;border-radius:14px;padding:18px 16px;margin-top:16px;">
-                <div style="font-size:13px;font-weight:600;color:#8B3A7F;margin-bottom:6px;">✅ Message saved! Share this link with the recipient:</div>
-                <div id="qcShareUrl" style="font-size:13px;color:#3D2E24;font-family:monospace;background:#fff;border:1px solid #E8DDD6;border-radius:8px;padding:10px 12px;word-break:break-all;margin-bottom:10px;line-height:1.4;"></div>
-                <div style="display:flex;gap:8px;">
-                    <button onclick="copyQcLink()" id="qcCopyBtn" style="flex:1;background:#8B3A7F;color:#fff;border:none;border-radius:10px;padding:11px;font-family:sans-serif;font-weight:600;font-size:13px;cursor:pointer;">📋 Copy Link</button>
-                    <button onclick="shareQcLink()" id="qcNativeShareBtn" style="flex:1;background:#fff;color:#8B3A7F;border:1.5px solid #8B3A7F;border-radius:10px;padding:11px;font-family:sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:none;">🔗 Share</button>
+            <!-- Confirm + share — shown after message saved -->
+            <div id="qcGiverShareBox" style="display:none;margin-top:16px;">
+
+                <!-- Checkbox 1: auto-checked on save -->
+                <div id="qcCheck1" onclick="qcToggleCheck(1)" style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;cursor:pointer;">
+                    <div id="qcDot1" style="width:22px;height:22px;border-radius:50%;border:2px solid #C9A0C4;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
+                    <div>
+                        <div style="font-size:14px;font-weight:600;color:#2E2A28;font-family:sans-serif;">Message saved to QR card</div>
+                        <div style="font-size:12px;color:#9A8478;margin-top:2px;font-family:sans-serif;">Ready for whoever scans it</div>
+                    </div>
                 </div>
-                <div style="font-size:11px;color:#9A8478;margin-top:8px;line-height:1.5;">They can open this on any device — no card scan needed.</div>
+
+                <!-- Checkbox 2: user confirms -->
+                <div id="qcCheck2" onclick="qcToggleCheck(2)" style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:14px;cursor:pointer;">
+                    <div id="qcDot2" style="width:22px;height:22px;border-radius:50%;border:2px solid #C9A0C4;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
+                    <div>
+                        <div style="font-size:14px;font-weight:600;color:#2E2A28;font-family:sans-serif;">Added to your life</div>
+                        <div style="font-size:12px;color:#9A8478;margin-top:2px;font-family:sans-serif;">Saved to your memory collection</div>
+                    </div>
+                </div>
+
+                <!-- Share button — activates when both checked -->
+                <button id="qcShareBtn" onclick="qcShowShareLink()" disabled style="width:100%;background:#E8DDD6;color:#9A8478;border:none;border-radius:12px;padding:14px;font-family:sans-serif;font-weight:600;font-size:14px;cursor:not-allowed;transition:background .2s,color .2s;">Share link with recipient</button>
+
+                <!-- Share link — revealed on button tap -->
+                <div id="qcShareLinkBox" style="display:none;background:#f9f4f9;border:1.5px solid #C9A0C4;border-radius:12px;padding:14px 16px;margin-top:10px;">
+                    <div style="font-size:12px;font-weight:600;color:#8B3A7F;margin-bottom:8px;font-family:sans-serif;">Send this — no card scan needed</div>
+                    <div id="qcShareUrl" style="font-size:12px;color:#3D2E24;font-family:monospace;background:#fff;border:1px solid #E8DDD6;border-radius:8px;padding:8px 10px;word-break:break-all;margin-bottom:8px;line-height:1.4;"></div>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="copyQcLink()" id="qcCopyBtn" style="flex:1;background:#8B3A7F;color:#fff;border:none;border-radius:10px;padding:11px;font-family:sans-serif;font-weight:600;font-size:13px;cursor:pointer;">📋 Copy Link</button>
+                        <button onclick="shareQcLink()" id="qcNativeShareBtn" style="flex:1;background:#fff;color:#8B3A7F;border:1.5px solid #8B3A7F;border-radius:10px;padding:11px;font-family:sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:none;">🔗 Share</button>
+                    </div>
+                </div>
             </div>
             
             <!-- Giver view: shows when role=giver and giver data exists (waiting for response) -->
@@ -6660,7 +6684,7 @@
             
             scannedQRData.giver_data = giverData;
 
-            // Show share link instead of reloading the form
+            // Show confirm + share section
             var shareBox = document.getElementById('qcGiverShareBox');
             var shareUrlEl = document.getElementById('qcShareUrl');
             var nativeBtn = document.getElementById('qcNativeShareBtn');
@@ -6668,7 +6692,9 @@
             if (shareUrlEl) shareUrlEl.textContent = shareUrl;
             if (shareBox) shareBox.style.display = 'block';
             if (nativeBtn && navigator.share) nativeBtn.style.display = 'block';
-            // Hide the form, keep share box visible
+            // Auto-check box 1 (message saved)
+            qcSetCheck(1, true);
+            // Hide the form
             var form = document.getElementById('qcGiverForm');
             if (form) form.style.display = 'none';
 
@@ -6680,6 +6706,56 @@
             saveBtn.disabled = false;
         }
     }
+
+    var qcChecked = {1: false, 2: false};
+    function qcSetCheck(n, on) {
+        qcChecked[n] = on;
+        var dot = document.getElementById('qcDot' + n);
+        var box = document.getElementById('qcCheck' + n);
+        if (dot) {
+            dot.style.background = on ? '#8B3A7F' : 'transparent';
+            dot.style.borderColor = on ? '#8B3A7F' : '#C9A0C4';
+            dot.innerHTML = on ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '';
+        }
+        if (box) {
+            box.style.borderColor = on ? '#8B3A7F' : '#E8DDD6';
+            box.style.background = on ? '#f9f4f9' : '#fff';
+        }
+        var btn = document.getElementById('qcShareBtn');
+        if (btn) {
+            var both = qcChecked[1] && qcChecked[2];
+            btn.disabled = !both;
+            btn.style.background = both ? '#8B3A7F' : '#E8DDD6';
+            btn.style.color = both ? '#fff' : '#9A8478';
+            btn.style.cursor = both ? 'pointer' : 'not-allowed';
+        }
+    }
+    function qcToggleCheck(n) { qcSetCheck(n, !qcChecked[n]); }
+    function qcShowShareLink() {
+        var box = document.getElementById('qcShareLinkBox');
+        if (box) box.style.display = 'block';
+    }
+    function copyQcLink() {
+        var url = document.getElementById('qcShareUrl').textContent;
+        if (!url) return;
+        navigator.clipboard.writeText(url).then(function() {
+            var btn = document.getElementById('qcCopyBtn');
+            if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy Link'; }, 2000); }
+        }).catch(function() {
+            var el = document.createElement('textarea');
+            el.value = url; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            var btn = document.getElementById('qcCopyBtn');
+            if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy Link'; }, 2000); }
+        });
+    }
+    function shareQcLink() {
+        var url = document.getElementById('qcShareUrl').textContent;
+        if (navigator.share) {
+            navigator.share({ title: 'A gift message from DUYÊN', text: 'I left you a personal message — open this link to see it 🎁', url: url }).catch(function(){});
+        }
+    }
+    function copyGiverLink() { copyQcLink(); }
+    function shareGiverLink() { shareQcLink(); }
 
     async function saveReceiverData() {
         if (!scannedQRData) return;
