@@ -5157,8 +5157,14 @@
         }
 
         if (action === 'giver') {
-            if (isAuthenticated) navigate('qrContent');
-            else { currentRole = 'giver'; navigate('auth'); }
+            currentRole = 'giver';
+            if (isAuthenticated) {
+                navigate('qrContent');
+            } else {
+                window.postAuthDestination = 'qrContent';
+                if (scannedQRData && scannedQRData.id) sessionStorage.setItem('pendingQRCode', scannedQRData.id);
+                navigate('auth');
+            }
         }
         else if (action === 'respond') {
             // Receiver wants to respond — always needs their own account
@@ -7214,7 +7220,15 @@
         // Return to QR content after login
         if (window.postAuthDestination === 'qrContent') {
             window.postAuthDestination = null;
-            navigate('qrContent');
+            // Restore QR code if lost during OAuth page reload
+            if (!scannedQRData && sessionStorage.getItem('pendingQRCode')) {
+                window.scannedQRCode = sessionStorage.getItem('pendingQRCode');
+                sessionStorage.removeItem('pendingQRCode');
+                loadScannedQR(window.scannedQRCode).then(function() { navigate('qrContent'); });
+            } else {
+                sessionStorage.removeItem('pendingQRCode');
+                navigate('qrContent');
+            }
             return;
         }
 
