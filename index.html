@@ -3565,7 +3565,7 @@
 
             <!-- Already logged in option -->
             <div id="authLoggedIn" style="display: none; margin-bottom: 1.5rem;">
-                <button class="btn btn-primary btn-full" id="authContinueBtn" onclick="navigate('qrContent')" style="padding: 14px; font-size: 1rem;"></button>
+                <button class="btn btn-primary btn-full" id="authContinueBtn" onclick="currentRole = currentRole || 'giver'; navigate('qrContent');" style="padding: 14px; font-size: 1rem;"></button>
                 <div class="divider" style="margin-top: 1rem;"><span>or switch account</span></div>
             </div>
 
@@ -7296,6 +7296,7 @@
         // Return to QR content after login
         if (window.postAuthDestination === 'qrContent') {
             window.postAuthDestination = null;
+            if (!currentRole) currentRole = 'giver';
             // Restore QR code if lost during OAuth page reload
             if (!scannedQRData && sessionStorage.getItem('pendingQRCode')) {
                 window.scannedQRCode = sessionStorage.getItem('pendingQRCode');
