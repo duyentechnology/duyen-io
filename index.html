@@ -5108,10 +5108,13 @@
                 bizReq.style.display = 'block';
                 subtitle.textContent = 'Sign in to add your business info';
             } else if (currentRole === 'giver') {
-                guestOpt.style.display = 'block';
+                guestOpt.style.display = 'none';
                 bizReq.style.display = 'none';
-                subtitle.textContent = 'Sign in to send your gift message';
-                guestNote.textContent = 'Sign up to save memories and get notified when your gift is opened';
+                if (isAuthenticated && currentUser) {
+                    subtitle.textContent = 'You\'re signed in as ' + currentUser + '. Continue to leave your gift message.';
+                } else {
+                    subtitle.textContent = 'Sign in to send your gift message';
+                }
             } else if (currentRole === 'receiver') {
                 guestOpt.style.display = 'block';
                 bizReq.style.display = 'none';
@@ -5138,9 +5141,10 @@
         currentRole = role;
 
         if (role === 'giver') {
-            // Giver must sign in first — no anonymous gifting
-            if (isAuthenticated) navigate('qrContent');
-            else { window.postAuthDestination = 'qrContent'; navigate('auth'); }
+            // Always show auth screen for givers — logged in users see "Continue as [name]"
+            // New/logged-out users see sign in / sign up options
+            window.postAuthDestination = 'qrContent';
+            navigate('auth');
         } else if (role === 'receiver') {
             // Receiver can view first, prompted to sign in to save at the bottom
             navigate('qrContent');
