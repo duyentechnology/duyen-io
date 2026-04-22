@@ -4409,7 +4409,7 @@
 
         <!-- Welcome stats -->
         <div class="tapestry-welcome">
-            <h1 id="tapestryTitle">Your Tapestry</h1>
+            <h1 id="tapestryTitle">Your Life Tapestry</h1>
             <p class="subtitle" style="margin-bottom: 0.75rem;">people · places · things · events</p>
             <div style="position:relative; max-width:420px; margin:0 auto;">
                 <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;">🔍</span>
@@ -4485,8 +4485,8 @@
 
         <!-- Empty state -->
         <div class="tapestry-empty" id="tapestryEmpty" style="display: none;">
-            <h2>Your Tapestry Awaits</h2>
-            <p>Begin weaving by scanning your first Duyên QR code. Each scan creates a thread in your collection.</p>
+            <h2>Your Life Tapestry Awaits</h2>
+            <p>Begin weaving by scanning your first QR code. Each scan creates a thread in your collection.</p>
             <button class="btn btn-primary" onclick="openScanner()">📸 Scan Your First QR Code</button>
         </div>
 
@@ -5671,7 +5671,7 @@
             // Update tapestry title
             currentUser = name;
             const tapTitle = document.getElementById('tapestryTitle');
-            if (tapTitle) tapTitle.textContent = name.split(' ')[0] + '\'s Tapestry';
+            if (tapTitle) tapTitle.textContent = name.split(' ')[0] + '\'s Life Tapestry';
             alert('Name updated! ✓');
         } catch(e) { alert('Error saving name'); console.error(e); }
     }
@@ -6887,7 +6887,7 @@
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
             const displayName = currentUser.split(' ')[0];
-            tapTitle.textContent = displayName + '\'s Tapestry';
+            tapTitle.textContent = displayName + '\'s Life Tapestry';
             const path = window.location.pathname;
             const hash = window.location.hash;
             if (!path.startsWith('/q/') && !hash.startsWith('#/q/')) {
@@ -6905,7 +6905,7 @@
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
             const displayName = currentUser.split(' ')[0];
-            tapTitle.textContent = displayName + '\'s Tapestry';
+            tapTitle.textContent = displayName + '\'s Life Tapestry';
             
             // Only auto-navigate to tapestry if NOT on a QR scan URL
             const path = window.location.pathname;
@@ -7248,7 +7248,7 @@
         // Update tapestry title if we have a name
         const tapTitle = document.getElementById('tapestryTitle');
         const displayName = user.split(' ')[0];
-        tapTitle.textContent = displayName + '\'s Tapestry';
+        tapTitle.textContent = displayName + '\'s Life Tapestry';
 
         proceedAfterAuth();
     }
