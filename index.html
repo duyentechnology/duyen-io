@@ -5040,7 +5040,8 @@
                     role: entry.role,
                     externalUrl: (entry.role === 'external') ? (entry.note || qr.url || null) : null,
                     media: (qr.media && qr.media.length > 0) ? qr.media : null,
-                    receiverResponse: receiverResponse
+                    receiverResponse: receiverResponse,
+                    businessInfo: bizData || null
                 };
             });
         } catch(e) {
@@ -8532,7 +8533,30 @@
             </div>`;
         };
 
-        card.innerHTML=`${photoHtml}
+        // Build collapsible origin banner
+        var originHtml = '';
+        if (thread.businessInfo) {
+            var biz = thread.businessInfo;
+            var bizDetails = '';
+            if (biz.description) bizDetails += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:0.95rem;color:#5D4E44;line-height:1.7;margin-bottom:10px;">\u201C'+biz.description+'\u201D</div>';
+            if (biz.phone) bizDetails += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="font-size:14px;">P</span><span style="font-size:0.88rem;color:#6B5751;">'+biz.phone+'</span></div>';
+            if (biz.email) bizDetails += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="font-size:14px;">@</span><a href="mailto:'+biz.email+'" style="font-size:0.88rem;color:#8B3A7F;text-decoration:none;">'+biz.email+'</a></div>';
+            if (biz.website) bizDetails += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="font-size:14px;">W</span><a href="'+biz.website+'" target="_blank" style="font-size:0.88rem;color:#8B3A7F;text-decoration:none;">'+biz.website.replace(/^https?:\/\//,'')+'</a></div>';
+            var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
+            if (addr) bizDetails += '<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:14px;">L</span><span style="font-size:0.88rem;color:#6B5751;">'+addr+'</span></div>';
+            originHtml = '<div style="background:#EFE5EF;cursor:pointer;" onclick="var d=this.querySelector(\'.origin-details\');var a=this.querySelector(\'.origin-arrow\');if(d.style.display===\'none\'){d.style.display=\'block\';a.textContent=\'▲\';}else{d.style.display=\'none\';a.textContent=\'▼\';}">' +
+                '<div style="padding:12px 1.4rem;display:flex;align-items:center;justify-content:space-between;">' +
+                    '<div><div style="font-family:\'Outfit\',sans-serif;font-size:0.65rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#8B3A7F;margin-bottom:2px;">The origin</div>' +
+                    '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.15rem;font-weight:500;color:#3D2E24;">'+(biz.name||thread.title)+'</div></div>' +
+                    '<span class="origin-arrow" style="font-size:0.75rem;color:#8B3A7F;">▼</span>' +
+                '</div>' +
+                '<div class="origin-details" style="display:none;padding:0 1.4rem 14px;border-top:1px solid #E0CFE0;">' +
+                    '<div style="padding-top:12px;">'+bizDetails+'</div>' +
+                '</div>' +
+            '</div>';
+        }
+
+        card.innerHTML=`${photoHtml}${originHtml}
         <div class="tap-fc-body">
             ${thread.isFavorite ? '<div class="tap-fc-role">⭐</div>' : ''}
             ${editField('title','Title',thread.title,'title')}
