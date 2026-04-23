@@ -1757,7 +1757,7 @@
             color:#2a1a2e; line-height:1.35; text-align:center;
             display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
         }
-        .tap-col-date  { font-family:'Caveat',cursive; font-size:18px; color:#6B5751; margin-top:3px; text-align:center; }
+        .tap-col-date  { font-family:'Courier New',Courier,monospace; font-size:11px; color:#2E2A28; letter-spacing:0.15em; margin-top:5px; text-align:center; }
         .tap-col-new   {
             position:absolute; top:10px; right:6px;
             font-family:'Caveat',cursive; font-size:0.62rem;
@@ -1865,8 +1865,8 @@
             padding:0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
         .tap-polaroid-date {
-            font-family:'Caveat',cursive; font-size:22px; color:#6B5751;
-            text-align:center; margin-top:2px;
+            font-family:'Courier New',Courier,monospace; font-size:11px; color:#2E2A28;
+            letter-spacing:0.15em; text-align:center; margin-top:4px;
         }
 
         /* ── DETAIL SLIDE ── */
@@ -1982,7 +1982,7 @@
             font-size: 0.75rem; color: #888; margin-top: 4px;
         }
         .tap-detail-title { font-family:'Cormorant Garamond',serif; font-size:1.35rem; font-weight:400; letter-spacing:0.04em; color:#1C1410; }
-        .tap-detail-sub   { font-family:'Caveat',cursive; font-size:0.88rem; color:var(--text-muted); }
+        .tap-detail-sub   { font-family:'Courier New',Courier,monospace; font-size:0.75rem; color:#2E2A28; letter-spacing:0.15em; }
 
         .tap-detail-cards {
             padding:1.2rem 1.2rem 5rem; max-width:600px; margin:0 auto;
@@ -2122,8 +2122,12 @@
             font-size:1.25rem; color:#3a2a2e; line-height:1.7;
         }
         .tap-fc-date  {
-            font-family:'Caveat',cursive; font-size:1.4rem; color:#6B5751;
-            margin-top:1rem; text-align:right; padding-bottom:1rem;
+            font-family:'Courier New',Courier,monospace; font-size:13px; color:#2E2A28;
+            letter-spacing:0.18em; margin-top:1rem; text-align:right; padding-bottom:1rem;
+        }
+        .tap-fc-date-time {
+            font-family:'Courier New',Courier,monospace; font-size:10px; color:#4A4542;
+            letter-spacing:0.22em; text-align:right; margin-top:2px;
         }
         /* Voice note player */
         .tap-fc-voice { padding:0 1.4rem 1.4rem; background:#faf7f4; }
@@ -2304,10 +2308,10 @@
             padding-top: 0.5rem;
             margin-top: 0.5rem;
             border-top: 1px solid var(--border-light);
-            font-family: 'Caveat', cursive;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            opacity: 0.7;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.7rem;
+            color: #2E2A28;
+            letter-spacing: 0.12em;
         }
         .media-chip {
             display: inline-block;
@@ -2889,8 +2893,10 @@
         }
 
         .thread-detail-meta {
-            font-size: 0.85rem;
-            color: var(--text-muted);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.75rem;
+            color: #2E2A28;
+            letter-spacing: 0.12em;
         }
 
         .thread-detail-card {
@@ -8214,6 +8220,27 @@
 
     var tapCurrentMonth = null;
 
+    // Typewriter date formatters
+    function tapDateShort(dateStr) {
+        var d = new Date(dateStr);
+        var mon = d.toLocaleDateString('en-US',{month:'short'});
+        var day = d.getDate();
+        var yr = d.getFullYear();
+        return mon + ' ' + day + ' \u00B7 ' + yr;
+    }
+    function tapDateFull(dateStr) {
+        var d = new Date(dateStr);
+        var mon = d.toLocaleDateString('en-US',{month:'short'});
+        var day = d.getDate();
+        var yr = d.getFullYear();
+        var hr = d.getHours();
+        var min = d.getMinutes().toString().padStart(2,'0');
+        var ampm = hr >= 12 ? 'P.M.' : 'A.M.';
+        hr = hr % 12 || 12;
+        return '<div class="tap-fc-date">' + mon + ' ' + day + ' \u00B7 ' + yr + '</div>' +
+               '<div class="tap-fc-date-time">AT ' + hr + ':' + min + ' ' + ampm + '</div>';
+    }
+
     function tapGetMonthKey(dateStr) {
         const d = new Date(dateStr);
         return d.toLocaleDateString('en-US', { month:'short', year:'numeric' });
@@ -8261,7 +8288,7 @@
             const tilts=[-7,8,-5,6,-8,5,-4,9,-6,7],tapes=[-3,3,2,-2,3,-3,2,-2,3,-1];
             cards.forEach((thread,i)=>{
                 const hasPhoto=thread.photos&&thread.photos.length>0;
-                const date=new Date(thread.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+                const date=tapDateShort(thread.date);
                 const isNew=i===0;
                 const caption=tapPhotoCaption(thread);
                 const div=document.createElement('div');
@@ -8359,7 +8386,7 @@
 
         resultsEl.innerHTML = `<div style="font-size:0.75rem;font-weight:600;color:#8B3A7F;text-transform:uppercase;letter-spacing:0.08em;padding:10px 0 8px;">${filtered.length} result${filtered.length===1?'':'s'}</div>` +
             filtered.map(thread => {
-                const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const date = tapDateShort(thread.date);
                 const color = palettes[thread.role] || '#8B5E3C';
                 const photo = thread.photos && thread.photos.length > 0
                     ? `<img src="${thread.photos[0]}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0;">`
@@ -8369,7 +8396,7 @@
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;font-size:0.9rem;color:#2E2A28;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${thread.title}</div>
                         <div style="font-size:0.75rem;color:${color};font-weight:600;">${roleLabels[thread.role]||thread.role}</div>
-                        <div style="font-size:0.75rem;color:#6B5751;">${date}</div>
+                        <div style="font-family:'Courier New',Courier,monospace;font-size:0.7rem;color:#2E2A28;letter-spacing:0.12em;">${date}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -8397,7 +8424,7 @@
                 scroll.className='tap-polaroid-scroll';
                 items.forEach((thread,i)=>{
                     const tilt=tilts[i%tilts.length][0];
-                    const date=new Date(thread.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+                    const date=tapDateShort(thread.date);
                     const hasPhoto=thread.photos&&thread.photos.length>0;
                     const bgColor=pal[i%pal.length];
                     const card=document.createElement('div');
@@ -8430,7 +8457,6 @@
     }
 
     function buildTapFullCard(thread) {
-        const date=new Date(thread.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
         const roleLabels={giver:'You gave a gift',receiver:'A gift you received',business:'A Business Memory',external:''};
         const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:''};
         const photos=thread.photos||[];
@@ -8567,7 +8593,7 @@
             </div>
             ${thread.externalUrl ? editField('url','Link',thread.externalUrl,'url') : ''}
             ${linkHtml}
-            <div class="tap-fc-date">${date}</div>
+            ${tapDateFull(thread.date)}
             <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}">
                 ${(thread.photos||[]).map(p=>`<img class="tap-fc-photo-thumb" src="${p}" alt="">`).join('')}
             </div>
@@ -8607,7 +8633,8 @@
 
     function buildReceiverResponseHtml(thread) {
         var rr = thread.receiverResponse;
-        var rrDate = new Date(rr.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        var rrDateHtml = '<div style="font-family:\'Courier New\',Courier,monospace;font-size:13px;color:#2E2A28;letter-spacing:0.18em;margin-top:10px;">'+tapDateShort(rr.date)+'</div>' +
+            '<div style="font-family:\'Courier New\',Courier,monospace;font-size:10px;color:#4A4542;letter-spacing:0.22em;margin-top:2px;">AT '+(function(){var d=new Date(rr.date);var h=d.getHours();var m=d.getMinutes().toString().padStart(2,'0');var ap=h>=12?'P.M.':'A.M.';h=h%12||12;return h+':'+m+' '+ap;})()+'</div>';
         var rrPhotos = '';
         if (rr.photos && rr.photos.length > 0) {
             rrPhotos = rr.photos.map(function(url){
@@ -8647,7 +8674,7 @@
                     '<div style="padding:16px;">' +
                         '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.05rem;color:#5D4E44;line-height:1.7;margin-bottom:8px;">'+rr.message+'</div>' +
                         rrVoice +
-                        '<div style="font-size:0.8rem;color:#9A8478;margin-top:10px;">'+rrDate+'</div>' +
+                        rrDateHtml +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -8725,7 +8752,7 @@
     function openTapSingle(id) {
         const thread=userThreads.find(t=>t.id===id); if(!thread)return;
         document.getElementById('tapDetailTitle').textContent=thread.title;
-        document.getElementById('tapDetailSub').textContent=new Date(thread.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+        document.getElementById('tapDetailSub').textContent=tapDateShort(thread.date);
         const container=document.getElementById('tapDetailCards'); container.innerHTML='';
         const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
         wrap.appendChild(buildTapFullCard(thread)); container.appendChild(wrap);
@@ -8836,7 +8863,7 @@
         filtered.forEach((thread, index) => {
             const roleLabels = { giver: '🎁 You Gave', receiver: '💝 You Received', business: '🏢 Business', external: '' };
             const roleLabel  = roleLabels[thread.role] || thread.role;
-            const date = new Date(thread.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const date = tapDateShort(thread.date);
 
             const palettes = {
                 receiver: ['#C8406A','#D4503C','#B83858'],
@@ -8911,7 +8938,7 @@
                             <div class="thread-card-msg">${thread.message}</div>
                             ${mediaChips ? `<div style="margin-top:0.4rem;">${mediaChips}</div>` : ''}
                             <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
-                            <div class="thread-card-footer"><span>📅 ${date}</span></div>
+                            <div class="thread-card-footer"><span>${date}</span></div>
                         </div>
                     </div>`;
             } else {
@@ -8926,7 +8953,7 @@
                             <div class="thread-card-msg">${thread.message || ''}</div>
                             ${mediaChips ? `<div style="margin-top:0.4rem;">${mediaChips}</div>` : ''}
                             <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag" style="background:rgba(255,255,255,0.18);color:white;">${t}</span>`).join('')}</div>
-                            <div class="thread-card-footer"><span>📅 ${date}</span></div>
+                            <div class="thread-card-footer"><span>${date}</span></div>
                         </div>
                     </div>`;
             }
@@ -8951,7 +8978,7 @@
         const catLabels = { thing: 'Thing', person: 'Person', place: 'Place' };
         const icon = thread.icon || catIcons[thread.category] || '🧵';
         const catLabel = catLabels[thread.category] || 'Thread';
-        const date = new Date(thread.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        const date = tapDateShort(thread.date);
         const isExternal = thread.role === 'external';
         if (isExternal) console.log('🔗 External thread URL:', thread.externalUrl, '| full thread:', thread);
 
