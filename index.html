@@ -4996,6 +4996,18 @@
                 if (receiverData && entry.role === 'giver') {
                     // Show receiver's thank you for givers
                     if (receiverData.message) message += (message ? ' → ' : '') + receiverData.message;
+                    if (receiverData.photos && receiverData.photos.length > 0) {
+                        photos = photos.concat(receiverData.photos);
+                    }
+                }
+                if (receiverData && entry.role === 'receiver') {
+                    // Include receiver's own thank you photos on their polaroid
+                    if (receiverData.photos && receiverData.photos.length > 0) {
+                        photos = photos.concat(receiverData.photos);
+                    }
+                    if (receiverData.message) {
+                        message = message ? (message + ' → ' + receiverData.message) : receiverData.message;
+                    }
                 }
                 
                 return {
