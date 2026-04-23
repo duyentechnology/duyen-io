@@ -6313,7 +6313,7 @@
         }
     }
 
-    function populateQRContent() {
+    async function populateQRContent() {
         var data = scannedQRData || {};
         
         // Hide all sections first
@@ -6407,10 +6407,12 @@
             }
         }
         else if (currentRole === 'giver') {
-            // Check lock
+            // Check lock — but skip if current user IS the giver
             var _gd = data.giver_data;
             if (typeof _gd === 'string') { try { _gd = JSON.parse(_gd); } catch(e) { _gd = null; } }
-            if (_gd && _gd.secret_phrase && !window._contentUnlocked) {
+            var isOwnerGiver = false;
+            try { var _u = (await _supabase.auth.getUser()).data.user; if (_u && data.giver_user_id === _u.id) isOwnerGiver = true; } catch(e) {}
+            if (_gd && _gd.secret_phrase && !window._contentUnlocked && !isOwnerGiver) {
                 window._lockedGiverData = _gd;
                 document.getElementById('qcSecretLock').style.display = 'block';
                 return;
