@@ -5972,23 +5972,40 @@
             }
 
             if (hasBusinessData) {
-                // Business already claimed — only show giver/receiver with gift-focused labels
+                // Business already claimed — hide business option
                 bizOption.style.display = 'none';
-                if (subtitle) subtitle.textContent = 'This code has a gift attached. Are you giving or receiving?';
-                if (giverTitle) giverTitle.textContent = "I'm Giving This Gift";
-                if (receiverTitle) receiverTitle.textContent = "I'm Receiving This Gift";
+                if (data.giver_data || data.giver_user_id) {
+                    // Giver already set — hide giver too, only show receiver
+                    document.getElementById('roleGiverCard').style.display = 'none';
+                    if (subtitle) subtitle.textContent = 'A gift is waiting for you.';
+                    if (receiverTitle) receiverTitle.textContent = "I'm Receiving This Gift";
+                } else {
+                    document.getElementById('roleGiverCard').style.display = 'block';
+                    if (subtitle) subtitle.textContent = 'This code has a gift attached. Are you giving or receiving?';
+                    if (giverTitle) giverTitle.textContent = "I'm Giving This Gift";
+                    if (receiverTitle) receiverTitle.textContent = "I'm Receiving This Gift";
+                }
             } else if (!data.giver_data && !data.giver_user_id && !data.receiver_data && !data.receiver_user_id) {
                 // Truly blank — show all 3 options including Business
                 bizOption.style.display = 'block';
+                document.getElementById('roleGiverCard').style.display = 'block';
                 if (subtitle) subtitle.textContent = "Someone wove a connection into this code. What's your role in this story?";
                 if (giverTitle) giverTitle.textContent = "I'm Giving a Gift";
                 if (receiverTitle) receiverTitle.textContent = "I Received This";
             } else {
                 // Giver/receiver already set, business not claimed
                 bizOption.style.display = 'none';
-                if (subtitle) subtitle.textContent = "Someone wove a connection into this code. What's your role in this story?";
-                if (giverTitle) giverTitle.textContent = "I'm Giving a Gift";
-                if (receiverTitle) receiverTitle.textContent = "I Received This";
+                if (data.giver_data || data.giver_user_id) {
+                    // Giver exists — hide giver, only receiver
+                    document.getElementById('roleGiverCard').style.display = 'none';
+                    if (subtitle) subtitle.textContent = 'A gift is waiting for you.';
+                    if (receiverTitle) receiverTitle.textContent = "I Received This";
+                } else {
+                    document.getElementById('roleGiverCard').style.display = 'block';
+                    if (subtitle) subtitle.textContent = "Someone wove a connection into this code. What's your role in this story?";
+                    if (giverTitle) giverTitle.textContent = "I'm Giving a Gift";
+                    if (receiverTitle) receiverTitle.textContent = "I Received This";
+                }
             }
 
             // Now reveal role cards (data is ready, no more flash)
