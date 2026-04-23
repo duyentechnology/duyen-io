@@ -3329,6 +3329,11 @@
             <div id="qcGiverForm" style="display: none;">
                 <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Add Your Gift Message</h2>
                 <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Write a personal message for the person receiving this gift.</p>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem;">Who is this gift for?</label>
+                    <input type="text" id="qcGiverRecipientName" placeholder="e.g. Chelsea, Mom, My love..." style="width: 100%; border: 2px solid var(--border-light); border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">This name shows on your tapestry memory</div>
+                </div>
                 <textarea id="qcGiverMessage" placeholder="Write your heartfelt message here..." style="width: 100%; min-height: 120px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
                 <div style="margin-top: 1rem;">
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Add Photos (up to 5)</label>
@@ -5047,7 +5052,8 @@
                     externalUrl: (entry.role === 'external') ? (entry.note || qr.url || null) : null,
                     media: (qr.media && qr.media.length > 0) ? qr.media : null,
                     receiverResponse: receiverResponse,
-                    businessInfo: bizData || null
+                    businessInfo: bizData || null,
+                    recipientName: (giverData && giverData.recipient_name) || null
                 };
             });
         } catch(e) {
@@ -6664,12 +6670,14 @@
             var voiceUrl = (voiceRecorders.giver && voiceRecorders.giver.blob) ? await uploadBlobToStorage(voiceRecorders.giver.blob, 'giver/' + qrId, 'voice') : null;
             
             var secretPhrase = document.getElementById('qcGiverSecretPhrase').value.trim().toLowerCase();
+            var recipientName = document.getElementById('qcGiverRecipientName').value.trim();
             var giverData = {
                 message: message,
                 photos: photoUrls,
                 video: videoUrl,
                 voice: voiceUrl,
                 user: currentUser,
+                recipient_name: recipientName || null,
                 date: new Date().toISOString(),
                 secret_phrase: secretPhrase || null
             };
@@ -8264,8 +8272,8 @@
         const name = (thread.from && thread.from !== 'You' && thread.from !== 'Someone special') ? thread.from : null;
         const title = thread.title && !thread.title.match(/^QR-\d+$/i) ? thread.title : null;
         if (thread.role === 'giver') {
-            if (title) return 'gave ' + title + ' a gift';
-            return name ? 'a gift for ' + name : 'gave a gift';
+            if (thread.recipientName) return 'a gift to ' + thread.recipientName;
+            return 'a gift you gave';
         }
         if (thread.role === 'receiver') {
             if (title) return title;
