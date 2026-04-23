@@ -8456,16 +8456,16 @@
                 const url = item.url||item;
                 const isVid = item.type==='video';
                 const inner = isVid
-                    ? `<video src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;pointer-events:none;">▶</div>`
-                    : `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+                    ? `<video src="${url}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;pointer-events:none;">▶</div>`
+                    : `<img src="${url}" alt="" style="width:100%;height:auto;display:block;">`;
                 return `<div style="position:relative;cursor:pointer;overflow:hidden;" onclick="openLightbox('${tid2}',${idx})">${inner}</div>`;
             };
 
             // Hero
-            const hero = `<div style="position:relative;width:100%;aspect-ratio:16/9;cursor:pointer;overflow:hidden;" onclick="openLightbox('${tid2}',0)">${
+            const hero = `<div style="position:relative;width:100%;cursor:pointer;overflow:hidden;" onclick="openLightbox('${tid2}',0)">${
                 (media[0].type==='video')
-                    ? `<video src="${media[0].url||media[0]}" style="width:100%;height:100%;object-fit:cover;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">▶</div>`
-                    : `<img src="${media[0].url||media[0]}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">`
+                    ? `<video src="${media[0].url||media[0]}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">▶</div>`
+                    : `<img src="${media[0].url||media[0]}" style="width:100%;height:auto;display:block;" alt="">`
             }</div>`;
 
             // Rest grid (2-col)
@@ -8473,7 +8473,7 @@
                 media.slice(1).map((m,i,arr)=>{
                     const isLast = i === arr.length - 1;
                     const spanFull = isLast && arr.length % 2 !== 0;
-                    return `<div style="aspect-ratio:1;overflow:hidden;${spanFull?'grid-column:span 2;aspect-ratio:2/1;':''}">${gridCell(m, i+1)}</div>`;
+                    return `<div style="overflow:hidden;${spanFull?'grid-column:span 2;':''}">${gridCell(m, i+1)}</div>`;
                 }).join('')
             }</div>` : '';
 
@@ -8587,7 +8587,7 @@
         var rrPhotos = '';
         if (rr.photos && rr.photos.length > 0) {
             rrPhotos = rr.photos.map(function(url){
-                return '<div style="width:100%;aspect-ratio:16/9;overflow:hidden;margin-bottom:2px;"><img src="'+url+'" style="width:100%;height:100%;object-fit:cover;display:block;" alt=""></div>';
+                return '<div style="width:100%;overflow:hidden;margin-bottom:2px;"><img src="'+url+'" style="width:100%;height:auto;display:block;" alt=""></div>';
             }).join('');
         }
         var rrVoice = '';
@@ -8610,8 +8610,8 @@
         }
         var rrVideo = '';
         if (rr.video) {
-            rrVideo = '<div style="width:100%;aspect-ratio:16/9;overflow:hidden;margin-bottom:2px;position:relative;background:#000;cursor:pointer;" onclick="this.querySelector(\'video\').paused?this.querySelector(\'video\').play():this.querySelector(\'video\').pause();this.querySelector(\'.vid-play-icon\').style.display=this.querySelector(\'video\').paused?\'flex\':\'none\';">' +
-                '<video src="'+rr.video+'" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline preload="metadata"></video>' +
+            rrVideo = '<div style="width:100%;overflow:hidden;margin-bottom:2px;position:relative;background:#000;cursor:pointer;" onclick="this.querySelector(\'video\').paused?this.querySelector(\'video\').play():this.querySelector(\'video\').pause();this.querySelector(\'.vid-play-icon\').style.display=this.querySelector(\'video\').paused?\'flex\':\'none\';">' +
+                '<video src="'+rr.video+'" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video>' +
                 '<div class="vid-play-icon" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">▶</div>' +
             '</div>';
         }
@@ -8634,7 +8634,11 @@
         const dur=document.getElementById('dur_'+uid);
         aud.addEventListener('loadedmetadata',()=>{
             const s=Math.round(aud.duration);
-            dur.textContent=Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0');
+            if (!isNaN(s) && isFinite(s)) {
+                dur.textContent=Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0');
+            } else {
+                dur.textContent='0:00';
+            }
         });
         aud.addEventListener('timeupdate',()=>{
             const pct=aud.duration?aud.currentTime/aud.duration:0;
