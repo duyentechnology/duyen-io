@@ -5807,8 +5807,12 @@
         if (addr) details += '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;"><div style="width:38px;height:38px;border-radius:50%;background:#EDE8E4;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">📍</div><span style="font-size:16px;color:#6B5751;">' + addr + '</span></div>';
 
         var html =
+            // Close button
+            '<div style="padding:12px 20px;display:flex;align-items:center;background:#EFE5EF;">' +
+                '<button onclick="document.getElementById(\'bizProfileDisplay\').style.display=\'none\'; navigate(\'tapestry\');" style="background:none;border:none;font-size:15px;font-weight:500;color:#8B3A7F;cursor:pointer;font-family:\'DM Sans\',sans-serif;padding:4px 0;">← Back</button>' +
+            '</div>' +
             // Header — light purple
-            '<div style="background:#EFE5EF;padding:44px 28px 36px;text-align:center;border-bottom:1px solid #E0CFE0;">' +
+            '<div style="background:#EFE5EF;padding:12px 28px 36px;text-align:center;border-bottom:1px solid #E0CFE0;">' +
                 '<span style="font-family:\'Crimson Pro\',serif;font-size:72px;font-weight:400;color:#DA251D;line-height:1;display:block;margin-bottom:4px;">緣</span>' +
                 '<span style="font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:400;letter-spacing:.4em;color:#DA251D;margin-bottom:28px;display:block;">DUYÊN</span>' +
                 '<div style="width:40px;height:1px;background:#D4BDD4;margin:0 auto 28px;"></div>' +
@@ -8112,6 +8116,29 @@
         // Navigate to the QR code if available
         if (qrCodeId) {
             toggleNotifPanel();
+            
+            // Check if user is already giver or receiver on this QR
+            try {
+                var user = (await _supabase.auth.getUser()).data.user;
+                if (user) {
+                    var { data: qrData } = await _supabase.from('qr_codes').select('*').eq('id', qrCodeId).limit(1);
+                    if (qrData && qrData.length > 0) {
+                        var qr = qrData[0];
+                        if (qr.giver_user_id === user.id || qr.receiver_user_id === user.id) {
+                            // User already has a role — skip role selection, go straight to content
+                            scannedQRData = qr;
+                            currentRole = (qr.giver_user_id === user.id) ? 'giver' : 'receiver';
+                            navigate('qrContent');
+                            populateQRContent();
+                            return;
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error('Notification role check error:', e);
+            }
+            
+            // Fallback — normal flow
             window.scannedQRCode = qrCodeId;
             navigate('qrContent');
             loadScannedQR(qrCodeId);
