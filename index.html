@@ -8498,9 +8498,9 @@
         const photos=thread.photos||[];
         // Use full media array with types if available, else fall back to photos array
         let media=(thread.media && thread.media.length > 0) ? thread.media : photos.map(url=>({type:'image',url}));
-        // If thread has a giver/business video that isn't already in media, prepend it as hero
+        // If thread has a giver/business video that isn't already in media, append it at the end
         if (thread.video && !media.some(m => (m.url||m) === thread.video)) {
-            media = [{type:'video', url:thread.video}, ...media];
+            media = [...media, {type:'video', url:thread.video}];
         }
 
         // Helper: render one media item (image or video)
@@ -9485,9 +9485,9 @@
         let media = (thread.media && thread.media.length > 0)
             ? thread.media
             : (thread.photos || []).map(u => ({ type: 'image', url: u }));
-        // Match buildTapFullCard: prepend giver/business video as hero if not already in media
+        // Match buildTapFullCard: append giver/business video at the end if not already in media
         if (thread.video && !media.some(m => (m.url||m) === thread.video)) {
-            media = [{type:'video', url:thread.video}, ...media];
+            media = [...media, {type:'video', url:thread.video}];
         }
         if (!media.length) return;
 
