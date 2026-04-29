@@ -6463,10 +6463,14 @@
         if (giverHint) giverHint.style.display = isAuthenticated ? 'none' : 'block';
         
         // Show business info if it exists (for giver/receiver to see)
-        if (data.label || data.details || data.photo) {
+        // 'QR Code' is the default label and should NOT trigger the business section
+        // or appear as a heading on the receiver view.
+        var labelIsCustom = data.label && data.label.trim() !== '' && data.label !== 'QR Code';
+        var hasRealDetails = data.details && data.details.trim() !== '';
+        if (data.business_data || data.business_user_id || labelIsCustom || hasRealDetails || data.photo) {
             var bizSection = document.getElementById('qcBizSection');
             bizSection.style.display = 'block';
-            document.getElementById('qcBizLabel').textContent = data.label || '';
+            document.getElementById('qcBizLabel').textContent = labelIsCustom ? data.label : '';
             document.getElementById('qcBizDetails').textContent = data.details || '';
             
             // Show business photos from business_data
