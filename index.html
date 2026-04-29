@@ -9397,14 +9397,12 @@
     async function confirmDeleteThread(threadId) {
         const thread = userThreads.find(t => t.id === threadId);
         if (!thread) return;
-        if (!confirm('Delete "' + thread.title + '"? This cannot be undone.')) return;
+        if (!confirm('Remove "' + thread.title + '" from your Tapestry?\n\nThe gift itself and any other saved memories will stay intact for the other people on it.')) return;
 
-        // Delete from tapestry
+        // Soft delete: only remove this user's tapestry entry.
+        // The qr_codes record stays alive so other parties keep their memories
+        // and the physical QR card keeps working.
         await _supabase.from('tapestry').delete().eq('id', threadId);
-        // Delete from qr_codes too (wipe all data)
-        if (thread.qr_code_id) {
-            await _supabase.from('qr_codes').delete().eq('id', thread.qr_code_id);
-        }
 
         // Remove from local cache and close panel
         userThreads = userThreads.filter(t => t.id !== threadId);
