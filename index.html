@@ -5051,6 +5051,7 @@
                     photos: photos,
                     hasVoice: hasVoice,
                     voiceUrl: (bizData && bizData.voice) || (giverData && giverData.voice) || qr.voice || null,
+                    video: (giverData && giverData.video) || (bizData && bizData.video) || null,
                     isFavorite: entry.is_favorite,
                     note: entry.note,
                     role: entry.role,
@@ -8488,19 +8489,26 @@
         buildTapStacks(month);
     }
 
+    // Helper: append #t=0.1 so iOS Safari renders first frame as poster instead of black box
+    function posterUrl(u) { return u ? (u + '#t=0.1') : u; }
+
     function buildTapFullCard(thread) {
         const roleLabels={giver:'You gave a gift',receiver:'A gift you received',business:'A Business Memory',external:''};
         const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:''};
         const photos=thread.photos||[];
         // Use full media array with types if available, else fall back to photos array
-        const media=(thread.media && thread.media.length > 0) ? thread.media : photos.map(url=>({type:'image',url}));
+        let media=(thread.media && thread.media.length > 0) ? thread.media : photos.map(url=>({type:'image',url}));
+        // If thread has a giver/business video that isn't already in media, prepend it as hero
+        if (thread.video && !media.some(m => (m.url||m) === thread.video)) {
+            media = [{type:'video', url:thread.video}, ...media];
+        }
 
         // Helper: render one media item (image or video)
         const mediaEl = (item, extra='') => {
             const url = item.url || item;
             const isVid = item.type === 'video';
             if (isVid) return `<div class="tap-fc-photo" style="position:relative;background:#000;${extra}" onclick="event.stopPropagation();this.querySelector('video').paused?this.querySelector('video').play():this.querySelector('video').pause();this.querySelector('.vid-play-icon').style.display=this.querySelector('video').paused?'flex':'none';">
-                <video src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline preload="metadata"></video>
+                <video src="${posterUrl(url)}" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline preload="metadata"></video>
                 <div class="vid-play-icon" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;pointer-events:none;">▶</div>
             </div>`;
             return `<div class="tap-fc-photo"${extra?` style="${extra}"`:''}><img src="${url}" alt=""></div>`;
@@ -8515,7 +8523,7 @@
                 const url = item.url||item;
                 const isVid = item.type==='video';
                 const inner = isVid
-                    ? `<video src="${url}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;pointer-events:none;">▶</div>`
+                    ? `<video src="${posterUrl(url)}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;pointer-events:none;">▶</div>`
                     : `<img src="${url}" alt="" style="width:100%;height:auto;display:block;">`;
                 return `<div style="position:relative;cursor:pointer;overflow:hidden;" onclick="openLightbox('${tid2}',${idx})">${inner}</div>`;
             };
@@ -8523,7 +8531,7 @@
             // Hero
             const hero = `<div style="position:relative;width:100%;cursor:pointer;overflow:hidden;" onclick="openLightbox('${tid2}',0)">${
                 (media[0].type==='video')
-                    ? `<video src="${media[0].url||media[0]}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">▶</div>`
+                    ? `<video src="${posterUrl(media[0].url||media[0])}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">▶</div>`
                     : `<img src="${media[0].url||media[0]}" style="width:100%;height:auto;display:block;" alt="">`
             }</div>`;
 
@@ -8542,7 +8550,7 @@
                     const url=m.url||m; const isVid=m.type==='video';
                     return `<div class="tap-fc-strip-cell${i===0?' active':''}" id="scell-${tid2}-${i}" onclick="openLightbox('${tid2}',${i})">${
                         isVid
-                            ? `<div style="position:relative;width:100%;height:100%;"><video src="${url}" style="width:100%;height:100%;object-fit:cover;" muted playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.55rem;">▶</div></div>`
+                            ? `<div style="position:relative;width:100%;height:100%;"><video src="${posterUrl(url)}" style="width:100%;height:100%;object-fit:cover;" muted playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.55rem;">▶</div></div>`
                             : `<img src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">`
                     }</div>`;
                 }).join('')
@@ -8694,7 +8702,7 @@
         var rrVideo = '';
         if (rr.video) {
             rrVideo = '<div style="width:100%;overflow:hidden;margin-bottom:2px;position:relative;background:#000;cursor:pointer;" onclick="this.querySelector(\'video\').paused?this.querySelector(\'video\').play():this.querySelector(\'video\').pause();this.querySelector(\'.vid-play-icon\').style.display=this.querySelector(\'video\').paused?\'flex\':\'none\';">' +
-                '<video src="'+rr.video+'" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video>' +
+                '<video src="'+posterUrl(rr.video)+'" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video>' +
                 '<div class="vid-play-icon" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">▶</div>' +
             '</div>';
         }
@@ -9490,7 +9498,7 @@
             const isVid = m.type === 'video';
             return `<div class="tap-lightbox-strip-cell${i===idx?' active':''}" id="lsc-${i}" onclick="lightboxGoTo(${i})">
                 ${isVid
-                    ? `<video src="${url}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video>`
+                    ? `<video src="${posterUrl(url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video>`
                     : `<img src="${url}" alt="">`}
             </div>`;
         }).join('');
