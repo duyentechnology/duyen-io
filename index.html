@@ -6275,14 +6275,44 @@
 
     function handleGiverVideo(input) {
         if (input.files && input.files[0]) {
-            giverVideoFile = input.files[0];
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                giverVideoData = e.target.result;
-                var preview = document.getElementById('qcGiverVideoPreview');
-                preview.innerHTML = '<video src="' + e.target.result + '" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
+            var file = input.files[0];
+            var MAX_VIDEO_SECONDS = 120;
+            var MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+
+            // Size check (fast, no async)
+            if (file.size > MAX_VIDEO_BYTES) {
+                alert('This video is ' + Math.round(file.size / (1024*1024)) + 'MB. Please use a shorter clip or lower quality (max 50MB).');
+                input.value = '';
+                return;
+            }
+
+            // Duration check
+            var videoEl = document.createElement('video');
+            var objUrl = URL.createObjectURL(file);
+            videoEl.preload = 'metadata';
+            videoEl.src = objUrl;
+            videoEl.onloadedmetadata = function() {
+                URL.revokeObjectURL(objUrl);
+                if (videoEl.duration > MAX_VIDEO_SECONDS) {
+                    alert('Videos must be 2 minutes or shorter. This video is ' + Math.round(videoEl.duration) + ' seconds.');
+                    input.value = '';
+                    return;
+                }
+                // Passed both checks — accept and preview
+                giverVideoFile = file;
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    giverVideoData = e.target.result;
+                    var preview = document.getElementById('qcGiverVideoPreview');
+                    preview.innerHTML = '<video src="' + e.target.result + '" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
+                };
+                reader.readAsDataURL(file);
             };
-            reader.readAsDataURL(input.files[0]);
+            videoEl.onerror = function() {
+                URL.revokeObjectURL(objUrl);
+                alert('Could not read video file. Please try another.');
+                input.value = '';
+            };
         }
     }
 
@@ -6306,14 +6336,44 @@
 
     function handleReceiverVideo(input) {
         if (input.files && input.files[0]) {
-            receiverVideoFile = input.files[0];
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                receiverVideoData = e.target.result;
-                var preview = document.getElementById('qcReceiverVideoPreview');
-                preview.innerHTML = '<video src="' + e.target.result + '" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
+            var file = input.files[0];
+            var MAX_VIDEO_SECONDS = 120;
+            var MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+
+            // Size check (fast, no async)
+            if (file.size > MAX_VIDEO_BYTES) {
+                alert('This video is ' + Math.round(file.size / (1024*1024)) + 'MB. Please use a shorter clip or lower quality (max 50MB).');
+                input.value = '';
+                return;
+            }
+
+            // Duration check
+            var videoEl = document.createElement('video');
+            var objUrl = URL.createObjectURL(file);
+            videoEl.preload = 'metadata';
+            videoEl.src = objUrl;
+            videoEl.onloadedmetadata = function() {
+                URL.revokeObjectURL(objUrl);
+                if (videoEl.duration > MAX_VIDEO_SECONDS) {
+                    alert('Videos must be 2 minutes or shorter. This video is ' + Math.round(videoEl.duration) + ' seconds.');
+                    input.value = '';
+                    return;
+                }
+                // Passed both checks — accept and preview
+                receiverVideoFile = file;
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    receiverVideoData = e.target.result;
+                    var preview = document.getElementById('qcReceiverVideoPreview');
+                    preview.innerHTML = '<video src="' + e.target.result + '" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
+                };
+                reader.readAsDataURL(file);
             };
-            reader.readAsDataURL(input.files[0]);
+            videoEl.onerror = function() {
+                URL.revokeObjectURL(objUrl);
+                alert('Could not read video file. Please try another.');
+                input.value = '';
+            };
         }
     }
 
@@ -6726,6 +6786,13 @@
             }
             
             var videoUrl = giverVideoFile ? await uploadToStorage(giverVideoFile, 'giver/' + qrId) : null;
+            // If a video was selected but upload returned null, halt with a visible error
+            if (giverVideoFile && !videoUrl) {
+                alert('Video upload failed. Please check your connection and try again.');
+                var dot1err = document.getElementById('qcDot1');
+                if (dot1err) dot1err.style.opacity = '1';
+                return;
+            }
             var voiceUrl = (voiceRecorders.giver && voiceRecorders.giver.blob) ? await uploadBlobToStorage(voiceRecorders.giver.blob, 'giver/' + qrId, 'voice') : null;
             
             var secretPhrase = document.getElementById('qcGiverSecretPhrase').value.trim().toLowerCase();
@@ -6965,6 +7032,13 @@
                 if (url) photoUrls.push(url);
             }
             var videoUrl = receiverVideoFile ? await uploadToStorage(receiverVideoFile, 'receiver/' + qrId) : null;
+            // If a video was selected but upload returned null, halt with a visible error
+            if (receiverVideoFile && !videoUrl) {
+                alert('Video upload failed. Please check your connection and try again.');
+                saveBtn.textContent = origText;
+                saveBtn.disabled = false;
+                return;
+            }
             var voiceUrl = (voiceRecorders.receiver && voiceRecorders.receiver.blob) ? await uploadBlobToStorage(voiceRecorders.receiver.blob, 'receiver/' + qrId, 'voice') : null;
             
             var receiverData = {
