@@ -9482,9 +9482,13 @@
     function openLightbox(threadId, idx) {
         const thread = userThreads.find(t => t.id === threadId);
         if (!thread) return;
-        const media = (thread.media && thread.media.length > 0)
+        let media = (thread.media && thread.media.length > 0)
             ? thread.media
             : (thread.photos || []).map(u => ({ type: 'image', url: u }));
+        // Match buildTapFullCard: prepend giver/business video as hero if not already in media
+        if (thread.video && !media.some(m => (m.url||m) === thread.video)) {
+            media = [{type:'video', url:thread.video}, ...media];
+        }
         if (!media.length) return;
 
         lightboxMedia = media;
