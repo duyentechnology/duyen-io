@@ -3309,7 +3309,7 @@
                     <audio id="qcBizVoiceAudio2" controls style="flex:1;height:36px;"></audio>
                 </div>
                 <div id="qcBizVideoPlayback" style="display:none; margin-top: 1rem;">
-                    <video id="qcBizVideoEl2" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
+                    <video id="qcBizVideoEl2" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
                 </div>
                 <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
             </div>
@@ -3414,7 +3414,7 @@
                     <audio id="qcGiverSentAudio" controls style="flex:1;height:36px;"></audio>
                 </div>
                 <div id="qcGiverSentVideo" style="display:none; margin-top: 1rem;">
-                    <video id="qcGiverSentVideoEl" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
+                    <video id="qcGiverSentVideoEl" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
                 </div>
                 <div id="qcReceiverResponse" style="display: none;">
                     <h3 style="font-family: 'Crimson Pro', serif; margin-top: 1.5rem;">💝 Response from Receiver</h3>
@@ -3425,7 +3425,7 @@
                         <audio id="qcReceiverRespAudio" controls style="flex:1;height:36px;"></audio>
                     </div>
                     <div id="qcReceiverRespVideo" style="display:none; margin-top: 1rem;">
-                        <video id="qcReceiverRespVideoEl" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
+                        <video id="qcReceiverRespVideoEl" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
                     </div>
                 </div>
                 <div id="qcGiverWaiting" style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
@@ -3443,7 +3443,7 @@
                         <audio id="qcGiverMsgAudio" controls style="flex:1;height:36px;"></audio>
                     </div>
                     <div id="qcGiverMsgVideo" style="display:none; margin-top: 1rem;">
-                        <video id="qcGiverMsgVideoEl" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
+                        <video id="qcGiverMsgVideoEl" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
                     </div>
                     <div id="qcGiverMsgPhotos" class="thread-detail-photos" style="display: none; margin-bottom: 1rem;"></div>
                     <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
@@ -6444,7 +6444,7 @@
             // Show business video if available
             var bizVideoPlay = document.getElementById('qcBizVideoPlayback');
             if (bizDataObj && bizDataObj.video) {
-                document.getElementById('qcBizVideoEl2').src = bizDataObj.video;
+                document.getElementById('qcBizVideoEl2').src = posterUrl(bizDataObj.video);
                 bizVideoPlay.style.display = 'block';
             } else {
                 bizVideoPlay.style.display = 'none';
@@ -6504,7 +6504,7 @@
                 }
                 // Show giver video if saved
                 if (giverData.video) {
-                    document.getElementById('qcGiverSentVideoEl').src = giverData.video;
+                    document.getElementById('qcGiverSentVideoEl').src = posterUrl(giverData.video);
                     document.getElementById('qcGiverSentVideo').style.display = 'block';
                 } else {
                     document.getElementById('qcGiverSentVideo').style.display = 'none';
@@ -6535,7 +6535,7 @@
                     }
                     // Show receiver video if saved
                     if (recData.video) {
-                        document.getElementById('qcReceiverRespVideoEl').src = recData.video;
+                        document.getElementById('qcReceiverRespVideoEl').src = posterUrl(recData.video);
                         document.getElementById('qcReceiverRespVideo').style.display = 'block';
                     } else {
                         document.getElementById('qcReceiverRespVideo').style.display = 'none';
@@ -6575,7 +6575,7 @@
                 }
                 // Show giver video
                 if (gData.video) {
-                    document.getElementById('qcGiverMsgVideoEl').src = gData.video;
+                    document.getElementById('qcGiverMsgVideoEl').src = posterUrl(gData.video);
                     document.getElementById('qcGiverMsgVideo').style.display = 'block';
                 } else {
                     document.getElementById('qcGiverMsgVideo').style.display = 'none';
