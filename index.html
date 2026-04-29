@@ -3449,9 +3449,19 @@
                     <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
                 </div>
                 <div id="qcReceiverPrompt" style="display:none; padding:0.5rem 0 1rem;">
-                    <button onclick="saveAndSendThankYou()" style="width:100%;padding:18px 24px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;background:#f9f4f9;color:#5C2255;border:1.5px solid #C9A0C4;text-align:left;">
-                        <div style="font-size:17px;font-weight:500;line-height:1.2;margin-bottom:3px;">Save and send a thank you</div>
-                        <div style="font-size:14px;color:#9A8478;line-height:1.3;">Keep this memory and let the giver know</div>
+                    <!-- Primary: Save to Tapestry (shown when not yet saved) -->
+                    <button id="qcSaveBtn" onclick="saveToMyTapestry()" style="width:100%;padding:18px 24px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;background:#f9f4f9;color:#5C2255;border:1.5px solid #C9A0C4;text-align:left;">
+                        <div style="font-size:17px;font-weight:500;line-height:1.2;margin-bottom:3px;">💜 Save to my Tapestry</div>
+                        <div id="qcSaveBtnSub" style="font-size:14px;color:#9A8478;line-height:1.3;">Keep this memory forever</div>
+                    </button>
+                    <!-- Saved confirmation badge (shown after save) -->
+                    <div id="qcSavedBadge" style="display:none;padding:14px 20px;border-radius:100px;background:#F0E9F0;color:#5C2255;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;text-align:center;margin-bottom:12px;">
+                        ✓ Saved to your Tapestry
+                    </div>
+                    <!-- Secondary: Send Thank You (shown after save) -->
+                    <button id="qcThankYouBtn" onclick="openThankYouForm()" style="display:none;width:100%;padding:18px 24px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;background:#fff;color:#5C2255;border:1.5px solid #C9A0C4;text-align:left;">
+                        <div style="font-size:17px;font-weight:500;line-height:1.2;margin-bottom:3px;">💌 Send a Thank You</div>
+                        <div style="font-size:14px;color:#9A8478;line-height:1.3;">Let the giver know how much this means</div>
                     </button>
                 </div>
                 <div id="qcReceiverForm" style="display: none;">
@@ -6600,15 +6610,41 @@
                 document.getElementById('qcReceiverPrompt').style.display = 'none';
                 document.getElementById('qcReceiverForm').style.display = 'none';
                 document.getElementById('qcReceiverSent').style.display = 'block';
-            } else if ((window.pendingReceiverSave || sessionStorage.getItem('pendingReceiverSave')) && isAuthenticated) {
-                // Returning from auth — auto-save and show form
-                window.pendingReceiverSave = false;
-                sessionStorage.removeItem('pendingReceiverSave');
-                saveAndSendThankYou();
             } else {
+                // Show prompt container
                 document.getElementById('qcReceiverPrompt').style.display = 'block';
                 document.getElementById('qcReceiverForm').style.display = 'none';
                 document.getElementById('qcReceiverSent').style.display = 'none';
+
+                // Handle pending save from auth flow
+                if ((window.pendingReceiverSave || sessionStorage.getItem('pendingReceiverSave')) && isAuthenticated) {
+                    window.pendingReceiverSave = false;
+                    sessionStorage.removeItem('pendingReceiverSave');
+                    await saveToMyTapestry();
+                } else if (isAuthenticated) {
+                    // Check if already saved to tapestry
+                    try {
+                        var _u = (await _supabase.auth.getUser()).data.user;
+                        if (_u) {
+                            var { data: existing } = await _supabase.from('tapestry')
+                                .select('id')
+                                .eq('user_id', _u.id)
+                                .eq('qr_code_id', scannedQRData.id)
+                                .eq('role', 'receiver')
+                                .limit(1);
+                            updateReceiverPromptState(existing && existing.length > 0);
+                        } else {
+                            updateReceiverPromptState(false);
+                        }
+                    } catch(e) {
+                        updateReceiverPromptState(false);
+                    }
+                } else {
+                    // Logged out — show save button with sign-in prompt
+                    updateReceiverPromptState(false);
+                    var sub = document.getElementById('qcSaveBtnSub');
+                    if (sub) sub.textContent = 'Sign in or create an account to keep this';
+                }
             }
         }
     }
@@ -6843,6 +6879,65 @@
         // Show the thank you form
         document.getElementById('qcReceiverPrompt').style.display = 'none';
         document.getElementById('qcReceiverForm').style.display = 'block';
+    }
+
+    // Save to tapestry only — no form. Used by Option B split flow.
+    async function saveToMyTapestry() {
+        if (!scannedQRData) return;
+        if (!isAuthenticated) {
+            window.pendingReceiverSave = true;
+            sessionStorage.setItem('pendingReceiverSave', 'true');
+            window.postAuthDestination = 'qrContent';
+            if (scannedQRData && scannedQRData.id) sessionStorage.setItem('pendingQRCode', scannedQRData.id);
+            navigate('auth');
+            return;
+        }
+        var btn = document.getElementById('qcSaveBtn');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (user) {
+                var bizData = scannedQRData.business_data;
+                if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
+                var title = (bizData && bizData.name) ? bizData.name : (scannedQRData.label || 'QR Memory');
+                // Avoid duplicate insert
+                var { data: existing } = await _supabase.from('tapestry')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('qr_code_id', scannedQRData.id)
+                    .eq('role', 'receiver')
+                    .limit(1);
+                if (!existing || existing.length === 0) {
+                    await _supabase.from('tapestry').insert({
+                        user_id: user.id,
+                        qr_code_id: scannedQRData.id,
+                        role: 'receiver',
+                        title: title
+                    }).select();
+                }
+            }
+            updateReceiverPromptState(true);
+        } catch(e) {
+            console.error('Save tapestry error:', e);
+            alert('Could not save. Please try again.');
+            if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+        }
+    }
+
+    // Open thank-you form (assumes save already happened)
+    function openThankYouForm() {
+        document.getElementById('qcReceiverPrompt').style.display = 'none';
+        document.getElementById('qcReceiverForm').style.display = 'block';
+    }
+
+    // Toggle between save / saved+thank-you states
+    function updateReceiverPromptState(saved) {
+        var saveBtn = document.getElementById('qcSaveBtn');
+        var savedBadge = document.getElementById('qcSavedBadge');
+        var thankYouBtn = document.getElementById('qcThankYouBtn');
+        if (saveBtn) saveBtn.style.display = saved ? 'none' : 'block';
+        if (savedBadge) savedBadge.style.display = saved ? 'block' : 'none';
+        if (thankYouBtn) thankYouBtn.style.display = saved ? 'block' : 'none';
     }
 
     async function saveReceiverData() {
