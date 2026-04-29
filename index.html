@@ -3392,9 +3392,11 @@
                     <!-- Share link — revealed on button tap -->
                     <div id="qcShareLinkBox" style="display:none;background:#f9f4f9;border:1.5px solid #C9A0C4;border-radius:12px;padding:14px 16px;">
                         <div style="font-size:12px;font-weight:600;color:#8B3A7F;margin-bottom:8px;font-family:sans-serif;">Send this — no card scan needed</div>
+                        <label for="qcShareMessage" style="display:block;font-size:11px;font-weight:600;color:#8B3A7F;margin-bottom:6px;font-family:sans-serif;letter-spacing:0.04em;text-transform:uppercase;">Your message (you can edit)</label>
+                        <textarea id="qcShareMessage" style="width:100%;min-height:72px;border:1px solid #E8DDD6;border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:#3D2E24;line-height:1.5;resize:vertical;background:#fff;box-sizing:border-box;margin-bottom:8px;"></textarea>
                         <div id="qcShareUrl" style="font-size:12px;color:#3D2E24;font-family:monospace;background:#fff;border:1px solid #E8DDD6;border-radius:8px;padding:8px 10px;word-break:break-all;margin-bottom:8px;line-height:1.4;"></div>
                         <div style="display:flex;gap:8px;">
-                            <button onclick="copyQcLink()" id="qcCopyBtn" style="flex:1;background:#8B3A7F;color:#fff;border:none;border-radius:10px;padding:11px;font-family:sans-serif;font-weight:600;font-size:13px;cursor:pointer;">📋 Copy Link</button>
+                            <button onclick="copyQcLink()" id="qcCopyBtn" style="flex:1;background:#8B3A7F;color:#fff;border:none;border-radius:10px;padding:11px;font-family:sans-serif;font-weight:600;font-size:13px;cursor:pointer;">📋 Copy</button>
                             <button onclick="shareQcLink()" id="qcNativeShareBtn" style="flex:1;background:#fff;color:#8B3A7F;border:1.5px solid #8B3A7F;border-radius:10px;padding:11px;font-family:sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:none;">🔗 Share</button>
                         </div>
                     </div>
@@ -6829,6 +6831,15 @@
             var nativeBtn = document.getElementById('qcNativeShareBtn');
             if (shareUrlEl) shareUrlEl.textContent = shareUrl;
             if (nativeBtn && navigator.share) nativeBtn.style.display = 'block';
+
+            // Smart draft message based on whether a secret phrase was set
+            var draft = 'I left a moment for you 💜';
+            if (secretPhrase) {
+                draft += "\nYou'll need a secret phrase to unlock it — I'll share it with you 🔒";
+            }
+            var msgEl = document.getElementById('qcShareMessage');
+            if (msgEl) msgEl.value = draft;
+
             // Auto-check box 1
             qcSetCheck(1, true);
 
@@ -6899,20 +6910,25 @@
     function copyQcLink() {
         var url = document.getElementById('qcShareUrl').textContent;
         if (!url) return;
-        navigator.clipboard.writeText(url).then(function() {
+        var msgEl = document.getElementById('qcShareMessage');
+        var msg = msgEl && msgEl.value.trim() ? msgEl.value.trim() : '';
+        var textToCopy = msg ? (msg + '\n' + url) : url;
+        navigator.clipboard.writeText(textToCopy).then(function() {
             var btn = document.getElementById('qcCopyBtn');
-            if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy Link'; }, 2000); }
+            if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy'; }, 2000); }
         }).catch(function() {
             var el = document.createElement('textarea');
-            el.value = url; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            el.value = textToCopy; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
             var btn = document.getElementById('qcCopyBtn');
-            if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy Link'; }, 2000); }
+            if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy'; }, 2000); }
         });
     }
     function shareQcLink() {
         var url = document.getElementById('qcShareUrl').textContent;
+        var msgEl = document.getElementById('qcShareMessage');
+        var msg = msgEl && msgEl.value.trim() ? msgEl.value.trim() : 'I left a moment for you 💜';
         if (navigator.share) {
-            navigator.share({ title: 'A gift message from DUYÊN', text: 'I left you a personal message — open this link to see it 🎁', url: url }).catch(function(){});
+            navigator.share({ title: 'A gift message from DUYÊN', text: msg, url: url }).catch(function(){});
         }
     }
     function copyGiverLink() { copyQcLink(); }
