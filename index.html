@@ -6279,11 +6279,11 @@
         if (input.files && input.files[0]) {
             var file = input.files[0];
             var MAX_VIDEO_SECONDS = 120;
-            var MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+            var MAX_VIDEO_BYTES = 150 * 1024 * 1024;
 
             // Size check (fast, no async)
             if (file.size > MAX_VIDEO_BYTES) {
-                alert('This video is ' + Math.round(file.size / (1024*1024)) + 'MB. Please use a shorter clip or lower quality (max 50MB).');
+                alert('This video is ' + Math.round(file.size / (1024*1024)) + 'MB. Please use a shorter clip or lower quality (max 150MB).');
                 input.value = '';
                 return;
             }
@@ -6340,11 +6340,11 @@
         if (input.files && input.files[0]) {
             var file = input.files[0];
             var MAX_VIDEO_SECONDS = 120;
-            var MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+            var MAX_VIDEO_BYTES = 150 * 1024 * 1024;
 
             // Size check (fast, no async)
             if (file.size > MAX_VIDEO_BYTES) {
-                alert('This video is ' + Math.round(file.size / (1024*1024)) + 'MB. Please use a shorter clip or lower quality (max 50MB).');
+                alert('This video is ' + Math.round(file.size / (1024*1024)) + 'MB. Please use a shorter clip or lower quality (max 150MB).');
                 input.value = '';
                 return;
             }
