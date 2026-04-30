@@ -3405,33 +3405,74 @@
                 <p id="qcGiverLoginHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Create an account to send your message and get notified</p>
             </div>
             
-            <!-- Giver view: shows when role=giver and giver data exists (waiting for response) -->
-            <div id="qcGiverSent" style="display: none; text-align: center; padding: 1rem 0;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🎁</div>
-                <h2 style="font-family: 'Crimson Pro', serif;">Your Gift Message</h2>
-                <div id="qcGiverSentMessage" style="background: var(--soft-sand); padding: 1.25rem; border-radius: 14px; margin: 1rem 0; text-align: left; white-space: pre-wrap;"></div>
-                <div id="qcGiverSentPhotos" class="thread-detail-photos" style="display:none; margin: 1rem 0;"></div>
-                <div id="qcGiverSentVoice" style="display:none;" class="voice-preview">
-                    <span>🎙️</span>
-                    <audio id="qcGiverSentAudio" controls style="flex:1;height:36px;"></audio>
+            <!-- Giver view: shows when role=giver and giver data exists (waiting for response or showing reply) -->
+            <div id="qcGiverSent" style="display: none; padding: 0.5rem 0;">
+
+                <!-- "For [recipient name]" header -->
+                <div id="qcGiverForHeader" style="text-align: center; padding: 1.5rem 0 1.25rem;">
+                    <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.2rem; color: #6B5751; margin-bottom: 0.4rem; letter-spacing: 0.01em;">For you,</div>
+                    <div id="qcGiverForName" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3rem; color: #2E2A28; line-height: 1; letter-spacing: -0.01em;">you</div>
                 </div>
-                <div id="qcGiverSentVideo" style="display:none; margin-top: 1rem;">
-                    <video id="qcGiverSentVideoEl" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
+
+                <!-- The original message — italic serif, no sandy box -->
+                <div id="qcGiverSentMessage" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;"></div>
+
+                <!-- Photos: stacked one per row -->
+                <div id="qcGiverSentPhotos" style="display:none; margin: 0 0 0.75rem;"></div>
+
+                <!-- Video -->
+                <div id="qcGiverSentVideo" style="display:none; margin-bottom: 0.75rem;">
+                    <video id="qcGiverSentVideoEl" controls playsinline preload="metadata" style="width:100%; border-radius:14px; display:block;"></video>
                 </div>
+
+                <!-- Voice memo: matched style to tapestry voice player -->
+                <div id="qcGiverSentVoice" style="display:none; margin-top: 0.75rem; margin-bottom: 0.5rem;">
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>
+                    <div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">
+                        <div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</div>
+                        <audio id="qcGiverSentAudio" controls style="flex:1;height:36px;"></audio>
+                    </div>
+                </div>
+
+                <!-- Receiver's reply section (mirrored treatment) -->
                 <div id="qcReceiverResponse" style="display: none;">
-                    <h3 style="font-family: 'Crimson Pro', serif; margin-top: 1.5rem;">💝 Response from Receiver</h3>
-                    <div id="qcReceiverMessage" style="background: #FFF5F2; padding: 1.25rem; border-radius: 14px; margin: 1rem 0; text-align: left; white-space: pre-wrap;"></div>
-                    <div id="qcReceiverRespPhotos" class="thread-detail-photos" style="display:none; margin: 1rem 0;"></div>
-                    <div id="qcReceiverRespVoice" style="display:none;" class="voice-preview">
-                        <span>🎙️</span>
-                        <audio id="qcReceiverRespAudio" controls style="flex:1;height:36px;"></audio>
+
+                    <!-- Plum gradient divider with "message back" -->
+                    <div style="padding: 2rem 0 1.5rem; display: flex; align-items: center; gap: 14px;">
+                        <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>
+                        <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 0.85rem; color: #8B3A7F; letter-spacing: 0.04em; white-space: nowrap;">message back</div>
+                        <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>
                     </div>
-                    <div id="qcReceiverRespVideo" style="display:none; margin-top: 1rem;">
-                        <video id="qcReceiverRespVideoEl" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
+
+                    <!-- "From [receiver name]" header -->
+                    <div style="text-align: center; padding: 0.25rem 0 1rem;">
+                        <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.2rem; color: #6B5751; margin-bottom: 0.4rem;">From</div>
+                        <div id="qcReceiverFromName" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3rem; color: #2E2A28; line-height: 1; letter-spacing: -0.01em;">Mike</div>
+                    </div>
+
+                    <!-- Receiver's message — italic serif, same treatment as giver's -->
+                    <div id="qcReceiverMessage" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;"></div>
+
+                    <!-- Receiver's photos -->
+                    <div id="qcReceiverRespPhotos" style="display:none; margin: 0 0 0.75rem;"></div>
+
+                    <!-- Receiver's video -->
+                    <div id="qcReceiverRespVideo" style="display:none; margin-bottom: 0.75rem;">
+                        <video id="qcReceiverRespVideoEl" controls playsinline preload="metadata" style="width:100%; border-radius:14px; display:block;"></video>
+                    </div>
+
+                    <!-- Receiver's voice -->
+                    <div id="qcReceiverRespVoice" style="display:none; margin-top: 0.75rem;">
+                        <div style="font-family: 'Outfit', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>
+                        <div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">
+                            <div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</div>
+                            <audio id="qcReceiverRespAudio" controls style="flex:1;height:36px;"></audio>
+                        </div>
                     </div>
                 </div>
-                <div id="qcGiverWaiting" style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
-                    Waiting for a response from the receiver...
+
+                <div id="qcGiverWaiting" style="margin-top: 2rem; text-align: center; font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; color: var(--text-muted); font-size: 0.95rem;">
+                    Waiting for a reply…
                 </div>
             </div>
             
@@ -6611,15 +6652,20 @@
                 // Giver already added message — show it + receiver response
                 var giverData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
                 document.getElementById('qcGiverSent').style.display = 'block';
+
+                // Populate "For [recipient name]" header
+                var _giverForName = (giverData.recipient_name || giverData.recipientName || '').trim();
+                document.getElementById('qcGiverForName').textContent = _giverForName || 'you';
+
                 document.getElementById('qcGiverSentMessage').textContent = giverData.message || '';
                 
-                // Show giver sent photos
+                // Show giver sent photos — stacked one per row
                 var gSentPhotos = document.getElementById('qcGiverSentPhotos');
                 if (giverData.photos && giverData.photos.length > 0) {
                     gSentPhotos.innerHTML = giverData.photos.map(function(p) {
-                        return '<img src="' + p + '" alt="Gift photo" onclick="window.open(this.src)">';
+                        return '<img src="' + p + '" alt="Gift photo" onclick="window.open(this.src)" style="width:100%; display:block; border-radius:14px; margin-bottom:12px; cursor:pointer;">';
                     }).join('');
-                    gSentPhotos.style.display = 'grid';
+                    gSentPhotos.style.display = 'block';
                 } else {
                     gSentPhotos.style.display = 'none';
                 }
@@ -6642,15 +6688,20 @@
                 if (data.receiver_data) {
                     var recData = typeof data.receiver_data === 'string' ? JSON.parse(data.receiver_data) : data.receiver_data;
                     document.getElementById('qcReceiverResponse').style.display = 'block';
+
+                    // Populate "From [name]" — receiver's name
+                    var _recName = (recData.name || recData.from_name || recData.fromName || recData.user || '').trim();
+                    document.getElementById('qcReceiverFromName').textContent = _recName || 'them';
+
                     document.getElementById('qcReceiverMessage').textContent = recData.message || '';
-                    
-                    // Show receiver response photos
+
+                    // Show receiver response photos — stacked one per row
                     var rRespPhotos = document.getElementById('qcReceiverRespPhotos');
                     if (recData.photos && recData.photos.length > 0) {
                         rRespPhotos.innerHTML = recData.photos.map(function(p) {
-                            return '<img src="' + p + '" alt="Thank you photo" onclick="window.open(this.src)">';
+                            return '<img src="' + p + '" alt="Thank you photo" onclick="window.open(this.src)" style="width:100%; display:block; border-radius:14px; margin-bottom:12px; cursor:pointer;">';
                         }).join('');
-                        rRespPhotos.style.display = 'grid';
+                        rRespPhotos.style.display = 'block';
                     } else {
                         rRespPhotos.style.display = 'none';
                     }
