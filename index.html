@@ -4249,15 +4249,6 @@
 
                 <div id="receiverResponseDisplay"></div>
 
-                <!-- Save to collection -->
-                <div id="saveToCollection" style="display: none;">
-                    <div class="action-section" style="background: #f0faf4; border-color: var(--sage);">
-                        <div class="action-title">💝 Save This Memory</div>
-                        <div class="action-subtitle">Add this thread to your personal tapestry</div>
-                        <button class="btn btn-primary" onclick="saveToCollection()">Save to My Tapestry</button>
-                    </div>
-                </div>
-
                 <!-- Action buttons -->
                 <div class="action-section" id="actionButtons">
                     <div class="action-title">What would you like to do?</div>
@@ -4954,6 +4945,44 @@
     let userThreads = [];
     
     // Load tapestry from database
+    // Central title resolver — single source of truth for thread/tapestry titles.
+    // Skips placeholder labels ("QR Code", "QR Memory") and synthesizes from real data
+    // when no user-provided title exists.
+    function resolveThreadTitle(opts) {
+        opts = opts || {};
+        var saved = (opts.savedTitle || '').trim();
+        var placeholders = ['', 'QR Code', 'QR Memory', 'qr code', 'qr memory'];
+        if (saved && placeholders.indexOf(saved) === -1) return saved;
+
+        // Business profile name — strongest fallback when no saved title
+        var bizData = opts.bizData || {};
+        if (bizData && bizData.name && bizData.name.trim()) return bizData.name.trim();
+
+        // Custom label on QR (only if not a placeholder)
+        var label = (opts.label || '').trim();
+        if (label && placeholders.indexOf(label) === -1) return label;
+
+        // Role-aware synthesis from giver/receiver names
+        var giverData = opts.giverData || {};
+        var role = opts.role || '';
+        if (role === 'receiver' && giverData.fromName) return 'From ' + giverData.fromName.trim();
+        if (role === 'giver' && giverData.recipientName) return 'For ' + giverData.recipientName.trim();
+        if (giverData.fromName) return 'From ' + giverData.fromName.trim();
+
+        // Message preview as last-resort meaning
+        if (giverData.message) {
+            var preview = giverData.message.trim().split(/\s+/).slice(0, 5).join(' ');
+            if (preview.length > 40) preview = preview.slice(0, 40) + '…';
+            else if (giverData.message.trim().split(/\s+/).length > 5) preview += '…';
+            if (preview) return preview;
+        }
+
+        // Final fallback: short date
+        var d = opts.createdAt ? new Date(opts.createdAt) : new Date();
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return 'A memory · ' + months[d.getMonth()] + ' ' + d.getDate();
+    }
+
     async function loadTapestryFromDB() {
         try {
             var user = (await _supabase.auth.getUser()).data.user;
@@ -4981,7 +5010,14 @@
                 if (typeof receiverData === 'string') try { receiverData = JSON.parse(receiverData); } catch(e) { receiverData = null; }
                 
                 // Build display data based on role
-                var title = entry.title || qr.label || 'QR Memory';
+                var title = resolveThreadTitle({
+                    savedTitle: entry.title,
+                    label: qr.label,
+                    bizData: bizData,
+                    giverData: giverData,
+                    role: entry.role,
+                    createdAt: entry.created_at || qr.created_at
+                });
                 var message = '';
                 var from = '';
                 var photos = [];
@@ -6938,36 +6974,6 @@
     function copyGiverLink() { copyQcLink(); }
     function shareGiverLink() { shareQcLink(); }
 
-    async function saveAndSendThankYou() {
-        if (!scannedQRData) return;
-        if (!isAuthenticated) {
-            window.pendingReceiverSave = true;
-            sessionStorage.setItem('pendingReceiverSave', 'true');
-            window.postAuthDestination = 'qrContent';
-            if (scannedQRData && scannedQRData.id) sessionStorage.setItem('pendingQRCode', scannedQRData.id);
-            navigate('auth');
-            return;
-        }
-        // Save to tapestry
-        try {
-            var user = (await _supabase.auth.getUser()).data.user;
-            if (user) {
-                var bizData = scannedQRData.business_data;
-                if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
-                var title = (bizData && bizData.name) ? bizData.name : (scannedQRData.label || 'QR Memory');
-                await _supabase.from('tapestry').insert({
-                    user_id: user.id,
-                    qr_code_id: scannedQRData.id,
-                    role: 'receiver',
-                    title: title
-                }).select();
-            }
-        } catch(e) { console.log('Tapestry save (may already exist):', e); }
-        // Show the thank you form
-        document.getElementById('qcReceiverPrompt').style.display = 'none';
-        document.getElementById('qcReceiverForm').style.display = 'block';
-    }
-
     // Save to tapestry only — no form. Used by Option B split flow.
     async function saveToMyTapestry() {
         if (!scannedQRData) return;
@@ -6986,7 +6992,15 @@
             if (user) {
                 var bizData = scannedQRData.business_data;
                 if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
-                var title = (bizData && bizData.name) ? bizData.name : (scannedQRData.label || 'QR Memory');
+                var giverData = scannedQRData.giver_data;
+                if (typeof giverData === 'string') try { giverData = JSON.parse(giverData); } catch(e) { giverData = null; }
+                var title = resolveThreadTitle({
+                    label: scannedQRData.label,
+                    bizData: bizData,
+                    giverData: giverData,
+                    role: 'receiver',
+                    createdAt: scannedQRData.created_at
+                });
                 // Avoid duplicate insert
                 var { data: existing } = await _supabase.from('tapestry')
                     .select('id')
@@ -7985,35 +7999,6 @@
     }
 
     // ==========================================
-    // SAVE TO COLLECTION
-    // ==========================================
-    function saveToCollection() {
-        if (!isAuthenticated) {
-            currentRole = 'receiver';
-            navigate('auth');
-            return;
-        }
-
-        // Add this thread to user's tapestry
-        const newThread = {
-            id: Date.now(),
-            category: 'thing',
-            title: businessData.productName || businessData.businessName || 'New Thread',
-            from: giverData.giverName || businessData.businessName || 'Unknown',
-            message: giverData.message || businessData.description || 'A meaningful connection.',
-            date: new Date().toISOString().split('T')[0],
-            tags: [giverData.occasion || 'Gift'].filter(Boolean),
-            icon: '🎁'
-        };
-
-        userThreads.unshift(newThread);
-        qrAnalytics.savedToTapestry++;
-        console.log('💝 Saved to tapestry:', newThread);
-
-        document.getElementById('successMsg').textContent = 'Saved to your tapestry! View your growing collection of meaningful threads.';
-        navigate('success');
-    }
-
     // ==========================================
     // THREAD VIEW (Content Display)
     // ==========================================
@@ -8126,10 +8111,6 @@
                 html += '</div>';
                 recvRespEl.innerHTML = html;
             }
-
-            // Save to collection — show to anyone with content to save (except business owner)
-            document.getElementById('saveToCollection').style.display =
-                (giverData.giverName || responseData.message) ? 'block' : 'none';
 
             // ===========================
             // CONTEXT-AWARE ACTION BUTTONS
@@ -9363,11 +9344,11 @@
 
         try {
             if (fieldKey === 'title') {
+                // Per-user rename: ONLY update this user's tapestry row.
+                // Do NOT touch qr_codes.label — that's shared data and would
+                // change the title for every other person who saved this QR.
                 const { error: e1 } = await _supabase.from('tapestry').update({ title: newValue }).eq('id', threadId);
                 if (e1) { alert('Could not save: ' + e1.message); return; }
-                if (thread.qr_code_id) {
-                    await _supabase.from('qr_codes').update({ label: newValue }).eq('id', thread.qr_code_id);
-                }
                 thread.title = newValue;
                 document.getElementById('tapDetailTitle').textContent = newValue;
 
