@@ -4950,42 +4950,56 @@
     let userThreads = [];
     
     // Load tapestry from database
-    // Central title resolver — single source of truth for thread/tapestry titles.
-    // Skips placeholder labels ("QR Code", "QR Memory") and synthesizes from real data
-    // when no user-provided title exists.
+    // Title resolver — matches the product rules:
+    //  - Giver tapestry: "a gift to [name]" if recipient name set, else "a gift you gave"
+    //  - Receiver tapestry: first few words of message, else "a gift you received"
+    //  - Business-only QR (no giver content): business name
+    //  - User-renamed: respect their renamed title (skip placeholders only)
     function resolveThreadTitle(opts) {
         opts = opts || {};
         var saved = (opts.savedTitle || '').trim();
         var placeholders = ['', 'QR Code', 'QR Memory', 'qr code', 'qr memory'];
-        if (saved && placeholders.indexOf(saved) === -1) return saved;
 
-        // Business profile name — strongest fallback when no saved title
         var bizData = opts.bizData || {};
-        if (bizData && bizData.name && bizData.name.trim()) return bizData.name.trim();
-
-        // Custom label on QR (only if not a placeholder)
-        var label = (opts.label || '').trim();
-        if (label && placeholders.indexOf(label) === -1) return label;
-
-        // Role-aware synthesis from giver/receiver names
         var giverData = opts.giverData || {};
         var role = opts.role || '';
-        if (role === 'receiver' && giverData.fromName) return 'From ' + giverData.fromName.trim();
-        if (role === 'giver' && giverData.recipientName) return 'For ' + giverData.recipientName.trim();
-        if (giverData.fromName) return 'From ' + giverData.fromName.trim();
 
-        // Message preview as last-resort meaning
-        if (giverData.message) {
-            var preview = giverData.message.trim().split(/\s+/).slice(0, 5).join(' ');
-            if (preview.length > 40) preview = preview.slice(0, 40) + '…';
-            else if (giverData.message.trim().split(/\s+/).length > 5) preview += '…';
-            if (preview) return preview;
+        var fromName = (giverData.from_name || giverData.fromName || '').trim();
+        var recipientName = (giverData.recipient_name || giverData.recipientName || '').trim();
+        var message = (giverData.message || '').trim();
+        var hasGiverContent = !!(message || fromName || recipientName || giverData.photos || giverData.video || giverData.voice);
+
+        // Honor a user's renamed title (anything they typed that isn't a placeholder)
+        if (saved && placeholders.indexOf(saved) === -1) return saved;
+
+        // GIVER tapestry rules
+        if (role === 'giver') {
+            if (recipientName) return 'a gift to ' + recipientName;
+            return 'a gift you gave';
         }
 
-        // Final fallback: short date
-        var d = opts.createdAt ? new Date(opts.createdAt) : new Date();
-        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        return 'A memory · ' + months[d.getMonth()] + ' ' + d.getDate();
+        // RECEIVER tapestry rules
+        if (role === 'receiver') {
+            if (message) {
+                var words = message.split(/\s+/).slice(0, 6).join(' ');
+                if (message.split(/\s+/).length > 6 || words.length > 50) words = words.slice(0, 50) + '…';
+                return words;
+            }
+            return 'a gift you received';
+        }
+
+        // BUSINESS-only fallback (no giver content present)
+        if (!hasGiverContent && bizData && bizData.name && bizData.name.trim()) {
+            return bizData.name.trim();
+        }
+
+        // Last-resort fallback for any other role/edge case
+        if (bizData && bizData.name) return bizData.name;
+        if (message) {
+            var preview = message.split(/\s+/).slice(0, 6).join(' ');
+            return preview.length > 50 ? preview.slice(0, 50) + '…' : preview;
+        }
+        return 'A memory';
     }
 
     async function loadTapestryFromDB() {
@@ -7186,16 +7200,16 @@
             var user = (await _supabase.auth.getUser()).data.user;
             if (!user) { alert('Please sign in first'); return; }
             
-            var title = '';
             var bizData = scannedQRData.business_data;
             if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
-            if (bizData && bizData.name) {
-                title = bizData.name;
-            } else if (scannedQRData.label) {
-                title = scannedQRData.label;
-            } else {
-                title = 'QR Memory';
-            }
+            var giverData = scannedQRData.giver_data;
+            if (typeof giverData === 'string') try { giverData = JSON.parse(giverData); } catch(e) { giverData = null; }
+            var title = resolveThreadTitle({
+                bizData: bizData,
+                giverData: giverData,
+                role: currentRole || 'giver',
+                createdAt: scannedQRData.created_at
+            });
             
             var { data, error } = await _supabase
                 .from('tapestry')
