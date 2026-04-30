@@ -4931,12 +4931,6 @@
     let qrCodeOwner = null;          // email/id of the business owner who registered this code
     let giverUserId = null;          // who left the giver message
     let receiverUserId = null;       // who left the receiver response
-    let qrAnalytics = {              // anonymous analytics for business owner
-        totalScans: 0,
-        giverMessages: 0,
-        receiverResponses: 0,
-        savedToTapestry: 0
-    };
 
     function isBusinessOwnerViewing() {
         return isAuthenticated && qrCodeOwner && currentUser === qrCodeOwner;
@@ -5357,7 +5351,6 @@
             qrCodeOwner = null;
             giverUserId = null;
             receiverUserId = null;
-            qrAnalytics = { totalScans: 0, giverMessages: 0, receiverResponses: 0, savedToTapestry: 0 };
             navigate('qr');
         } else {
             // External QR code — show landing with choices
@@ -5663,7 +5656,6 @@
         qrCodeOwner = null;
         giverUserId = null;
         receiverUserId = null;
-        qrAnalytics = { totalScans: 0, giverMessages: 0, receiverResponses: 0, savedToTapestry: 0 };
         navigate('qr');
     }
 
@@ -8063,7 +8055,6 @@
 
         console.log('💾 Response saved:', responseData);
         receiverUserId = currentUser;
-        qrAnalytics.receiverResponses++;
         document.getElementById('successMsg').textContent = 'Your response has been sent! The giver will see your message.';
         navigate('success');
     }
@@ -8075,9 +8066,6 @@
     function displayContent() {
         const isBizOwner = isBusinessOwnerViewing();
         console.log('📄 Displaying content. Business owner viewing:', isBizOwner);
-
-        // Increment scan count each time thread is viewed
-        qrAnalytics.totalScans++;
 
         // === BUSINESS INFO (always visible) ===
         document.getElementById('displayBizName').textContent = businessData.businessName || 'Happy Flowers';
@@ -8122,19 +8110,14 @@
         if (isBizOwner) {
             // BUSINESS OWNER: show banner, analytics, privacy shield — hide personal content
             document.getElementById('bizOwnerBanner').style.display = 'block';
-            document.getElementById('analyticsBar').style.display = 'block';
             document.getElementById('privacyShield').style.display = 'block';
             document.getElementById('personalContent').style.display = 'none';
 
-            // Populate analytics
-            document.getElementById('analyticScans').textContent = qrAnalytics.totalScans;
-            document.getElementById('analyticGivers').textContent = qrAnalytics.giverMessages;
-            document.getElementById('analyticResponses').textContent = qrAnalytics.receiverResponses;
-            document.getElementById('analyticSaved').textContent = qrAnalytics.savedToTapestry;
-
-            // Show blurred hints that personal content exists (without revealing it)
-            document.getElementById('blurredGiver').style.display = qrAnalytics.giverMessages > 0 ? 'block' : 'none';
-            document.getElementById('blurredResponse').style.display = qrAnalytics.receiverResponses > 0 ? 'block' : 'none';
+            // Analytics removed (was non-functional; counters never persisted).
+            // If real analytics return one day, repopulate analyticsBar here.
+            document.getElementById('analyticsBar').style.display = 'none';
+            document.getElementById('blurredGiver').style.display = 'none';
+            document.getElementById('blurredResponse').style.display = 'none';
 
         } else {
             // GIVER / RECEIVER / GUEST: show personal content, hide business controls
