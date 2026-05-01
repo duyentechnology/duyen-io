@@ -5070,6 +5070,7 @@
             console.log('🧵 Loaded tapestry:', data.length, 'entries');
             
             userThreads = data.map(function(entry) {
+                try {
                 var qr = entry.qr_codes || {};
                 var bizData = qr.business_data;
                 if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
@@ -5130,12 +5131,25 @@
                 // Capture CLEAN giver-only fields BEFORE any receiver-data concat happens.
                 // The legacy `photos`/`message` fields below get mashed for the old polaroid UI;
                 // these fields preserve unmashed giver/biz content for the new layered card view.
-                var giverPhotos = (giverData && giverData.photos && giverData.photos.length) ? giverData.photos.slice() :
-                                  (bizData && bizData.photos && bizData.photos.length) ? bizData.photos.slice() :
-                                  (bizData && bizData.photo) ? [bizData.photo] : [];
-                var giverMessage = (giverData && giverData.message) || (bizData && bizData.description) || '';
-                var giverVoiceUrl = (giverData && giverData.voice) || (bizData && bizData.voice) || null;
-                var giverVideo = (giverData && giverData.video) || (bizData && bizData.video) || null;
+                // Defensive: any data-shape surprise here must NOT crash the whole tapestry load.
+                var giverPhotos = [];
+                var giverMessage = '';
+                var giverVoiceUrl = null;
+                var giverVideo = null;
+                try {
+                    if (giverData && Array.isArray(giverData.photos) && giverData.photos.length) {
+                        giverPhotos = giverData.photos.slice();
+                    } else if (bizData && Array.isArray(bizData.photos) && bizData.photos.length) {
+                        giverPhotos = bizData.photos.slice();
+                    } else if (bizData && bizData.photo && typeof bizData.photo === 'string') {
+                        giverPhotos = [bizData.photo];
+                    }
+                    giverMessage = (giverData && giverData.message) || (bizData && bizData.description) || '';
+                    giverVoiceUrl = (giverData && giverData.voice) || (bizData && bizData.voice) || null;
+                    giverVideo = (giverData && giverData.video) || (bizData && bizData.video) || null;
+                } catch (e) {
+                    console.warn('Clean giver-field extract failed for entry', entry.id, e);
+                }
 
                 if (receiverData && entry.role === 'giver') {
                     // Keep receiver photos on polaroid but DON'T mix messages
@@ -5193,6 +5207,37 @@
                     giverVoiceUrl: giverVoiceUrl,
                     giverVideo: giverVideo
                 };
+                } catch (perEntryErr) {
+                    console.error('Failed to build thread for entry', entry && entry.id, perEntryErr);
+                    // Minimal stub so the entry still appears — better than vanishing
+                    return {
+                        id: entry.id,
+                        qr_code_id: entry.qr_code_id,
+                        category: entry.role || 'thing',
+                        title: 'A memory',
+                        from: '',
+                        message: '',
+                        date: entry.created_at,
+                        tags: [],
+                        icon: entry.role === 'giver' ? '🎁' : entry.role === 'receiver' ? '💝' : '',
+                        photos: [],
+                        hasVoice: false,
+                        voiceUrl: null,
+                        video: null,
+                        isFavorite: !!entry.is_favorite,
+                        note: entry.note,
+                        role: entry.role,
+                        externalUrl: null,
+                        media: null,
+                        receiverResponse: null,
+                        businessInfo: null,
+                        recipientName: null,
+                        giverPhotos: [],
+                        giverMessage: '',
+                        giverVoiceUrl: null,
+                        giverVideo: null
+                    };
+                }
             });
         } catch(e) {
             console.error('Load tapestry error:', e);
