@@ -8802,66 +8802,30 @@
             return `<div class="tap-fc-photo"${extra?` style="${extra}"`:''}><img src="${url}" alt=""></div>`;
         };
 
-        // Build photo/video section — Option B: hero + 2-col grid + swipeable strip + lightbox
+        // Build photo/video section — stacked one per row, matching live scan view
         let photoHtml='';
         if(media.length > 0){
             const tid2 = thread.id;
-            // Helper: one grid cell
-            const gridCell = (item, idx) => {
-                const url = item.url||item;
-                const isVid = item.type==='video';
-                const inner = isVid
-                    ? `<video src="${posterUrl(url)}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;pointer-events:none;">▶</div>`
-                    : `<img src="${url}" alt="" style="width:100%;height:auto;display:block;">`;
-                return `<div style="position:relative;cursor:pointer;overflow:hidden;" onclick="openLightbox('${tid2}',${idx})">${inner}</div>`;
-            };
-
-            // Hero
-            const hero = `<div style="position:relative;width:100%;cursor:pointer;overflow:hidden;" onclick="openLightbox('${tid2}',0)">${
-                (media[0].type==='video')
-                    ? `<video src="${posterUrl(media[0].url||media[0])}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">▶</div>`
-                    : `<img src="${media[0].url||media[0]}" style="width:100%;height:auto;display:block;" alt="">`
-            }</div>`;
-
-            // Rest grid (2-col)
-            const rest = media.length > 1 ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:2px;">${
-                media.slice(1).map((m,i,arr)=>{
-                    const isLast = i === arr.length - 1;
-                    const spanFull = isLast && arr.length % 2 !== 0;
-                    return `<div style="overflow:hidden;${spanFull?'grid-column:span 2;':''}">${gridCell(m, i+1)}</div>`;
-                }).join('')
-            }</div>` : '';
-
-            // Strip
-            const strip = media.length > 1 ? `<div class="tap-fc-media-strip" id="strip-${tid2}">${
+            photoHtml = `<div style="display:flex;flex-direction:column;gap:8px;margin:0 0 0.75rem;">${
                 media.map((m,i)=>{
-                    const url=m.url||m; const isVid=m.type==='video';
-                    return `<div class="tap-fc-strip-cell${i===0?' active':''}" id="scell-${tid2}-${i}" onclick="openLightbox('${tid2}',${i})">${
-                        isVid
-                            ? `<div style="position:relative;width:100%;height:100%;"><video src="${posterUrl(url)}" style="width:100%;height:100%;object-fit:cover;" muted playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.55rem;">▶</div></div>`
-                            : `<img src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">`
-                    }</div>`;
+                    const url = m.url||m;
+                    const isVid = m.type==='video';
+                    if(isVid){
+                        return `<div style="position:relative;cursor:pointer;border-radius:14px;overflow:hidden;" onclick="openLightbox('${tid2}',${i})"><video src="${posterUrl(url)}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;pointer-events:none;">▶</div></div>`;
+                    }
+                    return `<div style="cursor:pointer;border-radius:14px;overflow:hidden;" onclick="openLightbox('${tid2}',${i})"><img src="${url}" style="width:100%;height:auto;display:block;" alt=""></div>`;
                 }).join('')
-            }</div>` : '';
-
-            photoHtml = `<div class="tap-fc-media-wrap">${hero}${rest}${strip}</div>`;
+            }</div>`;
         }
-        // Voice player HTML
+        // Voice player HTML — matched to live scan view (qcGiverSentVoice)
         let voiceHtml='';
-        if(thread.hasVoice){
-            const uid='vp_'+thread.id;
-            const bars=Array.from({length:28},(_,i)=>{
-                const h=Math.round(20+Math.sin(i*0.7)*10+Math.random()*18);
-                return `<div class="tap-fc-waveform-bar" style="height:${h}px;"></div>`;
-            }).join('');
-            voiceHtml=`<div class="tap-fc-voice">
-                <div class="tap-fc-voice-label">Voice Note</div>
-                <div class="tap-fc-voice-player">
-                    <button class="tap-fc-play-btn" id="btn_${uid}" onclick="toggleVoicePlay('${uid}')">▶</button>
-                    <div class="tap-fc-waveform" id="wave_${uid}">${bars}</div>
-                    <div class="tap-fc-duration" id="dur_${uid}">—</div>
+        if(thread.hasVoice && thread.voiceUrl){
+            voiceHtml=`<div style="margin-top: 0.75rem; margin-bottom: 0.5rem;">
+                <div style="font-family: 'Outfit', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>
+                <div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">
+                    <div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</div>
+                    <audio controls style="flex:1;height:36px;" src="${thread.voiceUrl}"></audio>
                 </div>
-                ${thread.voiceUrl?`<audio class="tap-fc-audio-el" id="aud_${uid}" src="${thread.voiceUrl}" preload="metadata"></audio>`:''}
             </div>`;
         }
         const card=document.createElement('div');
@@ -8912,19 +8876,36 @@
             '</div>';
         }
 
+        const recipientName = thread.recipientName || (thread.role === 'receiver' ? 'you' : 'you');
         card.innerHTML=`${originHtml}
         <div class="tap-fc-body">
             ${thread.isFavorite ? '<div class="tap-fc-role">⭐</div>' : ''}
-            ${editField('title','Title',thread.title,'title')}
-            ${thread.role === 'external' && (!thread.from || thread.from === 'Scanned QR') ? '' : `<div class="tap-fc-from">${fromPrefixes[thread.role]||'from'} <span class="tap-fc-from-name">${thread.from}</span></div>`}
-            <hr class="tap-fc-divider">
-            <div class="tap-fc-quote-block">
-                                ${editField('msg','Message',thread.message||'A meaningful moment','message')}
+
+            <!-- For [recipient] header — matched to live scan view -->
+            <div style="text-align: center; padding: 1.5rem 0 1.25rem;">
+                <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.2rem; color: #6B5751; margin-bottom: 0.4rem; letter-spacing: 0.01em;">For</div>
+                <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3rem; color: #2E2A28; line-height: 1; letter-spacing: -0.01em;">${recipientName}</div>
             </div>
+
+            <!-- Original message — italic serif, no sandy box -->
+            <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.message || ''}</div>
+
+            <!-- Photos / videos / voice -->
             ${photoHtml}
+            ${voiceHtml}
+
+            <!-- "from" attribution (small, below media) -->
+            ${thread.role === 'external' && (!thread.from || thread.from === 'Scanned QR') ? '' : `<div style="text-align: center; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: #6B5751;">${fromPrefixes[thread.role]||'from'} <span style="color:#8B3A7F;font-weight:500;">${thread.from}</span></div>`}
+
             ${thread.externalUrl ? editField('url','Link',thread.externalUrl,'url') : ''}
             ${linkHtml}
-            ${tapDateFull(thread.date)}
+
+            <!-- Date — postmark style at the bottom -->
+            <div style="text-align: center; margin-top: 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: #9A8478; letter-spacing: 0.05em;">
+                ${tapDateFull(thread.date)}
+            </div>
+
+            <!-- Edit-mode-only controls (hidden until pencil toggled) -->
             <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}">
                 ${(thread.photos||[]).map(p=>`<img class="tap-fc-photo-thumb" src="${p}" alt="">`).join('')}
             </div>
@@ -8951,7 +8932,7 @@
             </div>
             <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')">🗑 Delete Memory</button>
         </div>
-        ${voiceHtml}${thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}`;
+        ${thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}`;
         // Wire up audio after insert
         if(thread.hasVoice && thread.voiceUrl){
             setTimeout(()=>initVoicePlayer('vp_'+thread.id),100);
@@ -8964,51 +8945,59 @@
 
     function buildReceiverResponseHtml(thread) {
         var rr = thread.receiverResponse;
-        var rrDateHtml = '<div style="font-family:\'Courier New\',Courier,monospace;font-size:13px;color:#2E2A28;letter-spacing:0.18em;margin-top:10px;">'+tapDateShort(rr.date)+'</div>' +
-            '<div style="font-family:\'Courier New\',Courier,monospace;font-size:10px;color:#4A4542;letter-spacing:0.22em;margin-top:2px;">AT '+(function(){var d=new Date(rr.date);var h=d.getHours();var m=d.getMinutes().toString().padStart(2,'0');var ap=h>=12?'P.M.':'A.M.';h=h%12||12;return h+':'+m+' '+ap;})()+'</div>';
+        var receiverName = rr.user || 'Receiver';
+
+        // Stacked photos (one per row, matching live scan view)
         var rrPhotos = '';
         if (rr.photos && rr.photos.length > 0) {
-            rrPhotos = rr.photos.map(function(url){
-                return '<div style="width:100%;overflow:hidden;margin-bottom:2px;"><img src="'+url+'" style="width:100%;height:auto;display:block;" alt=""></div>';
-            }).join('');
-        }
-        var rrVoice = '';
-        if (rr.voice) {
-            var ruid = 'rvp_'+thread.id;
-            var bars = '';
-            for (var i=0;i<28;i++){
-                var h = Math.round(20+Math.sin(i*0.7)*10+Math.random()*18);
-                bars += '<div class="tap-fc-waveform-bar" style="height:'+h+'px;"></div>';
-            }
-            rrVoice = '<div class="tap-fc-voice" style="padding:12px 16px 0;">' +
-                '<div class="tap-fc-voice-label">Voice Note</div>' +
-                '<div class="tap-fc-voice-player">' +
-                    '<button class="tap-fc-play-btn" id="btn_'+ruid+'" onclick="toggleVoicePlay(\''+ruid+'\')">▶</button>' +
-                    '<div class="tap-fc-waveform" id="wave_'+ruid+'">'+bars+'</div>' +
-                    '<div class="tap-fc-duration" id="dur_'+ruid+'">—</div>' +
-                '</div>' +
-                '<audio class="tap-fc-audio-el" id="aud_'+ruid+'" src="'+rr.voice+'" preload="metadata"></audio>' +
+            rrPhotos = '<div style="display:flex;flex-direction:column;gap:8px;margin:0 0 0.75rem;">' +
+                rr.photos.map(function(url){
+                    return '<div style="border-radius:14px;overflow:hidden;"><img src="'+url+'" style="width:100%;height:auto;display:block;" alt=""></div>';
+                }).join('') +
             '</div>';
         }
+
+        // Video
         var rrVideo = '';
         if (rr.video) {
-            rrVideo = '<div style="width:100%;overflow:hidden;margin-bottom:2px;position:relative;background:#000;cursor:pointer;" onclick="this.querySelector(\'video\').paused?this.querySelector(\'video\').play():this.querySelector(\'video\').pause();this.querySelector(\'.vid-play-icon\').style.display=this.querySelector(\'video\').paused?\'flex\':\'none\';">' +
-                '<video src="'+posterUrl(rr.video)+'" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video>' +
-                '<div class="vid-play-icon" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;">▶</div>' +
+            rrVideo = '<div style="border-radius:14px;overflow:hidden;margin-bottom:0.75rem;">' +
+                '<video src="'+posterUrl(rr.video)+'" controls playsinline preload="metadata" style="width:100%;height:auto;display:block;"></video>' +
             '</div>';
         }
-        return '<hr style="border:none;border-top:1px solid #e8e2dd;margin:0.5rem 1.4rem;">' +
-            '<div style="padding:0.8rem 1.4rem 1.4rem;">' +
-                '<div style="font-family:\'Outfit\',sans-serif;font-size:0.7rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#C8406A;margin-bottom:0.8rem;">Thank you received</div>' +
-                '<div style="background:#fff;border:1px solid #e8e2dd;border-radius:14px;overflow:hidden;">' +
-                    rrPhotos + rrVideo +
-                    '<div style="padding:16px;">' +
-                        '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.05rem;color:#5D4E44;line-height:1.7;margin-bottom:8px;">'+rr.message+'</div>' +
-                        rrVoice +
-                        rrDateHtml +
-                    '</div>' +
+
+        // Voice — simple audio player matching qcReceiverRespVoice
+        var rrVoice = '';
+        if (rr.voice) {
+            rrVoice = '<div style="margin-top: 0.75rem; margin-bottom: 0.5rem;">' +
+                '<div style="font-family: \'Outfit\', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>' +
+                '<div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">' +
+                    '<div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</div>' +
+                    '<audio controls style="flex:1;height:36px;" src="'+rr.voice+'"></audio>' +
                 '</div>' +
             '</div>';
+        }
+
+        return '<div style="padding: 0 1.4rem 1.5rem;">' +
+            // Plum gradient divider with "message back" — matched to qcReceiverResponse
+            '<div style="padding: 2rem 0 1.5rem; display: flex; align-items: center; gap: 14px;">' +
+                '<div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>' +
+                '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-size: 0.85rem; color: #8B3A7F; letter-spacing: 0.04em; white-space: nowrap;">message back</div>' +
+                '<div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>' +
+            '</div>' +
+            // "From [name]" header (mirrors For/name treatment)
+            '<div style="text-align: center; padding: 0.25rem 0 1rem;">' +
+                '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-weight: 400; font-size: 1.2rem; color: #6B5751; margin-bottom: 0.4rem;">From</div>' +
+                '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-weight: 500; font-size: 3rem; color: #2E2A28; line-height: 1; letter-spacing: -0.01em;">'+receiverName+'</div>' +
+            '</div>' +
+            // Italic Crimson Pro message — same treatment as giver's
+            '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-size: 1.05rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">'+rr.message+'</div>' +
+            // Media
+            rrPhotos + rrVideo + rrVoice +
+            // Date — postmark style at the bottom
+            '<div style="text-align: center; margin-top: 1rem; font-family: \'DM Sans\', sans-serif; font-size: 0.78rem; color: #9A8478; letter-spacing: 0.05em;">' +
+                tapDateFull(rr.date) +
+            '</div>' +
+        '</div>';
     }
 
     function initVoicePlayer(uid){
