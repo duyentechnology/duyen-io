@@ -3304,9 +3304,14 @@
                 <h1 id="qcBizLabel" style="font-family: 'Crimson Pro', serif; font-size: 1.75rem;"></h1>
                 <p id="qcBizDetails" class="subtitle" style="white-space: pre-wrap;"></p>
                 <div id="qcBizMedia" class="thread-detail-photos" style="display: none; margin-top: 1rem;"></div>
-                <div id="qcBizVoicePlayback" style="display:none; margin-top: 1rem;" class="voice-preview">
-                    <span>🎙️</span>
-                    <audio id="qcBizVoiceAudio2" controls style="flex:1;height:36px;"></audio>
+                <div id="qcBizVoicePlayback" class="tap-fc-voice" style="display:none; background:transparent; padding:0; margin-top: 1rem;">
+                    <div class="tap-fc-voice-label">Voice Note</div>
+                    <div class="tap-fc-voice-player">
+                        <button class="tap-fc-play-btn" id="btn_qcbiz" type="button" onclick="toggleVoicePlay('qcbiz')">▶</button>
+                        <div class="tap-fc-waveform" id="wave_qcbiz"></div>
+                        <div class="tap-fc-duration" id="dur_qcbiz">—</div>
+                    </div>
+                    <audio class="tap-fc-audio-el" id="aud_qcbiz" preload="metadata"></audio>
                 </div>
                 <div id="qcBizVideoPlayback" style="display:none; margin-top: 1rem;">
                     <video id="qcBizVideoEl2" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
@@ -3426,12 +3431,14 @@
                 </div>
 
                 <!-- Voice memo: matched style to tapestry voice player -->
-                <div id="qcGiverSentVoice" style="display:none; margin-top: 0.75rem; margin-bottom: 0.5rem;">
-                    <div style="font-family: 'Outfit', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>
-                    <div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">
-                        <div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</div>
-                        <audio id="qcGiverSentAudio" controls style="flex:1;height:36px;"></audio>
+                <div id="qcGiverSentVoice" class="tap-fc-voice" style="display:none; background:transparent; padding:0; margin-top: 0.75rem; margin-bottom: 0.5rem;">
+                    <div class="tap-fc-voice-label">Voice Note</div>
+                    <div class="tap-fc-voice-player">
+                        <button class="tap-fc-play-btn" id="btn_qcgs" type="button" onclick="toggleVoicePlay('qcgs')">▶</button>
+                        <div class="tap-fc-waveform" id="wave_qcgs"></div>
+                        <div class="tap-fc-duration" id="dur_qcgs">—</div>
                     </div>
+                    <audio class="tap-fc-audio-el" id="aud_qcgs" preload="metadata"></audio>
                 </div>
 
                 <!-- Receiver's reply section (mirrored treatment) -->
@@ -3462,12 +3469,14 @@
                     </div>
 
                     <!-- Receiver's voice -->
-                    <div id="qcReceiverRespVoice" style="display:none; margin-top: 0.75rem;">
-                        <div style="font-family: 'Outfit', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>
-                        <div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">
-                            <div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</div>
-                            <audio id="qcReceiverRespAudio" controls style="flex:1;height:36px;"></audio>
+                    <div id="qcReceiverRespVoice" class="tap-fc-voice" style="display:none; background:transparent; padding:0; margin-top: 0.75rem;">
+                        <div class="tap-fc-voice-label">Voice Note</div>
+                        <div class="tap-fc-voice-player">
+                            <button class="tap-fc-play-btn" id="btn_qcrr" type="button" onclick="toggleVoicePlay('qcrr')">▶</button>
+                            <div class="tap-fc-waveform" id="wave_qcrr"></div>
+                            <div class="tap-fc-duration" id="dur_qcrr">—</div>
                         </div>
+                        <audio class="tap-fc-audio-el" id="aud_qcrr" preload="metadata"></audio>
                     </div>
                 </div>
 
@@ -6620,8 +6629,8 @@
             // Show business voice memo if available
             var bizVoicePlay = document.getElementById('qcBizVoicePlayback');
             if (bizDataObj && bizDataObj.voice) {
-                document.getElementById('qcBizVoiceAudio2').src = bizDataObj.voice;
-                bizVoicePlay.style.display = 'flex';
+                setupLiveVoicePlayer('qcbiz', bizDataObj.voice);
+                bizVoicePlay.style.display = 'block';
             } else {
                 bizVoicePlay.style.display = 'none';
             }
@@ -6687,8 +6696,8 @@
                 
                 // Show giver voice memo if saved
                 if (giverData.voice) {
-                    document.getElementById('qcGiverSentAudio').src = giverData.voice;
-                    document.getElementById('qcGiverSentVoice').style.display = 'flex';
+                    setupLiveVoicePlayer('qcgs', giverData.voice);
+                    document.getElementById('qcGiverSentVoice').style.display = 'block';
                 } else {
                     document.getElementById('qcGiverSentVoice').style.display = 'none';
                 }
@@ -6723,8 +6732,8 @@
                     
                     // Show receiver voice if saved
                     if (recData.voice) {
-                        document.getElementById('qcReceiverRespAudio').src = recData.voice;
-                        document.getElementById('qcReceiverRespVoice').style.display = 'flex';
+                        setupLiveVoicePlayer('qcrr', recData.voice);
+                        document.getElementById('qcReceiverRespVoice').style.display = 'block';
                     } else {
                         document.getElementById('qcReceiverRespVoice').style.display = 'none';
                     }
@@ -7788,7 +7797,7 @@
             }
         }
         else if (currentRole === 'giver') navigate('qrContent');
-        else if (currentRole === 'receiver') navigate('threadView');
+        else if (currentRole === 'receiver') navigate('qrContent');
         else navigate('tapestry');
     }
 
@@ -8842,16 +8851,23 @@
                 }).join('')
             }</div>`;
         }
-        // Voice player HTML — matched to live scan view (qcGiverSentVoice)
+        // Voice player HTML — canonical tap-fc-voice green-wave style
         let voiceHtml='';
         const giverVoiceSrc = thread.giverVoiceUrl || thread.voiceUrl;
         if(thread.hasVoice && giverVoiceSrc){
-            voiceHtml=`<div style="margin-top: 0.75rem; margin-bottom: 0.5rem;">
-                <div style="font-family: 'Outfit', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>
-                <div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">
-                    <div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</div>
-                    <audio controls style="flex:1;height:36px;" src="${giverVoiceSrc}"></audio>
+            const uid='vp_'+thread.id;
+            const bars=Array.from({length:28},(_,i)=>{
+                const h=Math.round(20+Math.sin(i*0.7)*10+Math.random()*18);
+                return `<div class="tap-fc-waveform-bar" style="height:${h}px;"></div>`;
+            }).join('');
+            voiceHtml=`<div class="tap-fc-voice" style="background:transparent;padding:0;">
+                <div class="tap-fc-voice-label">Voice Note</div>
+                <div class="tap-fc-voice-player">
+                    <button class="tap-fc-play-btn" id="btn_${uid}" onclick="toggleVoicePlay('${uid}')">▶</button>
+                    <div class="tap-fc-waveform" id="wave_${uid}">${bars}</div>
+                    <div class="tap-fc-duration" id="dur_${uid}">—</div>
                 </div>
+                <audio class="tap-fc-audio-el" id="aud_${uid}" src="${giverVoiceSrc}" preload="metadata"></audio>
             </div>`;
         }
         const card=document.createElement('div');
@@ -8991,15 +9007,23 @@
             '</div>';
         }
 
-        // Voice — simple audio player matching qcReceiverRespVoice
+        // Voice — canonical tap-fc-voice green-wave style
         var rrVoice = '';
         if (rr.voice) {
-            rrVoice = '<div style="margin-top: 0.75rem; margin-bottom: 0.5rem;">' +
-                '<div style="font-family: \'Outfit\', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>' +
-                '<div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">' +
-                    '<div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</div>' +
-                    '<audio controls style="flex:1;height:36px;" src="'+rr.voice+'"></audio>' +
+            var ruid = 'rvp_'+thread.id;
+            var bars = '';
+            for (var i = 0; i < 28; i++) {
+                var h = Math.round(20 + Math.sin(i * 0.7) * 10 + Math.random() * 18);
+                bars += '<div class="tap-fc-waveform-bar" style="height:'+h+'px;"></div>';
+            }
+            rrVoice = '<div class="tap-fc-voice" style="background:transparent;padding:0;">' +
+                '<div class="tap-fc-voice-label">Voice Note</div>' +
+                '<div class="tap-fc-voice-player">' +
+                    '<button class="tap-fc-play-btn" id="btn_'+ruid+'" onclick="toggleVoicePlay(\''+ruid+'\')">▶</button>' +
+                    '<div class="tap-fc-waveform" id="wave_'+ruid+'">'+bars+'</div>' +
+                    '<div class="tap-fc-duration" id="dur_'+ruid+'">—</div>' +
                 '</div>' +
+                '<audio class="tap-fc-audio-el" id="aud_'+ruid+'" src="'+rr.voice+'" preload="metadata"></audio>' +
             '</div>';
         }
 
@@ -9029,24 +9053,46 @@
     function initVoicePlayer(uid){
         const aud=document.getElementById('aud_'+uid); if(!aud)return;
         const dur=document.getElementById('dur_'+uid);
-        aud.addEventListener('loadedmetadata',()=>{
+        // Property assignment (not addEventListener) so repeated calls replace handlers,
+        // preventing listener accumulation when the same player is re-used across QR scans.
+        aud.onloadedmetadata = () => {
+            if (!dur) return;
             const s=Math.round(aud.duration);
             if (!isNaN(s) && isFinite(s)) {
                 dur.textContent=Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0');
             } else {
                 dur.textContent='0:00';
             }
-        });
-        aud.addEventListener('timeupdate',()=>{
+        };
+        aud.ontimeupdate = () => {
             const pct=aud.duration?aud.currentTime/aud.duration:0;
             const bars=document.querySelectorAll('#wave_'+uid+' .tap-fc-waveform-bar');
             bars.forEach((b,i)=>b.classList.toggle('played',i/bars.length<pct));
-        });
-        aud.addEventListener('ended',()=>{
+        };
+        aud.onended = () => {
             const btn=document.getElementById('btn_'+uid);
             if(btn)btn.textContent='▶';
             document.querySelectorAll('#wave_'+uid+' .tap-fc-waveform-bar').forEach(b=>b.classList.remove('played'));
-        });
+        };
+    }
+
+    // Helper for live-scan voice players where the audio src changes per QR scan.
+    // Sets src, regenerates waveform bars, resets play button, and rewires playback handlers.
+    function setupLiveVoicePlayer(uid, src) {
+        const aud = document.getElementById('aud_'+uid);
+        const wf = document.getElementById('wave_'+uid);
+        const btn = document.getElementById('btn_'+uid);
+        if (!aud || !wf) return;
+        try { aud.pause(); } catch(e) {}
+        aud.src = src;
+        if (btn) btn.textContent = '▶';
+        let bars = '';
+        for (let i = 0; i < 28; i++) {
+            const h = Math.round(20 + Math.sin(i * 0.7) * 10 + Math.random() * 18);
+            bars += '<div class="tap-fc-waveform-bar" style="height:' + h + 'px;"></div>';
+        }
+        wf.innerHTML = bars;
+        initVoicePlayer(uid);
     }
 
     function toggleVoicePlay(uid){
