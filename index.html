@@ -5117,6 +5117,17 @@
                     photos = photos.length ? photos : (giverData.photos || []);
                     hasVoice = hasVoice || !!giverData.voice;
                 }
+
+                // Capture CLEAN giver-only fields BEFORE any receiver-data concat happens.
+                // The legacy `photos`/`message` fields below get mashed for the old polaroid UI;
+                // these fields preserve unmashed giver/biz content for the new layered card view.
+                var giverPhotos = (giverData && giverData.photos && giverData.photos.length) ? giverData.photos.slice() :
+                                  (bizData && bizData.photos && bizData.photos.length) ? bizData.photos.slice() :
+                                  (bizData && bizData.photo) ? [bizData.photo] : [];
+                var giverMessage = (giverData && giverData.message) || (bizData && bizData.description) || '';
+                var giverVoiceUrl = (giverData && giverData.voice) || (bizData && bizData.voice) || null;
+                var giverVideo = (giverData && giverData.video) || (bizData && bizData.video) || null;
+
                 if (receiverData && entry.role === 'giver') {
                     // Keep receiver photos on polaroid but DON'T mix messages
                     if (receiverData.photos && receiverData.photos.length > 0) {
@@ -5167,7 +5178,11 @@
                     media: (qr.media && qr.media.length > 0) ? qr.media : null,
                     receiverResponse: receiverResponse,
                     businessInfo: bizData || null,
-                    recipientName: (giverData && giverData.recipient_name) || null
+                    recipientName: (giverData && giverData.recipient_name) || null,
+                    giverPhotos: giverPhotos,
+                    giverMessage: giverMessage,
+                    giverVoiceUrl: giverVoiceUrl,
+                    giverVideo: giverVideo
                 };
             });
         } catch(e) {
@@ -8784,11 +8799,21 @@
         const roleLabels={giver:'You gave a gift',receiver:'A gift you received',business:'A Business Memory',external:''};
         const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:''};
         const photos=thread.photos||[];
-        // Use full media array with types if available, else fall back to photos array
-        let media=(thread.media && thread.media.length > 0) ? thread.media : photos.map(url=>({type:'image',url}));
-        // If thread has a giver/business video that isn't already in media, append it at the end
-        if (thread.video && !media.some(m => (m.url||m) === thread.video)) {
-            media = [...media, {type:'video', url:thread.video}];
+        // Build media from CLEAN giver-only fields when available (avoids the legacy
+        // photos array which mashes in receiver photos for giver-role saves).
+        // Fall back to legacy photos/media for roles where the clean fields don't apply (external, etc).
+        let media;
+        if (thread.role === 'giver' || thread.role === 'receiver' || thread.role === 'business') {
+            const cleanPhotos = (thread.giverPhotos && thread.giverPhotos.length) ? thread.giverPhotos : [];
+            media = cleanPhotos.map(url => ({type:'image', url}));
+            if (thread.giverVideo && !media.some(m => (m.url||m) === thread.giverVideo)) {
+                media = [...media, {type:'video', url: thread.giverVideo}];
+            }
+        } else {
+            media = (thread.media && thread.media.length > 0) ? thread.media : photos.map(url=>({type:'image',url}));
+            if (thread.video && !media.some(m => (m.url||m) === thread.video)) {
+                media = [...media, {type:'video', url:thread.video}];
+            }
         }
 
         // Helper: render one media item (image or video)
@@ -8819,12 +8844,13 @@
         }
         // Voice player HTML — matched to live scan view (qcGiverSentVoice)
         let voiceHtml='';
-        if(thread.hasVoice && thread.voiceUrl){
+        const giverVoiceSrc = thread.giverVoiceUrl || thread.voiceUrl;
+        if(thread.hasVoice && giverVoiceSrc){
             voiceHtml=`<div style="margin-top: 0.75rem; margin-bottom: 0.5rem;">
                 <div style="font-family: 'Outfit', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>
                 <div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">
                     <div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</div>
-                    <audio controls style="flex:1;height:36px;" src="${thread.voiceUrl}"></audio>
+                    <audio controls style="flex:1;height:36px;" src="${giverVoiceSrc}"></audio>
                 </div>
             </div>`;
         }
@@ -8888,7 +8914,7 @@
             </div>
 
             <!-- Original message — italic serif, no sandy box -->
-            <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.message || ''}</div>
+            <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.giverMessage || thread.message || ''}</div>
 
             <!-- Photos / videos / voice -->
             ${photoHtml}
@@ -8932,7 +8958,7 @@
             </div>
             <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')">🗑 Delete Memory</button>
         </div>
-        ${thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}`;
+        ${thread.role === 'giver' && thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}`;
         // Wire up audio after insert
         if(thread.hasVoice && thread.voiceUrl){
             setTimeout(()=>initVoicePlayer('vp_'+thread.id),100);
