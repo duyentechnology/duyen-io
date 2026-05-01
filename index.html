@@ -8673,7 +8673,11 @@
         scroll.classList.add('switching');
         setTimeout(()=>{
             scroll.innerHTML='';
-            const cards=[...userThreads].filter(t=>tapGetMonthKey(t.date)===month).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
+            // When month is falsy, show ALL cards continuously (no month filter, no 10-card cap).
+            const source = month
+                ? userThreads.filter(t=>tapGetMonthKey(t.date)===month)
+                : [...userThreads];
+            const cards = source.sort((a,b)=>new Date(b.date)-new Date(a.date));
             if(!cards.length){scroll.classList.remove('switching');return;}
             const tilts=[-7,8,-5,6,-8,5,-4,9,-6,7],tapes=[-3,3,2,-2,3,-3,2,-2,3,-1];
             cards.forEach((thread,i)=>{
@@ -8795,10 +8799,13 @@
     function buildTapStacks(month) {
         const heading=document.getElementById('tapMonthHeading');
         heading.classList.add('switching');
-        const all=userThreads.filter(t=>tapGetMonthKey(t.date)===month);
+        // When month is falsy, show ALL cards across roles (no month filter).
+        const all = month
+            ? userThreads.filter(t=>tapGetMonthKey(t.date)===month)
+            : [...userThreads];
         const tilts=[[-2.5],[1.8],[-1.2],[2.3],[-1.8],[1.5],[-2.1],[2.0],[-1.5],[2.8]];
         setTimeout(()=>{
-            heading.textContent=month; heading.classList.remove('switching');
+            heading.textContent = month || 'All memories'; heading.classList.remove('switching');
             document.getElementById('tapMonthCount').textContent=`${all.length} thread${all.length===1?'':'s'}`;
             ['receiver','giver','business','external'].forEach(role=>{
                 const items=all.filter(t=>t.role===role).sort((a,b)=>new Date(b.date)-new Date(a.date));
@@ -9249,12 +9256,11 @@
             document.getElementById('tapestryEmpty').style.display = 'none';
             document.getElementById('tapCollageOuter').style.display = 'block';
             document.getElementById('tapCollageHint').style.display = 'block';
-            document.getElementById('tapMonthOuter').style.display = 'block';
-            const months = tapGetMonths();
-            tapCurrentMonth = months[0];
-            buildTapMonthStrip();
-            buildTapCollage(tapCurrentMonth);
-            buildTapStacks(tapCurrentMonth);
+            // Month strip hidden — tapestry is continuous (all cards always visible).
+            document.getElementById('tapMonthOuter').style.display = 'none';
+            tapCurrentMonth = null;
+            buildTapCollage(null);
+            buildTapStacks(null);
         } else {
             document.getElementById('tapestryEmpty').style.display = 'block';
             document.getElementById('tapCollageOuter').style.display = 'none';
