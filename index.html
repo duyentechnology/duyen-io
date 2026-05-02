@@ -9224,7 +9224,7 @@
         document.getElementById('tapDetailCards').classList.remove('tap-edit-mode');
         document.getElementById('tapDetailScreen').classList.remove('open');
         document.getElementById('tapestryContainer').classList.remove('pushed');
-        if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
+        if (typeof buildTapCollage === 'function') buildTapCollage(null);  // top: always continuous
     }
 
     function buildCollage() {} // superseded
@@ -9539,7 +9539,7 @@
         if (doneBtn) { doneBtn.textContent = 'Done'; doneBtn.disabled = false; doneBtn.style.display = 'none'; }
 
         // Rebuild collage and re-render card
-        if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
+        if (typeof buildTapCollage === 'function') buildTapCollage(null);  // top: always continuous
         if (tid) openTapSingle(tid);
     }
 
