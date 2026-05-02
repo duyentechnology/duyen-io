@@ -1627,30 +1627,6 @@
             margin-bottom: 0.5rem;
         }
 
-        .stats-row {
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            margin-top: 1.5rem;
-        }
-
-        .stat { text-align: center; }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--brand-red);
-            font-family: 'Crimson Pro', serif;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
         /* Filter tabs */
         .filter-tabs {
             display: flex;
@@ -2669,7 +2645,6 @@
             .container { padding: 1.5rem 1rem; }
             .container-narrow { padding: 1.5rem 1rem; }
             .btn-group { flex-direction: column; }
-            .stats-row { gap: 1.5rem; }
             .threads-grid { grid-template-columns: 1fr; }
             .header-search { width: 140px; }
             .header-search:focus { width: 180px; }
@@ -9260,7 +9235,6 @@
     // ==========================================
     async function initTapestry() {
         await loadTapestryFromDB();
-        updateStats();
         // Clear search
         const s1 = document.getElementById('tapestrySearch');
         const s2 = document.getElementById('tapestrySearchMobile');
@@ -9277,11 +9251,12 @@
             document.getElementById('tapestryEmpty').style.display = 'none';
             document.getElementById('tapCollageOuter').style.display = 'block';
             document.getElementById('tapCollageHint').style.display = 'block';
-            // Month strip hidden — tapestry is continuous (all cards always visible).
-            document.getElementById('tapMonthOuter').style.display = 'none';
-            tapCurrentMonth = null;
-            buildTapCollage(null);
-            buildTapStacks(null);
+            document.getElementById('tapMonthOuter').style.display = 'block';
+            const months = tapGetMonths();
+            tapCurrentMonth = months[0];
+            buildTapMonthStrip();
+            buildTapCollage(tapCurrentMonth);
+            buildTapStacks(tapCurrentMonth);
         } else {
             document.getElementById('tapestryEmpty').style.display = 'block';
             document.getElementById('tapCollageOuter').style.display = 'none';
@@ -9289,10 +9264,6 @@
             document.getElementById('tapMonthOuter').style.display = 'none';
             document.getElementById('tapStackArea').style.display = 'none';
         }
-    }
-
-    function updateStats() {
-        // Stats row removed — nothing to update
     }
 
     function renderTapestry() {
