@@ -8708,7 +8708,7 @@
         months.forEach((month,idx)=>{
             const roles=[...new Set(userThreads.filter(t=>tapGetMonthKey(t.date)===month).map(t=>t.role))];
             const pill=document.createElement('div');
-            pill.className='tap-month-pill'+(idx===0?' active':'');
+            pill.className='tap-month-pill';
             pill.innerHTML=`<span>${month}</span><div class="tap-m-dots">
                 ${roles.includes('receiver')?'<div class="tap-m-dot" style="background:#C8406A"></div>':''}
                 ${roles.includes('giver')?'<div class="tap-m-dot" style="background:#3A8C48"></div>':''}
@@ -8793,51 +8793,76 @@
     }
 
     function buildTapStacks(month) {
-        const heading=document.getElementById('tapMonthHeading');
-        heading.classList.add('switching');
-        // When month is falsy, show ALL cards across roles (no month filter).
-        const all = month
-            ? userThreads.filter(t=>tapGetMonthKey(t.date)===month)
-            : [...userThreads];
-        const tilts=[[-2.5],[1.8],[-1.2],[2.3],[-1.8],[1.5],[-2.1],[2.0],[-1.5],[2.8]];
-        setTimeout(()=>{
-            heading.textContent = month || 'All memories'; heading.classList.remove('switching');
-            document.getElementById('tapMonthCount').textContent=`${all.length} thread${all.length===1?'':'s'}`;
-            ['receiver','giver','business','external'].forEach(role=>{
-                const items=all.filter(t=>t.role===role).sort((a,b)=>new Date(b.date)-new Date(a.date));
-                const row=document.getElementById('tap-row-'+role);
-                const slot=document.getElementById('tap-stack-'+role);
-                const count=document.getElementById('tap-count-'+role);
-                if(!items.length){row.classList.add('hidden');return;}
-                row.classList.remove('hidden');
-                count.textContent=`${items.length} thread${items.length===1?'':'s'}`;
-                const pal=tapRolePalette(role);
-                // Build polaroid scroll
-                const scroll=document.createElement('div');
-                scroll.className='tap-polaroid-scroll';
-                items.forEach((thread,i)=>{
-                    const tilt=tilts[i%tilts.length][0];
-                    const date=tapDateShort(thread.date);
-                    const hasPhoto=thread.photos&&thread.photos.length>0;
-                    const bgColor=pal[i%pal.length];
-                    const card=document.createElement('div');
-                    card.className='tap-polaroid';
-                    // no tilt in grid layout
-                    card.onclick=()=>openTapSingle(thread.id);
-                    card.innerHTML=`<div class="tap-polaroid-img">${
-                        hasPhoto
-                          ? `<img src="${thread.photos[0]}" alt="${thread.title}" loading="lazy">`
-                          : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${bgColor};">${thread.icon||'🧵'}</div>`
-                    }</div>
-                    <div class="tap-polaroid-caption">${thread.title}</div>
-                    <div class="tap-polaroid-date">${date}</div>`;
-                    scroll.appendChild(card);
-                });
-                slot.innerHTML='';
-                slot.appendChild(scroll);
+        const area = document.getElementById('tapStackArea');
+        if (!area) return;
+
+        // Single month if provided, else all months newest-first
+        const monthsToRender = month ? [month] : tapGetMonths();
+
+        const roles = [
+            {key:'receiver', icon:'💝', label:'Received', iconBg:'rgba(200,64,106,0.12)'},
+            {key:'giver',    icon:'',   label:'Given',    iconBg:'rgba(58,140,72,0.12)'},
+            {key:'business', icon:'🏢', label:'Business', iconBg:'rgba(72,136,192,0.12)'},
+            {key:'external', icon:'',   label:'',         iconBg:'rgba(139,94,60,0.12)'},
+        ];
+
+        let html = '';
+        monthsToRender.forEach(m => {
+            const monthThreads = userThreads.filter(t => tapGetMonthKey(t.date) === m);
+            if (!monthThreads.length) return;
+
+            html += `<div class="tap-month-section" style="margin-bottom:1.5rem;">
+                <div class="tap-month-heading">
+                    <h2>${m}</h2>
+                    <span class="tap-month-count">${monthThreads.length} thread${monthThreads.length===1?'':'s'}</span>
+                </div>`;
+
+            roles.forEach(r => {
+                const items = monthThreads.filter(t => t.role === r.key)
+                    .sort((a,b) => new Date(b.date) - new Date(a.date));
+                if (!items.length) return;
+                const pal = tapRolePalette(r.key);
+
+                const polaroidsHtml = items.map((t, i) => {
+                    const date = tapDateShort(t.date);
+                    const hasPhoto = t.photos && t.photos.length > 0;
+                    const bgColor = pal[i % pal.length];
+                    const safeTitle = (t.title || '').replace(/"/g, '&quot;');
+                    return `<div class="tap-polaroid" data-thread-id="${t.id}">
+                        <div class="tap-polaroid-img">${
+                            hasPhoto
+                              ? `<img src="${t.photos[0]}" alt="${safeTitle}" loading="lazy">`
+                              : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${bgColor};">${t.icon||'🧵'}</div>`
+                        }</div>
+                        <div class="tap-polaroid-caption">${t.title}</div>
+                        <div class="tap-polaroid-date">${date}</div>
+                    </div>`;
+                }).join('');
+
+                html += `<div class="tap-role-row">
+                    <div class="tap-role-label">
+                        <div class="tap-role-icon" style="background:${r.iconBg};">${r.icon}</div>
+                        <div class="tap-role-name">${r.label}</div>
+                        <div class="tap-role-count">${items.length} thread${items.length===1?'':'s'}</div>
+                    </div>
+                    <div class="tap-polaroid-scroll">${polaroidsHtml}</div>
+                </div>`;
             });
-            document.getElementById('tapStackArea').style.display='block';
-        },180);
+
+            html += `</div>`;
+        });
+
+        // Switching transition
+        area.classList.add('switching');
+        setTimeout(() => {
+            area.innerHTML = html;
+            area.classList.remove('switching');
+            area.style.display = 'block';
+            // Wire up click handlers
+            area.querySelectorAll('.tap-polaroid').forEach(el => {
+                el.onclick = () => openTapSingle(el.dataset.threadId);
+            });
+        }, 180);
     }
 
     function switchTapMonth(month,pillEl) {
@@ -9252,10 +9277,9 @@
             document.getElementById('tapCollageHint').style.display = 'block';
             document.getElementById('tapMonthOuter').style.display = 'block';
             buildTapMonthStrip();
-            const months = tapGetMonths();
-            tapCurrentMonth = months[0];
+            tapCurrentMonth = null;
             buildTapCollage(null);              // top: always continuous
-            buildTapStacks(tapCurrentMonth);    // bottom: grouped under active month
+            buildTapStacks(null);               // bottom: all months continuous by default
         } else {
             document.getElementById('tapestryEmpty').style.display = 'block';
             document.getElementById('tapCollageOuter').style.display = 'none';
