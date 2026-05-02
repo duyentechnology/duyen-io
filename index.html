@@ -8751,8 +8751,8 @@
         if (!search) {
             resultsEl.innerHTML = '';
             resultsEl.style.display = 'none';
-            buildTapCollage(tapCurrentMonth);
-            buildTapStacks(tapCurrentMonth);
+            buildTapCollage(null);              // top: always continuous
+            buildTapStacks(tapCurrentMonth);    // bottom: active month
             return;
         }
 
@@ -8845,8 +8845,7 @@
         tapCurrentMonth=month;
         document.querySelectorAll('.tap-month-pill').forEach(p=>p.classList.remove('active'));
         if(pillEl)pillEl.classList.add('active');
-        buildTapCollage(month);
-        buildTapStacks(month);
+        buildTapStacks(month);  // top stays continuous; only bottom switches
     }
 
     // Helper: append #t=0.1 so iOS Safari renders first frame as poster instead of black box
@@ -9253,9 +9252,10 @@
             document.getElementById('tapCollageHint').style.display = 'block';
             document.getElementById('tapMonthOuter').style.display = 'block';
             buildTapMonthStrip();
-            tapCurrentMonth = null;
-            buildTapCollage(null);
-            buildTapStacks(null);
+            const months = tapGetMonths();
+            tapCurrentMonth = months[0];
+            buildTapCollage(null);              // top: always continuous
+            buildTapStacks(tapCurrentMonth);    // bottom: grouped under active month
         } else {
             document.getElementById('tapestryEmpty').style.display = 'block';
             document.getElementById('tapCollageOuter').style.display = 'none';
