@@ -7292,6 +7292,14 @@
             }
             
             scannedQRData.receiver_data = receiverData;
+
+            // Auto-save QR to receiver's tapestry (don't block UI on failure — message already saved)
+            try {
+                await saveToTapestry();
+            } catch(tapErr) {
+                console.error('Tapestry save failed (message still saved):', tapErr);
+            }
+
             populateQRContent();
         } catch(e) {
             console.error('Save receiver error:', e);
@@ -7312,9 +7320,6 @@
             alert('No QR data to save');
             return;
         }
-        
-        var btn = null; // tapestry button removed — called from checkbox now
-        if (btn) { btn.innerHTML = '⏳ Saving...'; btn.disabled = true; }
         
         try {
             var user = (await _supabase.auth.getUser()).data.user;
@@ -7352,22 +7357,7 @@
                 }
             }
             
-            if (btn) {
-                btn.innerHTML = '✅ Saved to Tapestry!';
-                btn.style.background = '#7A9B7E';
-                btn.style.color = 'white';
-                btn.style.border = 'none';
-                setTimeout(function() {
-                    btn.innerHTML = '🧵 Save to My Tapestry';
-                    btn.style.background = '';
-                    btn.style.color = '';
-                    btn.style.border = '';
-                    btn.disabled = false;
-                }, 3000);
-            }
-            
         } catch(e) {
-            if (btn) { btn.innerHTML = '🧵 Save to My Tapestry'; btn.disabled = false; }
             throw e;
         }
     }
