@@ -8943,8 +8943,15 @@
             </div>` : '';
 
         // Editable field helper
+        const isGiftQR = (thread.role === 'giver' || thread.role === 'receiver' || thread.role === 'business');
         const editField = (fieldId, label, value, fieldKey) => {
             if (!value) return '';
+            // Gift QRs (giver/receiver/business): plain field, no pencil.
+            if (isGiftQR) {
+                return `<div class="tap-fc-field-row">
+                    <div class="tap-fc-field-value">${value}</div>
+                </div>`;
+            }
             return `<div class="tap-fc-field-row" id="field-${tid}-${fieldKey}">
                 <div class="tap-fc-field-value" id="val-${tid}-${fieldKey}">${value}</div>
                 <span class="tap-fc-edit-icon" onclick="startInlineEdit('${tid}','${fieldKey}','${value.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">✎</span>
@@ -9005,7 +9012,10 @@
                 ${tapDateFull(thread.date)}
             </div>
 
-            <!-- Edit-mode-only controls (hidden until pencil toggled) -->
+            <!-- Edit/delete controls — gift QRs get only a delete button; external keeps edit-mode block -->
+            ${isGiftQR ? `
+            <button class="tap-fc-delete-btn" style="display:block;" onclick="confirmDeleteThread('${tid}')">🗑 Remove from Tapestry</button>
+            ` : `
             <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}">
                 ${(thread.photos||[]).map(p=>`<img class="tap-fc-photo-thumb" src="${p}" alt="">`).join('')}
             </div>
@@ -9031,6 +9041,7 @@
                 </div>
             </div>
             <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')">🗑 Delete Memory</button>
+            `}
         </div>
         ${(thread.role === 'giver' || thread.role === 'receiver') && thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}`;
         // Wire up audio after insert
@@ -9206,6 +9217,9 @@
         const container=document.getElementById('tapDetailCards'); container.innerHTML='';
         const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
         wrap.appendChild(buildTapFullCard(thread)); container.appendChild(wrap);
+        // Hide ✏️ edit toggle for gift QRs (no edits allowed; delete is always visible on the card)
+        const editBtn = document.getElementById('tapEditBtn');
+        if (editBtn) editBtn.style.display = (thread.role === 'external') ? '' : 'none';
         document.getElementById('tapDetailScreen').classList.add('open');
         document.getElementById('tapestryContainer').classList.add('tap-tapestryScreen-push','pushed');
         document.getElementById('tapDetailScreen').scrollTop=0;
@@ -9220,6 +9234,9 @@
         const container=document.getElementById('tapDetailCards'); container.innerHTML='';
         const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
         items.forEach(t=>wrap.appendChild(buildTapFullCard(t))); container.appendChild(wrap);
+        // Hide ✏️ edit toggle for gift QRs
+        const editBtn = document.getElementById('tapEditBtn');
+        if (editBtn) editBtn.style.display = (role === 'external') ? '' : 'none';
         document.getElementById('tapDetailScreen').classList.add('open');
         document.getElementById('tapestryContainer').classList.add('tap-tapestryScreen-push','pushed');
         document.getElementById('tapDetailScreen').scrollTop=0;
