@@ -9252,11 +9252,10 @@
             document.getElementById('tapCollageOuter').style.display = 'block';
             document.getElementById('tapCollageHint').style.display = 'block';
             document.getElementById('tapMonthOuter').style.display = 'block';
-            const months = tapGetMonths();
-            tapCurrentMonth = months[0];
             buildTapMonthStrip();
-            buildTapCollage(tapCurrentMonth);
-            buildTapStacks(tapCurrentMonth);
+            tapCurrentMonth = null;
+            buildTapCollage(null);
+            buildTapStacks(null);
         } else {
             document.getElementById('tapestryEmpty').style.display = 'block';
             document.getElementById('tapCollageOuter').style.display = 'none';
