@@ -9012,10 +9012,8 @@
                 ${tapDateFull(thread.date)}
             </div>
 
-            <!-- Edit/delete controls — gift QRs get only a delete button; external keeps edit-mode block -->
-            ${isGiftQR ? `
-            <button class="tap-fc-delete-btn" style="display:block;" onclick="confirmDeleteThread('${tid}')">🗑 Remove from Tapestry</button>
-            ` : `
+            <!-- Edit/delete controls — gift QRs get only a delete button (placed AFTER receiver response below); external keeps edit-mode block -->
+            ${isGiftQR ? `` : `
             <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}">
                 ${(thread.photos||[]).map(p=>`<img class="tap-fc-photo-thumb" src="${p}" alt="">`).join('')}
             </div>
@@ -9043,7 +9041,8 @@
             <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')">🗑 Delete Memory</button>
             `}
         </div>
-        ${(thread.role === 'giver' || thread.role === 'receiver') && thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}`;
+        ${(thread.role === 'giver' || thread.role === 'receiver') && thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}
+        ${isGiftQR ? `<button class="tap-fc-delete-btn" style="display:block;" onclick="confirmDeleteThread('${tid}')">🗑 Remove from Tapestry</button>` : ''}`;
         // Wire up audio after insert
         if(thread.hasVoice && thread.voiceUrl){
             setTimeout(()=>initVoicePlayer('vp_'+thread.id),100);
