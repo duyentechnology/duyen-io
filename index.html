@@ -7293,11 +7293,42 @@
             
             scannedQRData.receiver_data = receiverData;
 
-            // Auto-save QR to receiver's tapestry (don't block UI on failure — message already saved)
+            // Auto-save QR to receiver's tapestry (hardcoded role to avoid currentRole drift)
             try {
-                await saveToTapestry();
-            } catch(tapErr) {
-                console.error('Tapestry save failed (message still saved):', tapErr);
+                var tapUser = (await _supabase.auth.getUser()).data.user;
+                if (tapUser) {
+                    var tapBizData = scannedQRData.business_data;
+                    if (typeof tapBizData === 'string') try { tapBizData = JSON.parse(tapBizData); } catch(e) { tapBizData = null; }
+                    var tapGiverData = scannedQRData.giver_data;
+                    if (typeof tapGiverData === 'string') try { tapGiverData = JSON.parse(tapGiverData); } catch(e) { tapGiverData = null; }
+                    var tapTitle = resolveThreadTitle({
+                        label: scannedQRData.label,
+                        bizData: tapBizData,
+                        giverData: tapGiverData,
+                        role: 'receiver',
+                        createdAt: scannedQRData.created_at
+                    });
+                    var { data: tapExisting } = await _supabase.from('tapestry')
+                        .select('id')
+                        .eq('user_id', tapUser.id)
+                        .eq('qr_code_id', scannedQRData.id)
+                        .eq('role', 'receiver')
+                        .limit(1);
+                    if (!tapExisting || tapExisting.length === 0) {
+                        var { error: tapErr } = await _supabase.from('tapestry').insert({
+                            user_id: tapUser.id,
+                            qr_code_id: scannedQRData.id,
+                            role: 'receiver',
+                            title: tapTitle
+                        });
+                        if (tapErr) console.error('Tapestry insert error:', tapErr);
+                        else console.log('🧵 Receiver tapestry saved');
+                    } else {
+                        console.log('🧵 Already in receiver tapestry');
+                    }
+                }
+            } catch(tapCatchErr) {
+                console.error('Tapestry save failed (message still saved):', tapCatchErr);
             }
 
             populateQRContent();
