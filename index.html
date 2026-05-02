@@ -8866,7 +8866,13 @@
     }
 
     function switchTapMonth(month,pillEl) {
-        if(month===tapCurrentMonth)return;
+        // Tap the active month again → clear filter, return to continuous
+        if(month===tapCurrentMonth){
+            tapCurrentMonth=null;
+            document.querySelectorAll('.tap-month-pill').forEach(p=>p.classList.remove('active'));
+            buildTapStacks(null);
+            return;
+        }
         tapCurrentMonth=month;
         document.querySelectorAll('.tap-month-pill').forEach(p=>p.classList.remove('active'));
         if(pillEl)pillEl.classList.add('active');
