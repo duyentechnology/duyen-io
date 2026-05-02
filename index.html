@@ -9047,7 +9047,7 @@
             </div>
             <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')">🗑 Delete Memory</button>
         </div>
-        ${thread.role === 'giver' && thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}`;
+        ${(thread.role === 'giver' || thread.role === 'receiver') && thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}`;
         // Wire up audio after insert
         if(thread.hasVoice && thread.voiceUrl){
             setTimeout(()=>initVoicePlayer('vp_'+thread.id),100);
