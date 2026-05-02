@@ -8799,57 +8799,37 @@
         // Single month if provided, else all months newest-first
         const monthsToRender = month ? [month] : tapGetMonths();
 
-        const roles = [
-            {key:'receiver', icon:'💝', label:'Received', iconBg:'rgba(200,64,106,0.12)'},
-            {key:'giver',    icon:'',   label:'Given',    iconBg:'rgba(58,140,72,0.12)'},
-            {key:'business', icon:'🏢', label:'Business', iconBg:'rgba(72,136,192,0.12)'},
-            {key:'external', icon:'',   label:'',         iconBg:'rgba(139,94,60,0.12)'},
-        ];
-
         let html = '';
         monthsToRender.forEach(m => {
-            const monthThreads = userThreads.filter(t => tapGetMonthKey(t.date) === m);
+            const monthThreads = userThreads
+                .filter(t => tapGetMonthKey(t.date) === m)
+                .sort((a,b) => new Date(b.date) - new Date(a.date));
             if (!monthThreads.length) return;
+
+            const polaroidsHtml = monthThreads.map((t, i) => {
+                const date = tapDateShort(t.date);
+                const hasPhoto = t.photos && t.photos.length > 0;
+                const pal = tapRolePalette(t.role);
+                const bgColor = pal[i % pal.length];
+                const safeTitle = (t.title || '').replace(/"/g, '&quot;');
+                return `<div class="tap-polaroid" data-thread-id="${t.id}">
+                    <div class="tap-polaroid-img">${
+                        hasPhoto
+                          ? `<img src="${t.photos[0]}" alt="${safeTitle}" loading="lazy">`
+                          : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${bgColor};">${t.icon||'🧵'}</div>`
+                    }</div>
+                    <div class="tap-polaroid-caption">${t.title}</div>
+                    <div class="tap-polaroid-date">${date}</div>
+                </div>`;
+            }).join('');
 
             html += `<div class="tap-month-section" style="margin-bottom:1.5rem;">
                 <div class="tap-month-heading">
                     <h2>${m}</h2>
                     <span class="tap-month-count">${monthThreads.length} thread${monthThreads.length===1?'':'s'}</span>
-                </div>`;
-
-            roles.forEach(r => {
-                const items = monthThreads.filter(t => t.role === r.key)
-                    .sort((a,b) => new Date(b.date) - new Date(a.date));
-                if (!items.length) return;
-                const pal = tapRolePalette(r.key);
-
-                const polaroidsHtml = items.map((t, i) => {
-                    const date = tapDateShort(t.date);
-                    const hasPhoto = t.photos && t.photos.length > 0;
-                    const bgColor = pal[i % pal.length];
-                    const safeTitle = (t.title || '').replace(/"/g, '&quot;');
-                    return `<div class="tap-polaroid" data-thread-id="${t.id}">
-                        <div class="tap-polaroid-img">${
-                            hasPhoto
-                              ? `<img src="${t.photos[0]}" alt="${safeTitle}" loading="lazy">`
-                              : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${bgColor};">${t.icon||'🧵'}</div>`
-                        }</div>
-                        <div class="tap-polaroid-caption">${t.title}</div>
-                        <div class="tap-polaroid-date">${date}</div>
-                    </div>`;
-                }).join('');
-
-                html += `<div class="tap-role-row">
-                    <div class="tap-role-label">
-                        <div class="tap-role-icon" style="background:${r.iconBg};">${r.icon}</div>
-                        <div class="tap-role-name">${r.label}</div>
-                        <div class="tap-role-count">${items.length} thread${items.length===1?'':'s'}</div>
-                    </div>
-                    <div class="tap-polaroid-scroll">${polaroidsHtml}</div>
-                </div>`;
-            });
-
-            html += `</div>`;
+                </div>
+                <div class="tap-polaroid-scroll">${polaroidsHtml}</div>
+            </div>`;
         });
 
         // Switching transition
