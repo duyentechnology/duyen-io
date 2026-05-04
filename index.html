@@ -1797,28 +1797,6 @@
         .tap-role-name  { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:400; letter-spacing:0.04em; color:#1C1410; }
         .tap-role-count { font-family:'Caveat',cursive; font-size:0.85rem; color:var(--text-muted); }
 
-        .tap-stack { position:relative; height:104px; cursor:pointer; }
-        .tap-stack-layer { position:absolute; left:0; right:0; height:88px; border-radius:8px; transition:all 0.3s ease; }
-        .tap-stack-l2 { top:16px; left:16px; right:16px; }
-        .tap-stack-l1 { top:8px;  left:8px;  right:8px; opacity:0.82; }
-        .tap-stack-l0 { top:0; z-index:2; box-shadow:0 3px 14px rgba(0,0,0,0.14); }
-        .tap-stack:hover .tap-stack-l0 { transform:translateY(-3px); box-shadow:0 6px 20px rgba(0,0,0,0.2); }
-        .tap-stack-top { display:flex; align-items:center; justify-content:space-between; padding:0 1rem; height:100%; }
-        .tap-stack-left { display:flex; align-items:center; gap:0.7rem; }
-        .tap-stack-emoji { font-size:1.9rem; }
-        .tap-stack-title { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:600; color:white; line-height:1.25; }
-        .tap-stack-sub   { font-family:'Caveat',cursive; font-size:0.8rem; color:rgba(255,255,255,0.68); margin-top:0.1rem; }
-        .tap-stack-right { display:flex; align-items:center; gap:0.45rem; }
-        .tap-stack-badge { font-family:'Caveat',cursive; font-size:0.88rem; background:rgba(255,255,255,0.24); color:white; padding:0.1rem 0.55rem; border-radius:12px; }
-        .tap-stack-chev  { color:rgba(255,255,255,0.7); font-size:1rem; }
-
-        .tap-stack-empty {
-            background:white; border-radius:8px;
-            border:1.5px dashed rgba(0,0,0,0.1); height:68px;
-            display:flex; align-items:center; justify-content:center;
-            font-family:'Caveat',cursive; font-size:0.9rem; color:var(--text-muted);
-        }
-
         /* ── POLAROID CARDS ── */
         .tap-polaroid-scroll {
             display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:4px 0 8px;
@@ -4484,45 +4462,8 @@
             <div class="tap-month-strip" id="tapMonthStrip"></div>
         </div>
 
-        <!-- Month heading + role stacks -->
-        <div id="tapStackArea" style="display:none; padding:0 0.2rem;">
-            <div class="tap-month-heading">
-                <h2 id="tapMonthHeading"></h2>
-                <span class="tap-month-count" id="tapMonthCount"></span>
-            </div>
-            <div class="tap-role-row" id="tap-row-receiver">
-                <div class="tap-role-label">
-                    <div class="tap-role-icon" style="background:rgba(200,64,106,0.12);">💝</div>
-                    <div class="tap-role-name">Received</div>
-                    <div class="tap-role-count" id="tap-count-receiver"></div>
-                </div>
-                <div id="tap-stack-receiver"></div>
-            </div>
-            <div class="tap-role-row" id="tap-row-giver">
-                <div class="tap-role-label">
-                    <div class="tap-role-icon" style="background:rgba(58,140,72,0.12);"></div>
-                    <div class="tap-role-name">Given</div>
-                    <div class="tap-role-count" id="tap-count-giver"></div>
-                </div>
-                <div id="tap-stack-giver"></div>
-            </div>
-            <div class="tap-role-row" id="tap-row-business">
-                <div class="tap-role-label">
-                    <div class="tap-role-icon" style="background:rgba(72,136,192,0.12);">🏢</div>
-                    <div class="tap-role-name">Business</div>
-                    <div class="tap-role-count" id="tap-count-business"></div>
-                </div>
-                <div id="tap-stack-business"></div>
-            </div>
-            <div class="tap-role-row" id="tap-row-external">
-                <div class="tap-role-label">
-                    <div class="tap-role-icon" style="background:rgba(139,94,60,0.12);"></div>
-                    <div class="tap-role-name"></div>
-                    <div class="tap-role-count" id="tap-count-external"></div>
-                </div>
-                <div id="tap-stack-external"></div>
-            </div>
-        </div>
+        <!-- Month sections + polaroids — populated dynamically by buildTapStacks() -->
+        <div id="tapStackArea" style="display:none; padding:0 0.2rem;"></div>
 
         <!-- Filter tabs (kept for search/filter) -->
         <div class="filter-tabs" id="tapestryFilters" style="display:none;">
@@ -6603,7 +6544,7 @@
         // Show business info if it exists (for giver/receiver to see)
         // 'QR Code' is the default label and should NOT trigger the business section
         // or appear as a heading on the receiver view.
-        var labelIsCustom = data.label && data.label.trim() !== '' && data.label !== 'QR Code';
+        var labelIsCustom = data.label && data.label.trim() !== '' && data.label !== 'QR Code' && !data.label.match(/^QR-\d+$/i);
         var hasRealDetails = data.details && data.details.trim() !== '';
         if (data.business_data || data.business_user_id || labelIsCustom || hasRealDetails || data.photo) {
             var bizSection = document.getElementById('qcBizSection');
@@ -9253,8 +9194,6 @@
         document.getElementById('tapestryContainer').classList.remove('pushed');
         if (typeof buildTapCollage === 'function') buildTapCollage(null);  // top: always continuous
     }
-
-    function buildCollage() {} // superseded
 
     // ==========================================
     // TAPESTRY INIT
