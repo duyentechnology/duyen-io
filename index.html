@@ -3441,18 +3441,20 @@
             <!-- Receiver section: shows when role=receiver -->
             <div id="qcReceiverView" style="display: none;">
                 <div id="qcGiverMessageView" style="display: none;">
-                    <!-- "For [name]" header -->
-                    <div id="qcForHeader" style="text-align: center; padding: 0.75rem 0 1.5rem;">
-                        <div style="font-family: 'Crimson Pro', serif; font-style: italic; font-size: 1.05rem; color: #9A8478; margin-bottom: 0.2rem; letter-spacing: 0.02em;">For</div>
-                        <div id="qcForName" style="font-family: 'Crimson Pro', serif; font-size: 2.4rem; font-weight: 500; color: #2E2A28; line-height: 1.1; letter-spacing: -0.01em;">you</div>
+                    <!-- "For [name]" header — matches giver sent view -->
+                    <div id="qcForHeader" style="text-align: center; padding: 1.5rem 0 1.25rem;">
+                        <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.2rem; color: #6B5751; margin-bottom: 0.4rem; letter-spacing: 0.01em;">For you,</div>
+                        <div id="qcForName" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3rem; color: #2E2A28; line-height: 1; letter-spacing: -0.01em;">you</div>
                     </div>
-                    <div id="qcGiverMsgContent" style="background: var(--soft-sand); padding: 1.25rem; border-radius: 14px; margin: 1rem 0; white-space: pre-wrap;"></div>
-                    <div id="qcGiverMsgVideo" style="display:none; margin-top: 1rem;">
-                        <video id="qcGiverMsgVideoEl" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
-                    </div>
+                    <!-- Message — italic serif, no sandy box (matches giver sent view) -->
+                    <div id="qcGiverMsgContent" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;"></div>
                     <!-- Photos: single-column stacked, one per scroll-step -->
-                    <div id="qcGiverMsgPhotos" style="display: none; margin: 1rem 0;"></div>
-                    <!-- Voice memo: moved to the END so it's the last thing before the save prompt -->
+                    <div id="qcGiverMsgPhotos" style="display: none; margin: 0 0 0.75rem;"></div>
+                    <!-- Video — borderless to match giver sent view -->
+                    <div id="qcGiverMsgVideo" style="display:none; margin-bottom: 0.75rem;">
+                        <video id="qcGiverMsgVideoEl" controls playsinline preload="metadata" style="width:100%; border-radius:14px; display:block;"></video>
+                    </div>
+                    <!-- Voice memo: custom green waveform (kept) -->
                     <div id="qcGiverMsgVoice" style="display:none; margin-top: 1.25rem;">
                         <div style="font-family: 'Outfit', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>
                         <div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">
