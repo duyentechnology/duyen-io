@@ -8818,7 +8818,7 @@
                           ? `<img src="${t.photos[0]}" alt="${safeTitle}" loading="lazy">`
                           : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${bgColor};">${t.icon||'🧵'}</div>`
                     }</div>
-                    <div class="tap-polaroid-caption">${t.title}</div>
+                    <div class="tap-polaroid-caption">${tapPhotoCaption(t)}</div>
                     <div class="tap-polaroid-date">${date}</div>
                 </div>`;
             }).join('');
@@ -9211,7 +9211,7 @@
 
     function openTapSingle(id) {
         const thread=userThreads.find(t=>t.id===id); if(!thread)return;
-        document.getElementById('tapDetailTitle').textContent=thread.title;
+        document.getElementById('tapDetailTitle').textContent=tapPhotoCaption(thread);
         document.getElementById('tapDetailSub').textContent=tapDateShort(thread.date);
         const container=document.getElementById('tapDetailCards'); container.innerHTML='';
         const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
