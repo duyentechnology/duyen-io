@@ -6178,6 +6178,7 @@
         
         if (error) {
             console.error('Upload error:', error);
+            window._lastUploadError = error.message || error.error || 'unknown';
             return null;
         }
         
@@ -6890,7 +6891,7 @@
             var videoUrl = giverVideoFile ? await uploadToStorage(giverVideoFile, 'giver/' + qrId) : null;
             // If a video was selected but upload returned null, halt with a visible error
             if (giverVideoFile && !videoUrl) {
-                alert('Video upload failed. Please check your connection and try again.');
+                alert('Video upload failed: ' + (window._lastUploadError || 'unknown error') + '\n\nTry a shorter or smaller video.');
                 var dot1err = document.getElementById('qcDot1');
                 if (dot1err) dot1err.style.opacity = '1';
                 return;
@@ -7182,7 +7183,7 @@
             var videoUrl = receiverVideoFile ? await uploadToStorage(receiverVideoFile, 'receiver/' + qrId) : null;
             // If a video was selected but upload returned null, halt with a visible error
             if (receiverVideoFile && !videoUrl) {
-                alert('Video upload failed. Please check your connection and try again.');
+                alert('Video upload failed: ' + (window._lastUploadError || 'unknown error') + '\n\nTry a shorter or smaller video.');
                 saveBtn.textContent = origText;
                 saveBtn.disabled = false;
                 return;
