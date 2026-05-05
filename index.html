@@ -1956,6 +1956,24 @@
         .tap-fc-photo img { width:100%; height:100%; object-fit:cover; display:block; }
         .tap-fc-photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
         .tap-fc-photo-grid .tap-fc-photo { aspect-ratio:1; }
+
+        /* Loading skeleton for stacked photos — preserves space while image streams from CDN */
+        .tap-photo-wrap { position:relative; cursor:pointer; border-radius:14px; overflow:hidden; min-height:200px; background:#F5EFE8; }
+        .tap-photo-wrap.loaded { min-height:0; }
+        .tap-photo-wrap::before {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(90deg, #F5EFE8 0%, #FAF6F0 50%, #F5EFE8 100%);
+            background-size:200% 100%;
+            animation:tap-photo-shimmer 1.4s ease-in-out infinite;
+            z-index:0;
+        }
+        .tap-photo-wrap.loaded::before { display:none; }
+        .tap-photo-wrap img, .tap-photo-wrap video { width:100%; height:auto; display:block; position:relative; z-index:1; opacity:0; transition:opacity 0.35s ease; }
+        .tap-photo-wrap.loaded img, .tap-photo-wrap.loaded video { opacity:1; }
+        @keyframes tap-photo-shimmer {
+            0%   { background-position:200% 0; }
+            100% { background-position:-200% 0; }
+        }
         .tap-fc-photo-count {
             position:absolute; bottom:10px; right:10px;
             background:rgba(0,0,0,0.5); color:white; font-size:12px;
@@ -8803,6 +8821,31 @@
     // Helper: append #t=0.1 so iOS Safari renders first frame as poster instead of black box
     function posterUrl(u) { return u ? (u + '#t=0.1') : u; }
 
+    // Retry once on CDN miss/cold-start; on second failure show a soft fallback so the user knows the photo exists
+    function tapMediaRetry(el) {
+        if (!el || el.dataset.retried) {
+            // Final fallback: keep the skeleton visible with a small inline note instead of a half-broken image
+            if (el && el.parentElement) {
+                el.parentElement.classList.remove('loaded');
+                el.parentElement.style.minHeight = '180px';
+                el.style.display = 'none';
+                if (!el.parentElement.querySelector('.tap-photo-fallback')) {
+                    var note = document.createElement('div');
+                    note.className = 'tap-photo-fallback';
+                    note.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9A8478;font-family:Caveat,cursive;font-size:1.05rem;z-index:2;text-align:center;padding:1rem;';
+                    note.textContent = 'Tap to retry photo';
+                    note.onclick = function(e){ e.stopPropagation(); el.dataset.retried=''; el.style.display=''; el.src = el.src.split('?')[0] + '?r=' + Date.now(); };
+                    el.parentElement.appendChild(note);
+                }
+            }
+            return;
+        }
+        el.dataset.retried = '1';
+        var orig = el.src;
+        // Tiny delay then refetch with cache-buster
+        setTimeout(function(){ el.src = orig.split('?')[0] + '?r=' + Date.now(); }, 400);
+    }
+
     function buildTapFullCard(thread) {
         const roleLabels={giver:'You gave a gift',receiver:'A gift you received',business:'A Business Memory',external:''};
         const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:''};
@@ -8844,9 +8887,9 @@
                     const url = m.url||m;
                     const isVid = m.type==='video';
                     if(isVid){
-                        return `<div style="position:relative;cursor:pointer;border-radius:14px;overflow:hidden;" onclick="openLightbox('${tid2}',${i})"><video src="${posterUrl(url)}" style="width:100%;height:auto;display:block;" playsinline preload="metadata"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;pointer-events:none;">▶</div></div>`;
+                        return `<div class="tap-photo-wrap" onclick="openLightbox('${tid2}',${i})"><video src="${posterUrl(url)}" playsinline preload="metadata" onloadeddata="this.parentElement.classList.add('loaded')" onerror="tapMediaRetry(this)"></video><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;pointer-events:none;z-index:2;">▶</div></div>`;
                     }
-                    return `<div style="cursor:pointer;border-radius:14px;overflow:hidden;" onclick="openLightbox('${tid2}',${i})"><img src="${url}" style="width:100%;height:auto;display:block;" alt=""></div>`;
+                    return `<div class="tap-photo-wrap" onclick="openLightbox('${tid2}',${i})"><img src="${url}" alt="" loading="eager" decoding="async" onload="this.parentElement.classList.add('loaded')" onerror="tapMediaRetry(this)"></div>`;
                 }).join('')
             }</div>`;
         }
