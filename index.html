@@ -6119,19 +6119,19 @@
     }
 
     var bizPhotoData = null;
-    var bizVideoData = null;
     var giverPhotoFiles = [];
-    var giverVideoData = null;
     var receiverPhotoData = null;
-    var receiverVideoData = null;
     
     // Keep original file references for storage upload
     var bizPhotoFileList = [];
     var bizVideoFile = null;
+    var bizVideoPreviewUrl = null;
     var giverPhotoFileList = [];
     var giverVideoFile = null;
+    var giverVideoPreviewUrl = null;
     var receiverPhotoFileList = [];
     var receiverVideoFile = null;
+    var receiverVideoPreviewUrl = null;
     
     // Compress image file — resizes to max 1200px and converts to JPEG at 80% quality
     function compressImage(file, maxWidth, quality) {
@@ -6352,13 +6352,10 @@
     function handleBizVideo(input) {
         if (input.files && input.files[0]) {
             bizVideoFile = input.files[0];
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                bizVideoData = e.target.result;
-                var preview = document.getElementById('qcBizVideoPreview');
-                preview.innerHTML = '<video src="' + e.target.result + '" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
-            };
-            reader.readAsDataURL(input.files[0]);
+            if (bizVideoPreviewUrl) { try { URL.revokeObjectURL(bizVideoPreviewUrl); } catch(e) {} }
+            bizVideoPreviewUrl = URL.createObjectURL(input.files[0]);
+            var preview = document.getElementById('qcBizVideoPreview');
+            preview.innerHTML = '<video src="' + bizVideoPreviewUrl + '" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
         }
     }
 
@@ -6387,15 +6384,13 @@
                     input.value = '';
                     return;
                 }
-                // Passed both checks — accept and preview
+                // Passed both checks — accept and preview using object URL (no base64 = no memory spike)
                 giverVideoFile = file;
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    giverVideoData = e.target.result;
-                    var preview = document.getElementById('qcGiverVideoPreview');
-                    preview.innerHTML = '<video src="' + e.target.result + '" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
-                };
-                reader.readAsDataURL(file);
+                // Revoke any prior preview URL before creating a new one
+                if (giverVideoPreviewUrl) { try { URL.revokeObjectURL(giverVideoPreviewUrl); } catch(e) {} }
+                giverVideoPreviewUrl = URL.createObjectURL(file);
+                var preview = document.getElementById('qcGiverVideoPreview');
+                preview.innerHTML = '<video src="' + giverVideoPreviewUrl + '" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
             };
             videoEl.onerror = function() {
                 URL.revokeObjectURL(objUrl);
@@ -6448,15 +6443,12 @@
                     input.value = '';
                     return;
                 }
-                // Passed both checks — accept and preview
+                // Passed both checks — accept and preview using object URL
                 receiverVideoFile = file;
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    receiverVideoData = e.target.result;
-                    var preview = document.getElementById('qcReceiverVideoPreview');
-                    preview.innerHTML = '<video src="' + e.target.result + '" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
-                };
-                reader.readAsDataURL(file);
+                if (receiverVideoPreviewUrl) { try { URL.revokeObjectURL(receiverVideoPreviewUrl); } catch(e) {} }
+                receiverVideoPreviewUrl = URL.createObjectURL(file);
+                var preview = document.getElementById('qcReceiverVideoPreview');
+                preview.innerHTML = '<video src="' + receiverVideoPreviewUrl + '" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
             };
             videoEl.onerror = function() {
                 URL.revokeObjectURL(objUrl);
