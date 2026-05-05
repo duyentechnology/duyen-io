@@ -6264,12 +6264,13 @@
                 // Use the actual MIME type from the recorder if available
                 var blobType = slot.recorder.mimeType || slot.mimeType || 'audio/mp4';
                 slot.blob = new Blob(slot.chunks, { type: blobType });
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    slot.dataUrl = e.target.result;
-                    showVoicePreview(role);
-                };
-                reader.readAsDataURL(slot.blob);
+                // Revoke any prior object URL before creating a new one (re-record case)
+                if (slot.dataUrl && slot.dataUrl.indexOf('blob:') === 0) {
+                    try { URL.revokeObjectURL(slot.dataUrl); } catch(e) {}
+                }
+                // Use object URL (tiny pointer) instead of base64 data URL (multi-MB string)
+                slot.dataUrl = URL.createObjectURL(slot.blob);
+                showVoicePreview(role);
             };
             
             slot.recorder.start();
@@ -6317,6 +6318,10 @@
     function deleteRecording(role) {
         var slot = voiceRecorders[role];
         if (slot) {
+            // Revoke object URL to free memory (only if it's a blob: URL)
+            if (slot.dataUrl && slot.dataUrl.indexOf('blob:') === 0) {
+                try { URL.revokeObjectURL(slot.dataUrl); } catch(e) {}
+            }
             slot.blob = null;
             slot.dataUrl = null;
             slot.chunks = [];
