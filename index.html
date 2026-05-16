@@ -5735,11 +5735,6 @@
         }
     }
 
-    function handleAppleAuth() {
-        console.log('🍎 Apple auth');
-        simulateAuthSuccess('Apple User');
-    }
-
     // ==========================================
     // SECURITY HELPERS
     // ==========================================
@@ -6137,7 +6132,6 @@
     }
 
     var bizPhotoData = null;
-    var giverPhotoFiles = [];
     var receiverPhotoData = null;
     
     // Keep original file references for storage upload
@@ -6868,7 +6862,6 @@
             giverPhotoFileList.push(file);
             var reader = new FileReader();
             reader.onload = function(e) {
-                giverPhotoFiles.push(e.target.result);
                 var img = document.createElement('img');
                 img.src = e.target.result;
                 img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:10px;border:2px solid var(--border-light);';
@@ -7571,85 +7564,6 @@
         setVerifyStatus('', '');
     }
 
-    function initCodeInputs() {
-        const inputs = getCodeInputs();
-
-        inputs.forEach((input, index) => {
-            // Only allow numbers
-            input.addEventListener('input', function(e) {
-                // Strip non-numeric
-                this.value = this.value.replace(/[^0-9]/g, '');
-
-                if (this.value.length === 1) {
-                    this.classList.add('filled');
-                    this.classList.remove('error');
-                    // Auto-advance
-                    if (index < 5) {
-                        inputs[index + 1].focus();
-                    } else {
-                        // Last digit entered — auto-verify
-                        this.blur();
-                        setTimeout(() => handleVerification(), 200);
-                    }
-                } else {
-                    this.classList.remove('filled');
-                }
-            });
-
-            // Backspace handling
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Backspace') {
-                    if (this.value === '' && index > 0) {
-                        // Move back to previous input
-                        inputs[index - 1].value = '';
-                        inputs[index - 1].classList.remove('filled');
-                        inputs[index - 1].focus();
-                        e.preventDefault();
-                    } else {
-                        this.classList.remove('filled');
-                    }
-                }
-
-                // Arrow key navigation
-                if (e.key === 'ArrowLeft' && index > 0) {
-                    inputs[index - 1].focus();
-                    e.preventDefault();
-                }
-                if (e.key === 'ArrowRight' && index < 5) {
-                    inputs[index + 1].focus();
-                    e.preventDefault();
-                }
-
-                // Enter to verify
-                if (e.key === 'Enter') {
-                    handleVerification();
-                }
-            });
-
-            // Select all on focus for easy replacement
-            input.addEventListener('focus', function() {
-                this.select();
-            });
-        });
-
-        // Paste support — paste full 6-digit code at once
-        inputs[0].addEventListener('paste', function(e) {
-            e.preventDefault();
-            const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
-            const digits = pasted.replace(/[^0-9]/g, '');
-
-            if (digits.length >= 6) {
-                inputs.forEach((input, i) => {
-                    input.value = digits[i] || '';
-                    if (input.value) input.classList.add('filled');
-                });
-                inputs[5].focus();
-                // Auto-verify after paste
-                setTimeout(() => handleVerification(), 300);
-            }
-        });
-    }
-
     // ==========================================
     // RESEND TIMER
     // ==========================================
@@ -7723,15 +7637,6 @@
         if (error) { alert('Error: ' + error.message); return; }
         alert('Password updated! You can now sign in on all your devices.');
         proceedAfterAuth();
-    }
-
-    function skipAuth() {
-        console.log('👤 Guest mode');
-        if (scannedQRData && currentRole) {
-            navigate('qrContent');
-        } else {
-            proceedAfterAuth();
-        }
     }
 
     function simulateAuthSuccess(user) {
@@ -8343,16 +8248,34 @@
     function handleMedia(input, type) {
         const container = document.getElementById(type + 'Previews');
         Array.from(input.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                mediaFiles[type].push({ name: file.name, data: e.target.result, type: file.type });
+            const isImage = file.type && file.type.startsWith('image/');
+
+            const finalizeAndPreview = (dataUrl, mimeType, fileName) => {
+                mediaFiles[type].push({ name: fileName, data: dataUrl, type: mimeType });
                 const div = document.createElement('div');
                 div.className = 'preview-item';
-                const tag = file.type.startsWith('image') ? 'img' : 'video';
-                div.innerHTML = `<${tag} src="${e.target.result}"></${tag}><button class="preview-remove" onclick="this.parentElement.remove()">×</button><div class="preview-badge">${file.type.startsWith('image') ? 'Photo' : 'Video'}</div>`;
+                const tag = mimeType.startsWith('image') ? 'img' : 'video';
+                div.innerHTML = `<${tag} src="${dataUrl}"></${tag}><button class="preview-remove" onclick="this.parentElement.remove()">×</button><div class="preview-badge">${mimeType.startsWith('image') ? 'Photo' : 'Video'}</div>`;
                 container.appendChild(div);
             };
-            reader.readAsDataURL(file);
+
+            if (isImage) {
+                // Resize before saving to DB (huge egress savings on phone photos)
+                compressImage(file, 1200, 0.82).then(resizedFile => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        finalizeAndPreview(e.target.result, resizedFile.type, resizedFile.name);
+                    };
+                    reader.readAsDataURL(resizedFile);
+                });
+            } else {
+                // Video/audio: store as-is (handled separately later)
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    finalizeAndPreview(e.target.result, file.type, file.name);
+                };
+                reader.readAsDataURL(file);
+            }
         });
     }
 
@@ -9207,22 +9130,6 @@
         document.getElementById('tapestryContainer').classList.add('tap-tapestryScreen-push','pushed');
         document.getElementById('tapDetailScreen').scrollTop=0;
         setTimeout(() => seekVideoThumbnails(container), 100);
-    }
-
-    function openTapRole(role,month) {
-        const roleLabels={giver:'🎁 Given',receiver:'💝 Received',business:'🏢 Business',external:''};
-        const items=userThreads.filter(t=>t.role===role&&tapGetMonthKey(t.date)===month).sort((a,b)=>new Date(b.date)-new Date(a.date));
-        document.getElementById('tapDetailTitle').textContent=roleLabels[role]||role;
-        document.getElementById('tapDetailSub').textContent=`${month} · ${items.length} memor${items.length===1?'y':'ies'}`;
-        const container=document.getElementById('tapDetailCards'); container.innerHTML='';
-        const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
-        items.forEach(t=>wrap.appendChild(buildTapFullCard(t))); container.appendChild(wrap);
-        // Hide ✏️ edit toggle for gift QRs
-        const editBtn = document.getElementById('tapEditBtn');
-        if (editBtn) editBtn.style.display = (role === 'external') ? '' : 'none';
-        document.getElementById('tapDetailScreen').classList.add('open');
-        document.getElementById('tapestryContainer').classList.add('tap-tapestryScreen-push','pushed');
-        document.getElementById('tapDetailScreen').scrollTop=0;
     }
 
     function closeTapDetail() {
