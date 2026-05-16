@@ -9789,12 +9789,21 @@
     function openLightbox(threadId, idx) {
         const thread = userThreads.find(t => t.id === threadId);
         if (!thread) return;
-        let media = (thread.media && thread.media.length > 0)
-            ? thread.media
-            : (thread.photos || []).map(u => ({ type: 'image', url: u }));
-        // Match buildTapFullCard: append giver/business video at the end if not already in media
-        if (thread.video && !media.some(m => (m.url||m) === thread.video)) {
-            media = [...media, {type:'video', url:thread.video}];
+        // Build media exactly the way buildTapFullCard does, so the tapped index
+        // matches the item shown in the card strip
+        let media;
+        if (thread.role === 'giver' || thread.role === 'receiver' || thread.role === 'business') {
+            const cleanPhotos = (thread.giverPhotos && thread.giverPhotos.length) ? thread.giverPhotos : [];
+            media = cleanPhotos.map(url => ({type:'image', url}));
+            if (thread.giverVideo && !media.some(m => (m.url||m) === thread.giverVideo)) {
+                media = [...media, {type:'video', url: thread.giverVideo}];
+            }
+        } else {
+            const photos = thread.photos || [];
+            media = (thread.media && thread.media.length > 0) ? thread.media : photos.map(u => ({ type: 'image', url: u }));
+            if (thread.video && !media.some(m => (m.url||m) === thread.video)) {
+                media = [...media, {type:'video', url: thread.video}];
+            }
         }
         if (!media.length) return;
 
