@@ -8883,6 +8883,20 @@
                 </button>
             </div>` : '';
 
+        // Favicon link card — visual stand-in when external scan has no photo/video
+        const linkCardHtml = (thread.role === 'external' && media.length === 0 && thread.externalUrl) ? (function(){
+            let domain = '';
+            try { domain = new URL(thread.externalUrl).hostname.replace(/^www\./,''); } catch(e) { domain = thread.externalUrl; }
+            const safeDomain = domain.replace(/</g,'&lt;');
+            return `<a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" style="display:flex;flex-direction:column;align-items:center;gap:12px;background:white;border:1px solid #EEE7E1;border-radius:14px;padding:22px 18px;margin:0 0 0.75rem;box-shadow:0 1px 8px rgba(0,0,0,0.06);text-decoration:none;cursor:pointer;">
+                <div style="width:72px;height:72px;border-radius:16px;background:#F7F1EC;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;">
+                    <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none';">
+                </div>
+                <div style="font-family:'DM Sans',sans-serif;font-weight:500;font-size:16px;color:#3D2E24;letter-spacing:0.01em;word-break:break-all;text-align:center;">${safeDomain}</div>
+                <div style="font-size:11px;color:#8B3A7F;letter-spacing:0.12em;text-transform:uppercase;font-weight:500;">tap to open</div>
+            </a>`;
+        })() : '';
+
         // Editable field helper
         const isGiftQR = (thread.role === 'giver' || thread.role === 'receiver' || thread.role === 'business');
         const editField = (fieldId, label, value, fieldKey) => {
@@ -8977,6 +8991,7 @@
 
             <!-- Photos / videos / voice -->
             ${photoHtml}
+            ${linkCardHtml}
             ${voiceHtml}
 
             <!-- "from" attribution (small, below media) -->
