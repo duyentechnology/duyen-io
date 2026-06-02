@@ -8622,6 +8622,9 @@
                 const caption=tapPhotoCaption(thread);
                 // External scan with no photo but with a note → show the note as the visual and the domain as the caption
                 const isExternalNote = thread.role==='external' && !hasPhoto && thread.message;
+                // Link preview image (from Edge Function) — treat as photo when present
+                const linkImage = thread.linkMeta && thread.linkMeta.image ? thread.linkMeta.image : null;
+                const hasLinkImage = !!linkImage && !hasPhoto;
                 let extDomain = '';
                 if (isExternalNote && thread.externalUrl) {
                     try { extDomain = new URL(thread.externalUrl).hostname.replace(/^www\./,''); } catch(e) {}
@@ -8634,12 +8637,14 @@
                     ${isNew?'<div class="tap-col-new">new</div>':''}
                     ${hasPhoto
                         ? `<div class="tap-col-photo"><img src="${thread.photos[0]}" alt="${caption}" loading="lazy"></div>`
-                        : isExternalNote
-                            ? `<div class="tap-col-note">"${thread.message}"</div>`
-                            : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
+                        : hasLinkImage
+                            ? `<div class="tap-col-photo"><img src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
+                            : isExternalNote
+                                ? `<div class="tap-col-note">"${thread.message}"</div>`
+                                : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
                     }
                     <div class="tap-col-body">
-                        <div class="tap-col-caption">${isExternalNote && extDomain ? extDomain : caption}</div>
+                        <div class="tap-col-caption">${isExternalNote && !hasLinkImage && extDomain ? extDomain : caption}</div>
                         <div class="tap-col-date">${date}</div>
                     </div>`;
                 scroll.appendChild(div);
@@ -8904,29 +8909,53 @@
         card.className='tap-full-card';
         card.dataset.threadId = thread.id;
         const tid = thread.id;
-        const linkHtml = thread.externalUrl ? `
-            <div class="tap-fc-link-row">
-                <a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" class="tap-fc-link-btn">
+        const linkHtml = thread.externalUrl ? (function(){
+            const hasRich = thread.linkMeta && thread.linkMeta.image;
+            const safeTitle = (thread.title || '').replace(/'/g, "\\'");
+            const openBtn = hasRich ? '' : `<a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" class="tap-fc-link-btn">
                     🔗 Open Link
-                </a>
-                <button class="tap-fc-link-btn" onclick="shareExternalLink('${thread.externalUrl}', '${thread.title.replace(/'/g, "\\'")}')">
+                </a>`;
+            return `<div class="tap-fc-link-row">
+                ${openBtn}
+                <button class="tap-fc-link-btn" onclick="shareExternalLink('${thread.externalUrl}', '${safeTitle}')">
                     ↗ Share
                 </button>
-            </div>` : '';
+            </div>`;
+        })() : '';
 
-        // Favicon link card — visual stand-in when external scan has no photo/video
-        const linkCardHtml = (thread.role === 'external' && media.length === 0 && thread.externalUrl) ? (function(){
+        // Link card: rich preview when link_meta exists, favicon tile as fallback
+        const linkCardHtml = (function(){
+            const lm = thread.linkMeta;
+            const hasRich = lm && lm.image;
+            const hasFav  = thread.role === 'external' && media.length === 0 && thread.externalUrl;
+            if (!hasRich && !hasFav) return '';
+            const targetUrl = (lm && lm.resolved_url) || thread.externalUrl;
             let domain = '';
-            try { domain = new URL(thread.externalUrl).hostname.replace(/^www\./,''); } catch(e) { domain = thread.externalUrl; }
-            const safeDomain = domain.replace(/</g,'&lt;');
-            return `<a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" style="display:flex;flex-direction:column;align-items:center;gap:12px;background:white;border:1px solid #EEE7E1;border-radius:14px;padding:22px 18px;margin:0 0 0.75rem;box-shadow:0 1px 8px rgba(0,0,0,0.06);text-decoration:none;cursor:pointer;">
+            try { domain = new URL(targetUrl).hostname.replace(/^www\./,''); } catch(e) { domain = targetUrl || ''; }
+            const safeDomain = domain.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const esc = (s) => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            if (hasRich) {
+                const title = esc(lm.title);
+                const desc  = esc(lm.description);
+                const imgUrl = (lm.image || '').replace(/'/g,"\\'");
+                return `<a href="${esc(targetUrl)}" target="_blank" rel="noopener noreferrer" style="display:block;background:white;border:1px solid #EEE7E1;border-radius:14px;overflow:hidden;margin:0 0 0.75rem;box-shadow:0 1px 8px rgba(0,0,0,0.08);text-decoration:none;">
+                    <div style="width:100%;aspect-ratio:1.91/1;background:#F7F1EC center/cover no-repeat;background-image:url('${imgUrl}');"></div>
+                    <div style="padding:12px 14px 14px;">
+                        ${title ? `<div style="font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-weight:600;font-size:15px;color:#2E2A28;line-height:1.3;margin-bottom:4px;">${title}</div>` : ''}
+                        ${desc  ? `<div style="font-size:12px;color:#6B5751;line-height:1.45;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${desc}</div>` : ''}
+                        <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#8B3A7F;font-weight:500;">${safeDomain}</div>
+                    </div>
+                </a>`;
+            }
+            // Favicon fallback
+            return `<a href="${esc(thread.externalUrl)}" target="_blank" rel="noopener noreferrer" style="display:flex;flex-direction:column;align-items:center;gap:12px;background:white;border:1px solid #EEE7E1;border-radius:14px;padding:22px 18px;margin:0 0 0.75rem;box-shadow:0 1px 8px rgba(0,0,0,0.06);text-decoration:none;cursor:pointer;">
                 <div style="width:72px;height:72px;border-radius:16px;background:#F7F1EC;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;">
                     <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none';">
                 </div>
                 <div style="font-family:'DM Sans',sans-serif;font-weight:500;font-size:16px;color:#3D2E24;letter-spacing:0.01em;word-break:break-all;text-align:center;">${safeDomain}</div>
                 <div style="font-size:11px;color:#8B3A7F;letter-spacing:0.12em;text-transform:uppercase;font-weight:500;">tap to open</div>
             </a>`;
-        })() : '';
+        })();
 
         // Editable field helper
         const isGiftQR = (thread.role === 'giver' || thread.role === 'receiver' || thread.role === 'business');
@@ -9028,7 +9057,7 @@
             <!-- "from" attribution (small, below media) -->
             ${thread.role === 'external' && (!thread.from || thread.from === 'Scanned QR') ? '' : `<div style="text-align: center; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; color: #6B5751;">${fromPrefixes[thread.role]||'from'} <span style="color:#8B3A7F;font-weight:500;">${thread.from}</span></div>`}
 
-            ${thread.externalUrl ? editField('url','Link',thread.externalUrl,'url') : ''}
+            ${(thread.externalUrl && !(thread.linkMeta && thread.linkMeta.image)) ? editField('url','Link',thread.externalUrl,'url') : ''}
             ${linkHtml}
 
             <!-- Date — postmark style at the bottom -->
