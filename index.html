@@ -5144,6 +5144,7 @@
                     role: entry.role,
                     externalUrl: (entry.role === 'external') ? (entry.note || qr.url || null) : null,
                     media: (qr.media && qr.media.length > 0) ? qr.media : null,
+                    linkMeta: qr.link_meta || null,
                     receiverResponse: receiverResponse,
                     businessInfo: bizData || null,
                     recipientName: (giverData && giverData.recipient_name) || null,
@@ -5689,6 +5690,19 @@
             }
 
             console.log('📌 External scan saved to Supabase:', data);
+
+            // Capture link metadata in background — resolves redirects (qrco.de → real URL),
+            // fetches page title + og:image. Fire-and-forget: failures never block the save.
+            if (data && data[0] && urlToSave) {
+                _supabase.functions.invoke('resolve-link', {
+                    body: { id: data[0].id, url: urlToSave }
+                }).then(function(r){
+                    if (r && r.error) console.log('🔗 resolve-link error:', r.error.message || r.error);
+                    else console.log('🔗 resolve-link ok');
+                }).catch(function(err){
+                    console.log('🔗 resolve-link skipped:', err && err.message);
+                });
+            }
 
             // Also add to tapestry so it shows in the collection
             if (data && data[0]) {
