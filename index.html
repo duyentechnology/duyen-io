@@ -2094,11 +2094,11 @@
             font-size:1.25rem; color:#3a2a2e; line-height:1.7;
         }
         .tap-fc-date  {
-            font-family:'Courier New',Courier,monospace; font-size:13px; color:#2E2A28;
+            font-family:'Courier New',Courier,monospace; font-size:17px; color:#2E2A28;
             letter-spacing:0.18em; margin-top:1rem; text-align:right; padding-bottom:1rem;
         }
         .tap-fc-date-time {
-            font-family:'Courier New',Courier,monospace; font-size:10px; color:#4A4542;
+            font-family:'Courier New',Courier,monospace; font-size:13px; color:#4A4542;
             letter-spacing:0.22em; text-align:right; margin-top:2px;
         }
         /* Voice note player */
@@ -3418,7 +3418,7 @@
                     <!-- Plum gradient divider with "message back" -->
                     <div style="padding: 2rem 0 1.5rem; display: flex; align-items: center; gap: 14px;">
                         <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>
-                        <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 0.85rem; color: #8B3A7F; letter-spacing: 0.04em; white-space: nowrap;">message back</div>
+                        <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: #8B3A7F; letter-spacing: 0.04em; white-space: nowrap;">message back</div>
                         <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>
                     </div>
 
@@ -8966,11 +8966,11 @@
         <div class="tap-fc-body">
             ${thread.isFavorite ? '<div class="tap-fc-role">⭐</div>' : ''}
 
-            <!-- For [recipient] header — matched to live scan view -->
-            <div style="text-align: center; padding: 1.5rem 0 1.25rem;">
+            <!-- For [recipient] header — matched to live scan view (hidden for external scans) -->
+            ${thread.role === 'external' ? '' : `<div style="text-align: center; padding: 1.5rem 0 1.25rem;">
                 <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.4rem; color: #6B5751; margin-bottom: 0.4rem; letter-spacing: 0.01em;">For</div>
                 <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3.5rem; color: #2E2A28; line-height: 1; letter-spacing: 0.04em;">${recipientName}</div>
-            </div>
+            </div>`}
 
             <!-- Original message — italic serif, no sandy box -->
             <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.giverMessage || thread.message || ''}</div>
@@ -8980,7 +8980,7 @@
             ${voiceHtml}
 
             <!-- "from" attribution (small, below media) -->
-            ${thread.role === 'external' && (!thread.from || thread.from === 'Scanned QR') ? '' : `<div style="text-align: center; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: #6B5751;">${fromPrefixes[thread.role]||'from'} <span style="color:#8B3A7F;font-weight:500;">${thread.from}</span></div>`}
+            ${thread.role === 'external' && (!thread.from || thread.from === 'Scanned QR') ? '' : `<div style="text-align: center; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; color: #6B5751;">${fromPrefixes[thread.role]||'from'} <span style="color:#8B3A7F;font-weight:500;">${thread.from}</span></div>`}
 
             ${thread.externalUrl ? editField('url','Link',thread.externalUrl,'url') : ''}
             ${linkHtml}
@@ -9077,7 +9077,7 @@
             // Plum gradient divider with "message back" — matched to qcReceiverResponse
             '<div style="padding: 2rem 0 1.5rem; display: flex; align-items: center; gap: 14px;">' +
                 '<div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>' +
-                '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-size: 0.85rem; color: #8B3A7F; letter-spacing: 0.04em; white-space: nowrap;">message back</div>' +
+                '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-size: 1.05rem; color: #8B3A7F; letter-spacing: 0.04em; white-space: nowrap;">message back</div>' +
                 '<div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>' +
             '</div>' +
             // "From [name]" header (mirrors For/name treatment)
