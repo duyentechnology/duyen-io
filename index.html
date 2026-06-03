@@ -5939,11 +5939,7 @@
 
         // Build detail rows — only show fields that exist
         var details = '';
-        if (biz.phone)   details += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;"><div style="width:38px;height:38px;border-radius:50%;background:#EDE8E4;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">📞</div><span style="font-size:16px;color:#6B5751;">' + biz.phone + '</span></div>';
-        if (biz.email)   details += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;"><div style="width:38px;height:38px;border-radius:50%;background:#EDE8E4;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">✉️</div><a href="mailto:' + biz.email + '" style="font-size:16px;color:#8B3A7F;text-decoration:none;">' + biz.email + '</a></div>';
-        if (biz.website) details += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;"><div style="width:38px;height:38px;border-radius:50%;background:#EDE8E4;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">🌐</div><a href="' + biz.website + '" target="_blank" style="font-size:16px;color:#8B3A7F;text-decoration:none;">' + biz.website.replace(/^https?:\/\//,'') + '</a></div>';
         var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
-        if (addr) details += '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;"><div style="width:38px;height:38px;border-radius:50%;background:#EDE8E4;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">📍</div><span style="font-size:16px;color:#6B5751;">' + addr + '</span></div>';
 
         // --- Persistent header icon row: social icons (brand colors) + call + navigate (plum) ---
         var soc = biz.social || {};
@@ -8945,11 +8941,7 @@
             var biz = thread.businessInfo;
             var bizDetails = '';
             if (biz.description) bizDetails += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:0.95rem;color:#5D4E44;line-height:1.7;margin-bottom:10px;">\u201C'+biz.description+'\u201D</div>';
-            if (biz.phone) bizDetails += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="font-size:14px;">P</span><span style="font-size:0.88rem;color:#6B5751;">'+biz.phone+'</span></div>';
-            if (biz.email) bizDetails += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="font-size:14px;">@</span><a href="mailto:'+biz.email+'" style="font-size:0.88rem;color:#8B3A7F;text-decoration:none;">'+biz.email+'</a></div>';
-            if (biz.website) bizDetails += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="font-size:14px;">W</span><a href="'+biz.website+'" target="_blank" style="font-size:0.88rem;color:#8B3A7F;text-decoration:none;">'+biz.website.replace(/^https?:\/\//,'')+'</a></div>';
             var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
-            if (addr) bizDetails += '<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:14px;">L</span><span style="font-size:0.88rem;color:#6B5751;">'+addr+'</span></div>';
             // Icon row: social icons (brand colors) + call + navigate (plum) — matches first-scan header
             var soc = biz.social || {};
             var socialDefs = [
