@@ -1705,13 +1705,21 @@
         }
         .tap-col-note {
             width:100%; aspect-ratio:1;
-            display:flex; align-items:center; justify-content:center;
-            padding:14px; box-sizing:border-box;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            gap:10px;
+            padding:12px; box-sizing:border-box;
             font-family:'Crimson Pro','Playfair Display',Georgia,serif;
             font-style:italic; font-size:13px; line-height:1.4;
             color:#3D2E24; text-align:center; background:#FBF8F4;
             overflow:hidden;
         }
+        .tap-col-note-fav {
+            width:34px; height:34px; border-radius:8px; background:white;
+            display:flex; align-items:center; justify-content:center;
+            padding:5px; box-sizing:border-box; box-shadow:0 1px 3px rgba(0,0,0,0.06);
+            flex-shrink:0;
+        }
+        .tap-col-note-fav img { width:100%; height:100%; object-fit:contain; }
         .tap-col-body { padding:10px 6px 14px; }
         .tap-col-caption {
             font-family:'Caveat',cursive; font-size:16px;
@@ -8590,7 +8598,7 @@
                         : hasLinkImage
                             ? `<div class="tap-col-photo"><img src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
                             : isExternalNote
-                                ? `<div class="tap-col-note">"${thread.message}"</div>`
+                                ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                                 : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
                     }
                     <div class="tap-col-body">
@@ -8714,13 +8722,17 @@
                 const linkImage = (t.linkMeta && t.linkMeta.image) ? t.linkMeta.image : null;
                 const hasLinkImage = !!linkImage && !hasPhoto;
                 const isExternalNote = t.role === 'external' && !hasPhoto && !hasLinkImage && t.message;
+                let extDomain = '';
+                if (isExternalNote && t.externalUrl) {
+                    try { extDomain = new URL(t.externalUrl).hostname.replace(/^www\./,''); } catch(e) {}
+                }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
                 const visual = hasPhoto
                     ? `<img src="${t.photos[0]}" alt="${safeTitle}" loading="lazy">`
                     : hasLinkImage
                         ? `<div style="width:100%;height:100%;background:#f5f0eb center/cover no-repeat;background-image:url('${linkImage.replace(/'/g,"\\'")}');"></div>`
                         : isExternalNote
-                            ? `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#FBF8F4;padding:14px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">"${t.message}"</div>`
+                            ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
                             : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
                 return `<div class="tap-polaroid" data-thread-id="${t.id}">
                     <div class="tap-polaroid-img">${visual}</div>
@@ -9394,10 +9406,14 @@
                 const linkImage = (thread.linkMeta && thread.linkMeta.image) ? thread.linkMeta.image : null;
                 const hasLinkImage = !!linkImage;
                 const isExternalNote = thread.role === 'external' && !hasLinkImage && thread.message;
+                let extDomain = '';
+                if (isExternalNote && thread.externalUrl) {
+                    try { extDomain = new URL(thread.externalUrl).hostname.replace(/^www\./,''); } catch(e) {}
+                }
                 const visual = hasLinkImage
                     ? `<div class="thread-card-image" style="background:#f5f0eb center/cover no-repeat;background-image:url('${linkImage.replace(/'/g,"\\'")}');"></div>`
                     : isExternalNote
-                        ? `<div class="thread-card-image" style="background:#FBF8F4;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:14px;line-height:1.45;color:#3D2E24;text-align:center;overflow:hidden;">"${thread.message}"</div>`
+                        ? `<div class="thread-card-image" style="background:#FBF8F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:14px;line-height:1.45;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:40px;height:40px;border-radius:9px;background:white;display:flex;align-items:center;justify-content:center;padding:6px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                         : `<div class="thread-card-image" style="background:#f5f0eb;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">${thread.icon||'🧵'}</div>`;
                 const bodyMsg = isExternalNote ? '' : (thread.message || '');
                 card.innerHTML = `
