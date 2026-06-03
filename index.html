@@ -7158,6 +7158,7 @@
                         role: 'receiver',
                         title: title
                     }).select();
+                    incrementSaveCount(scannedQRData.id);
                 }
             }
             updateReceiverPromptState(true);
@@ -7269,7 +7270,7 @@
                             title: tapTitle
                         });
                         if (tapErr) console.error('Tapestry insert error:', tapErr);
-                        else console.log('🧵 Receiver tapestry saved');
+                        else { console.log('🧵 Receiver tapestry saved'); incrementSaveCount(scannedQRData.id); }
                     } else {
                         console.log('🧵 Already in receiver tapestry');
                     }
@@ -7286,6 +7287,18 @@
             saveBtn.textContent = origText;
             saveBtn.disabled = false;
         }
+    }
+
+    // Increment qr_codes.save_count when a customer saves the QR to their tapestry
+    // (mirrors how scan_count is updated on scan — used by dayduyen.tech dashboard display)
+    async function incrementSaveCount(qrId) {
+        if (!qrId) return;
+        try {
+            var { data } = await _supabase.from('qr_codes').select('save_count').eq('id', qrId).single();
+            if (data) {
+                await _supabase.from('qr_codes').update({ save_count: (data.save_count || 0) + 1 }).eq('id', qrId);
+            }
+        } catch(e) { console.warn('incrementSaveCount error:', e); }
     }
 
     async function saveToTapestry() {
