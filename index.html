@@ -475,30 +475,6 @@
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
-        .demo-code-hint {
-            background: linear-gradient(135deg, #fffbf0, #fff8f0);
-            border: 1px dashed var(--golden-thread);
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
-            margin: 1.25rem 0;
-            font-size: 0.85rem;
-            color: var(--warm-brown);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .demo-code-hint code {
-            background: white;
-            padding: 0.2rem 0.6rem;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 1rem;
-            letter-spacing: 0.15em;
-            color: var(--brand-red);
-            border: 1px solid var(--border-light);
-        }
-
         .verify-success-overlay {
             position: absolute;
             inset: 0;
@@ -3765,12 +3741,6 @@
             <p class="subtitle" style="margin-bottom: 0.5rem;">We sent a 6-digit verification code to</p>
             <p style="font-weight: 700; color: var(--text-primary); font-size: 1.05rem; margin-bottom: 0.25rem;" id="verifyEmailDisplay"></p>
 
-            <!-- Demo hint (remove in production) -->
-            <div class="demo-code-hint">
-                <span>🧪</span>
-                <span>Demo mode — use code <code id="demoCodeDisplay">123456</code></span>
-            </div>
-
             <!-- Code inputs -->
             <div class="code-inputs" id="codeInputs">
                 <input type="text" inputmode="numeric" class="code-input" maxlength="1" id="code1" autocomplete="one-time-code">
@@ -4930,8 +4900,6 @@
     }
 
     // Tapestry data (user's saved threads)
-    const sampleThreads = [];
-
     let userThreads = [];
     
     // Load tapestry from database
@@ -7646,9 +7614,6 @@
         verificationCode = generateCode();
         verifyAttempts = 0;
         console.log('📧 New verification code "sent":', verificationCode);
-
-        // Update demo hint
-        document.getElementById('demoCodeDisplay').textContent = verificationCode;
 
         // Clear inputs
         clearCodeInputs();
