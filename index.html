@@ -5111,6 +5111,7 @@
                     externalUrl: (entry.role === 'external') ? (entry.note || qr.url || null) : null,
                     media: (qr.media && qr.media.length > 0) ? qr.media : null,
                     linkMeta: qr.link_meta || null,
+                    promotion: qr.promotion || null,
                     receiverResponse: receiverResponse,
                     businessInfo: bizData || null,
                     recipientName: (giverData && giverData.recipient_name) || null,
@@ -8941,6 +8942,27 @@
             var biz = thread.businessInfo;
             var bizDetails = '';
             if (biz.description) bizDetails += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:0.95rem;color:#5D4E44;line-height:1.7;margin-bottom:10px;">\u201C'+biz.description+'\u201D</div>';
+            // Active promotion (pushed from dayduyen.tech) — only shows when present
+            if (thread.promotion && thread.promotion.text) {
+                var promoPushed = thread.promotion.pushedAt ? new Date(thread.promotion.pushedAt) : null;
+                var promoTimeAgo = '';
+                if (promoPushed && !isNaN(promoPushed)) {
+                    var diffMs = Date.now() - promoPushed.getTime();
+                    var diffDays = Math.floor(diffMs / 86400000);
+                    var diffHours = Math.floor(diffMs / 3600000);
+                    promoTimeAgo = diffDays > 0 ? (diffDays + ' day' + (diffDays === 1 ? '' : 's') + ' ago')
+                                 : diffHours > 0 ? (diffHours + ' hr' + (diffHours === 1 ? '' : 's') + ' ago')
+                                 : 'just now';
+                }
+                var bizLabel = biz.name ? ('Now at ' + biz.name) : 'Currently';
+                bizDetails += '<div style="background:#fff;border-left:3px solid #8B3A7F;border-radius:0 8px 8px 0;padding:10px 12px;margin-top:10px;">'
+                    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
+                        + '<span style="font-size:9px;letter-spacing:0.18em;color:#8B3A7F;font-weight:600;text-transform:uppercase;">' + bizLabel + '</span>'
+                        + (promoTimeAgo ? '<span style="font-size:10px;color:#9A8478;margin-left:auto;">' + promoTimeAgo + '</span>' : '')
+                    + '</div>'
+                    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:14px;color:#3D2E24;line-height:1.4;font-style:italic;">\u201C' + thread.promotion.text + '\u201D</div>'
+                + '</div>';
+            }
             var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
             // Icon row: social icons (brand colors) + call + navigate (plum) — matches first-scan header
             var soc = biz.social || {};
