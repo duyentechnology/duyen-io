@@ -8961,6 +8961,13 @@
                         + (promoTimeAgo ? '<span style="font-size:10px;color:#9A8478;margin-left:auto;">' + promoTimeAgo + '</span>' : '')
                     + '</div>'
                     + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:14px;color:#3D2E24;line-height:1.4;font-style:italic;">\u201C' + thread.promotion.text + '\u201D</div>'
+                    + (thread.promotion.photos && thread.promotion.photos.length > 0
+                        ? '<div style="display:flex;gap:6px;margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">' +
+                            thread.promotion.photos.slice(0, 5).map(function(url) {
+                                return '<div style="flex:0 0 auto;width:78px;height:78px;border-radius:8px;overflow:hidden;background:#f5f0eb center/cover no-repeat;background-image:url(\'' + url.replace(/'/g, "\\'") + '\');"></div>';
+                            }).join('') +
+                          '</div>'
+                        : '')
                 + '</div>';
             }
             var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
