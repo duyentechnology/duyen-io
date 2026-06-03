@@ -2237,16 +2237,6 @@
             padding: 0.75rem 0.85rem 1.1rem;
             background: white;
         }
-        /* colored body (note cards) */
-        .thread-card-body.body-color {
-            padding: 1rem 0.9rem 1.3rem;
-        }
-        .thread-card-body.body-color .thread-card-title { color: white; }
-        .thread-card-body.body-color .thread-card-msg   { color: rgba(255,255,255,0.88); font-family: 'Caveat', cursive; font-size: 0.98rem; line-height: 1.7; -webkit-line-clamp: 5; }
-        .thread-card-body.body-color .thread-card-from  { color: rgba(255,255,255,0.68); }
-        .thread-card-body.body-color .thread-card-footer { color: rgba(255,255,255,0.5); border-top-color: rgba(255,255,255,0.15); }
-        .thread-card-body.body-color .thread-card-category { background: rgba(255,255,255,0.22) !important; color: white !important; border-color: rgba(255,255,255,0.3) !important; }
-        .thread-card-body.body-color .media-chip { background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.9); }
 
         .thread-card-category {
             display: inline-block;
@@ -8579,11 +8569,6 @@
         return months;
     }
 
-    function tapRolePalette(role) {
-        const p={receiver:['#C8406A','#D4503C','#B83858'],giver:['#3A8C48','#B87828','#5A8060'],business:['#4888C0','#5848A8','#2878A0'],external:['#8B5E3C','#6B7280','#7C4D3A']};
-        return p[role]||p.external;
-    }
-
     function tapPhotoCaption(thread) {
         // Generate old-school photo caption from thread data
         const name = (thread.from && thread.from !== 'You' && thread.from !== 'Someone special') ? thread.from : null;
@@ -8761,15 +8746,19 @@
             const polaroidsHtml = monthThreads.map((t, i) => {
                 const date = tapDateShort(t.date);
                 const hasPhoto = t.photos && t.photos.length > 0;
-                const pal = tapRolePalette(t.role);
-                const bgColor = pal[i % pal.length];
+                const linkImage = (t.linkMeta && t.linkMeta.image) ? t.linkMeta.image : null;
+                const hasLinkImage = !!linkImage && !hasPhoto;
+                const isExternalNote = t.role === 'external' && !hasPhoto && !hasLinkImage && t.message;
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
+                const visual = hasPhoto
+                    ? `<img src="${t.photos[0]}" alt="${safeTitle}" loading="lazy">`
+                    : hasLinkImage
+                        ? `<div style="width:100%;height:100%;background:#f5f0eb center/cover no-repeat;background-image:url('${linkImage.replace(/'/g,"\\'")}');"></div>`
+                        : isExternalNote
+                            ? `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#FBF8F4;padding:14px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">"${t.message}"</div>`
+                            : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
                 return `<div class="tap-polaroid" data-thread-id="${t.id}">
-                    <div class="tap-polaroid-img">${
-                        hasPhoto
-                          ? `<img src="${t.photos[0]}" alt="${safeTitle}" loading="lazy">`
-                          : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${bgColor};">${t.icon||'🧵'}</div>`
-                    }</div>
+                    <div class="tap-polaroid-img">${visual}</div>
                     <div class="tap-polaroid-caption">${tapPhotoCaption(t)}</div>
                     <div class="tap-polaroid-date">${date}</div>
                 </div>`;
@@ -9437,17 +9426,28 @@
                         </div>
                     </div>`;
             } else {
+                const linkImage = (thread.linkMeta && thread.linkMeta.image) ? thread.linkMeta.image : null;
+                const hasLinkImage = !!linkImage;
+                const isExternalNote = thread.role === 'external' && !hasLinkImage && thread.message;
+                const visual = hasLinkImage
+                    ? `<div class="thread-card-image" style="background:#f5f0eb center/cover no-repeat;background-image:url('${linkImage.replace(/'/g,"\\'")}');"></div>`
+                    : isExternalNote
+                        ? `<div class="thread-card-image" style="background:#FBF8F4;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:14px;line-height:1.45;color:#3D2E24;text-align:center;overflow:hidden;">"${thread.message}"</div>`
+                        : `<div class="thread-card-image" style="background:#f5f0eb;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">${thread.icon||'🧵'}</div>`;
+                const bodyMsg = isExternalNote ? '' : (thread.message || '');
                 card.innerHTML = `
                     <div class="thread-card-inner">
-                        <div class="thread-card-body body-color" style="background:${cardColor};">
-                            <span class="thread-card-category">
+                        <div class="thread-card-edge" style="background:${cardColor};"></div>
+                        ${visual}
+                        <div class="thread-card-body">
+                            <span class="thread-card-category" style="background:${cardColor}18; color:${cardColor}; border:1px solid ${cardColor}35;">
                                 ${roleLabel}${thread.isFavorite ? ' ⭐' : ''}
                             </span>
                             <div class="thread-card-title">${thread.title}</div>
                             <div class="thread-card-from">${thread.from}</div>
-                            <div class="thread-card-msg">${thread.message || ''}</div>
+                            <div class="thread-card-msg">${bodyMsg}</div>
                             ${mediaChips ? `<div style="margin-top:0.4rem;">${mediaChips}</div>` : ''}
-                            <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag" style="background:rgba(255,255,255,0.18);color:white;">${t}</span>`).join('')}</div>
+                            <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
                             <div class="thread-card-footer"><span>${date}</span></div>
                         </div>
                     </div>`;
