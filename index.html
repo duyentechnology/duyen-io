@@ -2399,6 +2399,80 @@
             box-shadow: 0 8px 32px rgba(139, 58, 127, 0.45);
         }
 
+        .fab-menu {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 16px;
+        }
+        .fab-menu .fab {
+            position: static;
+            bottom: auto;
+            right: auto;
+        }
+        .fab-main-toggle {
+            font-size: 2.6rem;
+            line-height: 1;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .fab-menu.open .fab-main-toggle {
+            transform: rotate(45deg);
+        }
+        .fab-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 14px;
+            opacity: 0;
+            transform: translateY(12px) scale(0.95);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .fab-menu.open .fab-actions {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .fab-action {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        .fab-action-label {
+            background: var(--surface, #FAF7F2);
+            color: var(--text-primary, #1C1410);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 7px 13px;
+            border-radius: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.14);
+            white-space: nowrap;
+        }
+        .fab-action-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            box-shadow: 0 4px 16px rgba(139, 58, 127, 0.28);
+            transition: transform 0.2s;
+        }
+        .fab-action:hover .fab-action-btn {
+            transform: scale(1.08);
+        }
+
 
         /* =============================================
            ABOUT SCREEN
@@ -4483,8 +4557,20 @@
 
     </div>
 
-    <!-- FAB -->
-    <button class="fab" onclick="openScanner()" title="Scan QR Code">📸</button>
+    <!-- FAB menu -->
+    <div class="fab-menu" id="fabMenu">
+        <div class="fab-actions" id="fabActions">
+            <button class="fab-action" onclick="openAddMemory()">
+                <span class="fab-action-label">Add a memory</span>
+                <span class="fab-action-btn">✏️</span>
+            </button>
+            <button class="fab-action" onclick="toggleFabMenu(false); openScanner();">
+                <span class="fab-action-label">Scan a QR code</span>
+                <span class="fab-action-btn">📸</span>
+            </button>
+        </div>
+        <button class="fab fab-main-toggle" id="fabMain" onclick="toggleFabMenu()" title="Add to your tapestry">+</button>
+    </div>
 </div>
 
 <!-- =============================================
@@ -4592,13 +4678,13 @@
     <div class="container">
         <div style="text-align: center; margin-bottom: 1.5rem;">
             <div style="font-size: 3rem; margin-bottom: 0.5rem;"></div>
-            <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.75rem; color: var(--text-primary); margin-bottom: 0.25rem;">Save to Your Tapestry</h2>
-            <p class="subtitle">Add this moment to the days of your life</p>
+            <h2 id="extScreenTitle" style="font-family: 'Crimson Pro', serif; font-size: 1.75rem; color: var(--text-primary); margin-bottom: 0.25rem;">Save to Your Tapestry</h2>
+            <p class="subtitle" id="extScreenSubtitle">Add this moment to the days of your life</p>
         </div>
 
         <!-- Scanned URL display -->
         <div class="form-group">
-            <label>Link URL</label>
+            <label id="extUrlLabel">Link URL</label>
             <input type="url" id="externalUrl" placeholder="https://..." style="font-size: 0.85rem; word-break: break-all;">
         </div>
 
@@ -5460,6 +5546,11 @@
         extSelectedCategory = 'thing';
         extPhotos = [];
 
+        // Scan-mode wording (reset in case memory mode changed it)
+        document.getElementById('extScreenTitle').textContent = 'Save to Your Tapestry';
+        document.getElementById('extScreenSubtitle').textContent = 'Add this moment to the days of your life';
+        document.getElementById('extUrlLabel').textContent = 'Link URL';
+
         // Populate screen
         document.getElementById('externalUrl').value = url;
 
@@ -5476,6 +5567,47 @@
         }
         document.getElementById('extTitle').value = suggestedTitle;
 
+        document.getElementById('extNotes').value = '';
+        document.getElementById('extFrom').value = '';
+        document.getElementById('extTags').value = '';
+        document.getElementById('extPhotoPreview').innerHTML = '';
+        document.getElementById('extPhotoCount').textContent = '';
+
+        // Reset voice recorder
+        deleteRecording('external');
+
+        // Clear any previous validation error
+        document.getElementById('extTitleError').style.display = 'none';
+        document.getElementById('extTitle').style.borderColor = '';
+
+        // Reset category picker
+        document.querySelectorAll('.category-option').forEach(c => c.classList.remove('selected'));
+        document.querySelector('.category-option').classList.add('selected');
+
+        navigate('externalQr');
+    }
+
+    function toggleFabMenu(force) {
+        const menu = document.getElementById('fabMenu');
+        if (!menu) return;
+        const willOpen = (typeof force === 'boolean') ? force : !menu.classList.contains('open');
+        menu.classList.toggle('open', willOpen);
+    }
+
+    function openAddMemory() {
+        toggleFabMenu(false);
+        scannedExternalUrl = '';
+        extSelectedCategory = 'thing';
+        extPhotos = [];
+
+        // Memory-mode wording + optional link
+        document.getElementById('extScreenTitle').textContent = 'Add a Memory';
+        document.getElementById('extScreenSubtitle').textContent = 'Weave a moment into the days of your life';
+        document.getElementById('extUrlLabel').textContent = 'Link URL (optional)';
+
+        // Clear all fields (no URL auto-suggest for a typed memory)
+        document.getElementById('externalUrl').value = '';
+        document.getElementById('extTitle').value = '';
         document.getElementById('extNotes').value = '';
         document.getElementById('extFrom').value = '';
         document.getElementById('extTags').value = '';
