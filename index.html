@@ -3286,11 +3286,6 @@
             <!-- Role cards — hidden until QR data is fetched -->
             <div id="qrRoleCards" style="display:none;">
 
-            <div id="roleBusinessOption" class="identity-card" onclick="selectRole('business')" style="display:none;">
-                <div class="identity-title">I'm the Business</div>
-                <div class="identity-desc">Add your business information, photos, videos, and links</div>
-            </div>
-
             <div id="roleGiverCard" class="identity-card" onclick="selectRole('giver')">
                 <div class="identity-title" id="roleGiverTitle">I'm Giving a Gift</div>
                 <div class="identity-desc">Add your personal message, photos, and videos</div>
@@ -3577,60 +3572,8 @@
             </div>
             
             <!-- Business role: form to add info (shows when no business data yet) -->
-            <div id="qcBizForm" style="display: none;">
-                <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Add Your Business Info</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Add details about your business or product for this QR code.</p>
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Business Name</label>
-                    <input type="text" id="qcBizName" placeholder="Your business name" style="width: 100%; border: 2px solid var(--border-light); border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Description</label>
-                    <textarea id="qcBizDesc" placeholder="Tell people about your product or service..." style="width: 100%; min-height: 100px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Contact Email (optional)</label>
-                    <input type="email" id="qcBizEmail" placeholder="hello@yourbusiness.com" style="width: 100%; border: 2px solid var(--border-light); border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Phone (optional)</label>
-                    <input type="tel" id="qcBizPhone" placeholder="(555) 123-4567" style="width: 100%; border: 2px solid var(--border-light); border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Photos (up to 5)</label>
-                    <input type="file" id="qcBizPhotoInput" accept="image/*" multiple onchange="handleBizPhotos(this)" style="font-size: 0.9rem;">
-                    <div id="qcBizPhotoPreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem;"></div>
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Video (optional)</label>
-                    <input type="file" id="qcBizVideoInput" accept="video/*" onchange="handleBizVideo(this)" style="font-size: 0.9rem;">
-                    <div id="qcBizVideoPreview" style="margin-top: 0.75rem;"></div>
-                </div>
-                <div class="voice-memo-box">
-                    <label>🎙️ Voice Memo (optional)</label>
-                    <button class="voice-btn" id="bizVoiceBtn" onclick="toggleRecording('biz')">🎙️ Record Voice Memo</button>
-                    <div id="bizVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="bizTimerText">0:00</span></div>
-                    <div id="bizVoicePreview" style="display:none;" class="voice-preview">
-                        <span>🎙️</span>
-                        <audio id="bizVoiceAudio" controls></audio>
-                        <button class="voice-delete" onclick="deleteRecording('biz')">🗑️</button>
-                    </div>
-                </div>
-                <button class="btn btn-primary" onclick="saveBusinessData()" style="width: 100%; margin-top: 1rem;">🏢 Save Business Info</button>
-            </div>
 
             <!-- Business role: locked out message (shows after business data saved) -->
-            <div id="qcBizLocked" style="display: none; text-align: center; padding: 2rem 0;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
-                <h2 style="font-family: 'Crimson Pro', serif;">Business Info Saved!</h2>
-                <p style="color: var(--text-muted); margin-top: 0.5rem;">Sign in at <a href="https://dayduyen.tech" style="color: var(--brand-red); font-weight: 600;">dayduyen.tech</a> to:</p>
-                <div style="text-align: left; max-width: 280px; margin: 1rem auto; color: var(--text-secondary); font-size: 0.9rem;">
-                    <p style="margin: 0.4rem 0;">📊 Track how many times your QR is scanned</p>
-                    <p style="margin: 0.4rem 0;">✏️ Edit your business info anytime</p>
-                    <p style="margin: 0.4rem 0;">📱 Create and manage more QR codes</p>
-                </div>
-                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">Personal messages between givers and receivers are private.</p>
-            </div>
 
             <!-- Go to tapestry link -->
             <div style="text-align:center; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border-light);">
@@ -3892,297 +3835,6 @@
 </div>
 
 <!-- =============================================
-     SCREEN 8: BUSINESS FORM
-============================================= -->
-<div class="screen" id="businessScreen">
-    <div class="container">
-        <div class="logo-header" onclick="navigate('home')">
-            <div class="logo-symbol">緣</div>
-            <div class="logo-text">DUYÊN</div>
-        </div>
-        <div class="card">
-            <h1>Share Your Story</h1>
-            <p class="subtitle">Help people connect with your business</p>
-
-            <div class="form-group">
-                <label>Business Name <span class="required">*</span></label>
-                <input type="text" id="bizName" required>
-            </div>
-            <div class="form-group">
-                <label>Product or Service Name</label>
-                <input type="text" id="prodName">
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="bizDesc"></textarea>
-                <div class="hint">Share what makes you special</div>
-            </div>
-            <div class="form-group">
-                <label>Contact Email</label>
-                <input type="email" id="bizEmail">
-            </div>
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input type="tel" id="bizPhone">
-            </div>
-            <div class="form-group">
-                <label>Business Links</label>
-                <div class="hint" style="margin-bottom: 0.75rem;">Add your website, social media, etc.</div>
-                <div id="linksContainer">
-                    <div class="link-row">
-                        <input type="url" placeholder="https://your-website.com" data-link>
-                        <button type="button" class="btn-icon" onclick="addLink()">+</button>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Photos & Videos</label>
-                <div class="upload-area" onclick="document.getElementById('bizMedia').click()">
-                    <input type="file" id="bizMedia" multiple accept="image/*,video/*" style="display:none" onchange="handleMedia(this,'biz')">
-                    <div class="upload-icon">📸</div>
-                    <div>Upload Photos or Videos</div>
-                    <div class="hint">Click to browse</div>
-                </div>
-                <div class="previews" id="bizPreviews"></div>
-            </div>
-            <div class="form-group">
-                <label>Additional Files</label>
-                <div class="hint" style="margin-bottom: 0.75rem;">Care instructions, warranty, certificates</div>
-                <div class="upload-area" onclick="document.getElementById('bizFiles').click()">
-                    <input type="file" id="bizFiles" multiple accept=".pdf,.doc,.docx" style="display:none" onchange="handleFiles(this)">
-                    <div class="upload-icon">📄</div>
-                    <div>Upload Documents</div>
-                </div>
-                <div id="filesList"></div>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="navigate('qr')">← Back</button>
-                <button class="btn btn-primary" onclick="saveBusiness()">Save & Preview →</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- =============================================
-     SCREEN 8b: BUSINESS PROFILE (create/edit)
-============================================= -->
-<div class="screen" id="bizProfileScreen">
-    <div class="container">
-        <div class="logo-header" onclick="navigate('home')">
-            <div class="logo-symbol">緣</div>
-            <div class="logo-text">DUYÊN</div>
-        </div>
-        <div class="card">
-            <h1 id="profileScreenTitle">Set Up Your Business Profile</h1>
-            <p class="subtitle" id="profileScreenSub">Save once, use on every QR code</p>
-
-            <div class="form-group">
-                <label>Business Name <span class="required">*</span></label>
-                <input type="text" id="profileBizName" placeholder="e.g. Saigon Blossoms">
-            </div>
-            <div class="form-group">
-                <label>Contact Email</label>
-                <input type="email" id="profileEmail" placeholder="hello@yourbusiness.com">
-            </div>
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input type="tel" id="profilePhone" placeholder="(555) 123-4567">
-            </div>
-            <div class="form-group">
-                <label>Business Links</label>
-                <div class="hint" style="margin-bottom: 0.75rem;">Website, Instagram, Facebook, etc.</div>
-                <div id="profileLinksContainer">
-                    <div class="link-row">
-                        <input type="url" placeholder="https://your-website.com" data-profile-link>
-                        <button type="button" class="btn-icon" onclick="addProfileLink()">+</button>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Logo & Brand Photos</label>
-                <div class="hint" style="margin-bottom: 0.75rem;">These will appear on every QR code you claim</div>
-                <div class="upload-area" onclick="document.getElementById('profileMedia').click()">
-                    <input type="file" id="profileMedia" multiple accept="image/*" style="display:none" onchange="handleMedia(this,'profile')">
-                    <div class="upload-icon">🏢</div>
-                    <div>Upload Logo & Photos</div>
-                </div>
-                <div class="previews" id="profilePreviews"></div>
-            </div>
-
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid var(--border-light);">
-                <h2 style="margin-bottom: 0.5rem;">Product Templates</h2>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Create reusable templates for products you sell often. When you claim a QR code, just pick a template.</p>
-
-                <div class="template-grid" id="profileTemplateGrid"></div>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn btn-secondary" id="profileBackBtn" onclick="navigate('auth')">← Back</button>
-                <button class="btn btn-primary" onclick="saveBusinessProfile()">Save Profile →</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- =============================================
-     SCREEN 8c: PRODUCT TEMPLATE EDITOR
-============================================= -->
-<div class="screen" id="templateEditScreen">
-    <div class="container">
-        <div class="logo-header" onclick="navigate('home')">
-            <div class="logo-symbol">緣</div>
-            <div class="logo-text">DUYÊN</div>
-        </div>
-        <div class="card">
-            <h1 id="templateEditTitle">New Product Template</h1>
-            <p class="subtitle">Create a reusable template for this product</p>
-
-            <div class="form-group">
-                <label>Product Name <span class="required">*</span></label>
-                <input type="text" id="tplProdName" placeholder="e.g. Spring Bouquet Collection">
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="tplDesc" placeholder="Describe this product or service..."></textarea>
-                <div class="hint">This can be edited when you claim a QR code</div>
-            </div>
-            <div class="form-group">
-                <label>Default Video Message</label>
-                <div class="hint" style="margin-bottom: 0.75rem;">Upload a video that plays when someone scans this product's QR code</div>
-                <div class="upload-area" onclick="document.getElementById('tplMedia').click()">
-                    <input type="file" id="tplMedia" multiple accept="image/*,video/*" style="display:none" onchange="handleMedia(this,'tpl')">
-                    <div class="upload-icon">🎬</div>
-                    <div>Upload Photos & Videos</div>
-                </div>
-                <div class="previews" id="tplPreviews"></div>
-            </div>
-            <div class="form-group">
-                <label>Documents</label>
-                <div class="hint" style="margin-bottom: 0.75rem;">Care instructions, warranty, certificates</div>
-                <div class="upload-area" onclick="document.getElementById('tplFiles').click()">
-                    <input type="file" id="tplFiles" multiple accept=".pdf,.doc,.docx" style="display:none" onchange="handleFiles(this)">
-                    <div class="upload-icon">📄</div>
-                    <div>Upload Documents</div>
-                </div>
-                <div id="tplFilesList"></div>
-            </div>
-            <div class="form-group">
-                <label>Template Icon</label>
-                <div class="hint" style="margin-bottom: 0.5rem;">Pick an emoji to identify this template quickly</div>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="iconPicker">
-                    <button type="button" class="btn-icon" onclick="pickIcon('💐')" style="font-size: 1.5rem;">💐</button>
-                    <button type="button" class="btn-icon" onclick="pickIcon('👗')" style="font-size: 1.5rem;">👗</button>
-                    <button type="button" class="btn-icon" onclick="pickIcon('☕')" style="font-size: 1.5rem;">☕</button>
-                    <button type="button" class="btn-icon" onclick="pickIcon('🎂')" style="font-size: 1.5rem;">🎂</button>
-                    <button type="button" class="btn-icon" onclick="pickIcon('📦')" style="font-size: 1.5rem;">📦</button>
-                    <button type="button" class="btn-icon" onclick="pickIcon('🧵')" style="font-size: 1.5rem;">🧵</button>
-                    <button type="button" class="btn-icon" onclick="pickIcon('🎁')" style="font-size: 1.5rem;">🎁</button>
-                    <button type="button" class="btn-icon" onclick="pickIcon('💎')" style="font-size: 1.5rem;">💎</button>
-                    <button type="button" class="btn-icon" onclick="pickIcon('🧴')" style="font-size: 1.5rem;">🧴</button>
-                    <button type="button" class="btn-icon" onclick="pickIcon('🍰')" style="font-size: 1.5rem;">🍰</button>
-                </div>
-                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
-                    Selected: <span id="selectedIcon" style="font-size: 1.5rem;">💐</span>
-                </div>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="navigate('bizProfile')">← Back</button>
-                <button class="btn btn-primary" onclick="saveTemplate()">Save Template →</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- =============================================
-     SCREEN 8d: CLAIM QR CODE (quick flow)
-============================================= -->
-<div class="screen" id="bizClaimScreen">
-    <div class="container">
-        <div class="logo-header" onclick="navigate('home')">
-            <div class="logo-symbol">緣</div>
-            <div class="logo-text">DUYÊN</div>
-        </div>
-        <div class="card">
-            <h1>Claim This QR Code</h1>
-            <p class="subtitle">Link this code to your business in seconds</p>
-
-            <!-- Profile summary -->
-            <div class="profile-summary" id="claimProfileSummary">
-                <div class="profile-avatar">🏢</div>
-                <div class="profile-info">
-                    <div class="profile-name" id="claimBizName">Your Business</div>
-                    <div class="profile-detail">📧 <span id="claimBizEmail">email</span></div>
-                    <div class="profile-detail">📱 <span id="claimBizPhone">phone</span></div>
-                    <div class="profile-links" id="claimBizLinks"></div>
-                </div>
-                <button class="profile-edit-btn" onclick="navigate('bizProfile')">Edit</button>
-            </div>
-
-            <!-- Template picker -->
-            <div style="margin-bottom: 1.5rem;">
-                <label style="margin-bottom: 0.75rem; display: block;">Choose a Product Template</label>
-                <div class="template-grid" id="claimTemplateGrid"></div>
-            </div>
-
-            <!-- Customize area (shown after picking template) -->
-            <div id="claimCustomize" style="display: none;">
-                <div style="padding-top: 1rem; border-top: 2px solid var(--border-light);">
-                    <label style="margin-bottom: 0.25rem; display: block;">Customize for This Code</label>
-                    <div class="hint" style="margin-bottom: 1rem;">Edit anything specific to this QR code. Your template stays unchanged.</div>
-
-                    <div class="form-group">
-                        <label>Product Name</label>
-                        <input type="text" id="claimProdName">
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea id="claimDesc"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Additional Photos & Videos</label>
-                        <div class="upload-area" onclick="document.getElementById('claimMedia').click()">
-                            <input type="file" id="claimMedia" multiple accept="image/*,video/*" style="display:none" onchange="handleMedia(this,'claim')">
-                            <div class="upload-icon">📸</div>
-                            <div>Add product-specific media</div>
-                        </div>
-                        <div class="previews" id="claimPreviews"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Claim summary -->
-            <div class="claim-preview" id="claimSummary" style="display: none;">
-                <div class="claim-preview-label">What will be published</div>
-                <div class="claim-row">
-                    <span class="claim-row-label">Business</span>
-                    <span class="claim-row-value" id="claimSumBiz">—</span>
-                </div>
-                <div class="claim-row">
-                    <span class="claim-row-label">Product</span>
-                    <span class="claim-row-value" id="claimSumProd">—</span>
-                </div>
-                <div class="claim-row">
-                    <span class="claim-row-label">Contact</span>
-                    <span class="claim-row-value" id="claimSumContact">—</span>
-                </div>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="navigate('qr')">← Back</button>
-                <button class="btn btn-primary" id="claimBtn" onclick="claimQRCode()" disabled style="opacity: 0.5;">
-                    Select a template first
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- =============================================
-     SCREEN 9: GIVER FORM
-============================================= -->
-<!-- =============================================
      SCREEN 10: THREAD VIEW (content display)
 ============================================= -->
 <div class="screen" id="threadViewScreen">
@@ -4301,7 +3953,7 @@
                 <div class="action-section" style="margin-top: 2rem;">
                     <div class="action-title">Manage Your Listing</div>
                     <div class="action-subtitle">Update your business details anytime</div>
-                    <button class="btn btn-primary" onclick="navigate('business')">✏️ Edit Business Info</button>
+                    <button class="btn btn-primary" onclick="window.location.href='https://dayduyen.tech/'">✏️ Edit Business Info</button>
                 </div>
             </div>
 
@@ -4957,7 +4609,6 @@
     let tplDocFiles = [];
 
     // Business Profile (persists across QR codes)
-    let businessProfile = null;  // { name, email, phone, links[], media[], templates[] }
     let editingTemplateIndex = -1; // -1 = new, 0+ = editing existing
     let selectedTemplateIndex = -1;
     let selectedIcon = '💐';
@@ -5245,10 +4896,6 @@
             'verify':     'verifyScreen',
             'forgot':     'forgotScreen',
             'setPassword': 'setPasswordScreen',
-            'business':    'businessScreen',
-            'bizProfile':  'bizProfileScreen',
-            'templateEdit':'templateEditScreen',
-            'bizClaim':    'bizClaimScreen',
                         'threadView': 'threadViewScreen',
             'receiver':   'receiverScreen',
             'response':   'responseScreen',
@@ -5328,8 +4975,6 @@
         if (screen === 'threadView') displayContent();
         if (screen === 'receiver') populateReceiver();
         if (screen === 'tapestry') { initTapestry(); startNotifPolling(); initPWAPrompt(); } else { stopNotifPolling(); }
-        if (screen === 'bizProfile') populateProfileForm();
-        if (screen === 'bizClaim') initClaimScreen();
     }
 
     // ==========================================
@@ -6194,9 +5839,7 @@
 
     async function loadScannedQR(code) {
         const notFound = document.getElementById('qrNotFound');
-        const bizOption = document.getElementById('roleBusinessOption');
         notFound.style.display = 'none';
-        bizOption.style.display = 'none';
         window._contentUnlocked = false;
         window._lockedGiverData = null;
 
@@ -6313,8 +5956,6 @@
     var receiverPhotoData = null;
     
     // Keep original file references for storage upload
-    var bizPhotoFileList = [];
-    var bizVideoFile = null;
     var bizVideoPreviewUrl = null;
     var giverPhotoFileList = [];
     var giverVideoFile = null;
@@ -6540,33 +6181,7 @@
         btn.innerHTML = '🎙️ Record Voice Memo';
     }
 
-    function handleBizPhotos(input) {
-        var files = Array.from(input.files);
-        var total = bizPhotoFileList.length + files.length;
-        if (total > 5) { alert('Maximum 5 photos'); input.value = ''; return; }
-        var preview = document.getElementById('qcBizPhotoPreview');
-        files.forEach(function(file) {
-            bizPhotoFileList.push(file);
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:10px;border:2px solid var(--border-light);';
-                preview.appendChild(img);
-            };
-            reader.readAsDataURL(file);
-        });
-    }
 
-    function handleBizVideo(input) {
-        if (input.files && input.files[0]) {
-            bizVideoFile = input.files[0];
-            if (bizVideoPreviewUrl) { try { URL.revokeObjectURL(bizVideoPreviewUrl); } catch(e) {} }
-            bizVideoPreviewUrl = URL.createObjectURL(input.files[0]);
-            var preview = document.getElementById('qcBizVideoPreview');
-            preview.innerHTML = '<video src="' + bizVideoPreviewUrl + '" controls style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>';
-        }
-    }
 
     function handleGiverVideo(input) {
         if (input.files && input.files[0]) {
@@ -6667,83 +6282,15 @@
         }
     }
 
-    async function saveBusinessData() {
-        if (!scannedQRData) return;
-        var name = document.getElementById('qcBizName').value.trim();
-        if (!name) { alert('Please enter a business name'); return; }
-        
-        // Show saving indicator
-        var saveBtn = document.querySelector('#qcBizForm .btn-primary');
-        var origText = saveBtn.textContent;
-        saveBtn.textContent = '⏳ Saving...';
-        saveBtn.disabled = true;
-        
-        try {
-            var qrId = scannedQRData.id;
-            
-            // Upload media to Storage
-            var photoUrls = [];
-            for (var i = 0; i < bizPhotoFileList.length; i++) {
-                var url = await uploadToStorage(bizPhotoFileList[i], 'biz/' + qrId);
-                if (url) photoUrls.push(url);
-            }
-            var videoUrl = bizVideoFile ? await uploadToStorage(bizVideoFile, 'biz/' + qrId) : null;
-            var voiceUrl = (voiceRecorders.biz && voiceRecorders.biz.blob) ? await uploadBlobToStorage(voiceRecorders.biz.blob, 'biz/' + qrId, 'voice') : null;
-            
-            var businessData = {
-                name: name,
-                description: document.getElementById('qcBizDesc').value.trim(),
-                email: document.getElementById('qcBizEmail').value.trim(),
-                phone: document.getElementById('qcBizPhone').value.trim(),
-                photos: photoUrls,
-                video: videoUrl,
-                voice: voiceUrl,
-                date: new Date().toISOString()
-            };
-            
-            var userId = (await _supabase.auth.getUser()).data.user.id;
-            var updateFields = {
-                business_data: businessData,
-                business_user_id: userId,
-                label: name,
-                details: businessData.description
-            };
-            
-            var { error } = await _supabase
-                .from('qr_codes')
-                .update(updateFields)
-                .eq('id', scannedQRData.id);
-            
-            if (error) {
-                console.error('Save business error:', error);
-                alert('Error saving. Please try again.');
-                return;
-            }
-            
-            scannedQRData.business_data = businessData;
-            scannedQRData.business_user_id = userId;
-            scannedQRData.label = name;
-            scannedQRData.details = businessData.description;
-            populateQRContent();
-        } catch(e) {
-            console.error('Save business error:', e);
-            alert('Error saving. Please try again.');
-        } finally {
-            saveBtn.textContent = origText;
-            saveBtn.disabled = false;
-        }
-    }
 
     async function populateQRContent() {
         var data = scannedQRData || {};
         
         // Hide all sections first
         document.getElementById('qcBizSection').style.display = 'none';
-        document.getElementById('qcBizForm').style.display = 'none';
         document.getElementById('qcGiverForm').style.display = 'none';
         document.getElementById('qcGiverSent').style.display = 'none';
         document.getElementById('qcReceiverView').style.display = 'none';
-        document.getElementById('qcBizLocked').style.display = 'none';
         document.getElementById('qcSecretLock').style.display = 'none';
         
         // Show login hints on buttons for guests
@@ -6807,21 +6354,6 @@
         }
         
         // Role-specific content
-        if (currentRole === 'business') {
-            var hasGenData = (data.details && data.details.trim() !== '') || 
-                             (data.media && data.media.length > 0) || 
-                             data.photo;
-            if (data.business_data || data.business_user_id || hasGenData || data.giver_data || data.receiver_data) {
-                // Already claimed or other roles added data — show locked
-                document.getElementById('qcBizLocked').style.display = 'block';
-            } else {
-                // Show form to add business info
-                document.getElementById('qcBizForm').style.display = 'block';
-                // Pre-fill with existing QR data if any
-                document.getElementById('qcBizName').value = data.label || '';
-                document.getElementById('qcBizDesc').value = data.details || '';
-            }
-        }
         else if (currentRole === 'giver') {
             // Check lock — but skip if current user IS the giver
             var _gd = data.giver_data;
@@ -7894,13 +7426,6 @@
             return;
         }
 
-        if (currentRole === 'business') {
-            if (businessProfile) {
-                navigate('bizClaim');
-            } else {
-                navigate('bizProfile');
-            }
-        }
         else if (currentRole === 'giver') navigate('qrContent');
         else if (currentRole === 'receiver') navigate('qrContent');
         else navigate('tapestry');
@@ -7925,315 +7450,29 @@
         container.appendChild(div);
     }
 
-    function saveBusiness() {
-        const name = document.getElementById('bizName').value;
-        if (!name) { alert('Please enter a business name'); return; }
-
-        businessData = {
-            businessName: name,
-            productName: document.getElementById('prodName').value,
-            description: document.getElementById('bizDesc').value,
-            email: document.getElementById('bizEmail').value,
-            phone: document.getElementById('bizPhone').value,
-            links: Array.from(document.querySelectorAll('[data-link]')).map(i => i.value).filter(v => v),
-            media: mediaFiles.biz,
-            files: docFiles
-        };
-
-        // Register this user as the business owner of this QR code
-        qrCodeOwner = currentUser;
-        console.log('💾 Business saved:', businessData);
-        console.log('🔐 QR code registered to:', qrCodeOwner);
-        navigate('threadView');
-    }
 
     // ==========================================
     // BUSINESS PROFILE
     // ==========================================
-    function addProfileLink() {
-        const container = document.getElementById('profileLinksContainer');
-        const div = document.createElement('div');
-        div.className = 'link-row';
-        div.innerHTML = `
-            <input type="url" placeholder="https://another-link.com" data-profile-link>
-            <button type="button" class="btn-icon" onclick="this.parentElement.remove()">×</button>
-        `;
-        container.appendChild(div);
-    }
 
-    function saveBusinessProfile() {
-        const name = document.getElementById('profileBizName').value.trim();
-        if (!name) { alert('Please enter your business name'); return; }
 
-        const links = Array.from(document.querySelectorAll('[data-profile-link]'))
-            .map(i => i.value.trim()).filter(v => v);
 
-        // Preserve existing templates if editing
-        const existingTemplates = businessProfile ? businessProfile.templates : [];
-
-        businessProfile = {
-            name: name,
-            email: document.getElementById('profileEmail').value.trim(),
-            phone: document.getElementById('profilePhone').value.trim(),
-            links: links,
-            media: mediaFiles.profile,
-            templates: existingTemplates
-        };
-
-        console.log('💼 Business profile saved:', businessProfile);
-
-        // If we came here to set up before claiming, go to claim
-        if (currentRole === 'business') {
-            navigate('bizClaim');
-        } else {
-            navigate('tapestry');
-        }
-    }
-
-    function populateProfileForm() {
-        if (!businessProfile) return;
-        document.getElementById('profileBizName').value = businessProfile.name || '';
-        document.getElementById('profileEmail').value = businessProfile.email || '';
-        document.getElementById('profilePhone').value = businessProfile.phone || '';
-
-        // Links
-        const container = document.getElementById('profileLinksContainer');
-        container.innerHTML = '';
-        const profileLinks = businessProfile.links && businessProfile.links.length > 0
-            ? businessProfile.links : [''];
-        profileLinks.forEach((link, i) => {
-            const div = document.createElement('div');
-            div.className = 'link-row';
-            div.innerHTML = `
-                <input type="url" placeholder="https://your-website.com" data-profile-link value="${link}">
-                <button type="button" class="btn-icon" onclick="${i === 0 ? 'addProfileLink()' : 'this.parentElement.remove()'}">${i === 0 ? '+' : '×'}</button>
-            `;
-            container.appendChild(div);
-        });
-
-        // Render templates
-        renderProfileTemplates();
-    }
-
-    function renderProfileTemplates() {
-        const grid = document.getElementById('profileTemplateGrid');
-        grid.innerHTML = '';
-
-        if (businessProfile && businessProfile.templates) {
-            businessProfile.templates.forEach((tpl, i) => {
-                const card = document.createElement('div');
-                card.className = 'template-card';
-                card.onclick = () => editTemplate(i);
-                card.innerHTML = `
-                    <div class="template-icon">${tpl.icon || '📦'}</div>
-                    <div class="template-name">${tpl.productName}</div>
-                    <div class="template-desc">${tpl.description || 'No description'}</div>
-                    <div class="template-meta">
-                        ${tpl.media && tpl.media.length > 0 ? `<span class="template-meta-pill">📸 ${tpl.media.length} media</span>` : ''}
-                        ${tpl.files && tpl.files.length > 0 ? `<span class="template-meta-pill">📄 ${tpl.files.length} files</span>` : ''}
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        // "Add new" card
-        const addCard = document.createElement('div');
-        addCard.className = 'template-add-card';
-        addCard.onclick = () => editTemplate(-1);
-        addCard.innerHTML = `
-            <div class="template-add-icon">+</div>
-            <div class="template-add-label">New Template</div>
-        `;
-        grid.appendChild(addCard);
-    }
 
     // ==========================================
     // TEMPLATE EDITOR
     // ==========================================
-    function editTemplate(index) {
-        editingTemplateIndex = index;
-        mediaFiles.tpl = [];
-        tplDocFiles = [];
-
-        // Clear form
-        document.getElementById('tplProdName').value = '';
-        document.getElementById('tplDesc').value = '';
-        document.getElementById('tplPreviews').innerHTML = '';
-        document.getElementById('tplFilesList').innerHTML = '';
-        selectedIcon = '💐';
-        document.getElementById('selectedIcon').textContent = selectedIcon;
-
-        if (index >= 0 && businessProfile && businessProfile.templates[index]) {
-            const tpl = businessProfile.templates[index];
-            document.getElementById('templateEditTitle').textContent = 'Edit Template';
-            document.getElementById('tplProdName').value = tpl.productName || '';
-            document.getElementById('tplDesc').value = tpl.description || '';
-            selectedIcon = tpl.icon || '💐';
-            document.getElementById('selectedIcon').textContent = selectedIcon;
-            mediaFiles.tpl = tpl.media ? [...tpl.media] : [];
-            tplDocFiles = tpl.files ? [...tpl.files] : [];
-        } else {
-            document.getElementById('templateEditTitle').textContent = 'New Product Template';
-        }
-
-        navigate('templateEdit');
-    }
 
     function pickIcon(icon) {
         selectedIcon = icon;
         document.getElementById('selectedIcon').textContent = icon;
     }
 
-    function saveTemplate() {
-        const name = document.getElementById('tplProdName').value.trim();
-        if (!name) { alert('Please enter a product name'); return; }
-
-        const template = {
-            productName: name,
-            description: document.getElementById('tplDesc').value.trim(),
-            icon: selectedIcon,
-            media: mediaFiles.tpl,
-            files: tplDocFiles
-        };
-
-        if (!businessProfile) {
-            businessProfile = { name: '', email: '', phone: '', links: [], media: [], templates: [] };
-        }
-
-        if (editingTemplateIndex >= 0) {
-            businessProfile.templates[editingTemplateIndex] = template;
-            console.log('📝 Template updated:', template.productName);
-        } else {
-            businessProfile.templates.push(template);
-            console.log('➕ Template added:', template.productName);
-        }
-
-        navigate('bizProfile');
-        // Re-render templates after navigation
-        setTimeout(renderProfileTemplates, 100);
-    }
 
     // ==========================================
     // QR CLAIM FLOW
     // ==========================================
-    function initClaimScreen() {
-        if (!businessProfile) return;
 
-        selectedTemplateIndex = -1;
 
-        // Populate profile summary
-        document.getElementById('claimBizName').textContent = businessProfile.name;
-        document.getElementById('claimBizEmail').textContent = businessProfile.email || '—';
-        document.getElementById('claimBizPhone').textContent = businessProfile.phone || '—';
-
-        const linksEl = document.getElementById('claimBizLinks');
-        linksEl.innerHTML = '';
-        if (businessProfile.links) {
-            businessProfile.links.forEach(link => {
-                let short = link.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
-                linksEl.innerHTML += `<span class="profile-link-pill">🔗 ${short}</span>`;
-            });
-        }
-
-        // Populate template grid
-        const grid = document.getElementById('claimTemplateGrid');
-        grid.innerHTML = '';
-
-        if (businessProfile.templates && businessProfile.templates.length > 0) {
-            businessProfile.templates.forEach((tpl, i) => {
-                const card = document.createElement('div');
-                card.className = 'template-card';
-                card.id = 'claimTpl' + i;
-                card.onclick = () => selectClaimTemplate(i);
-                card.innerHTML = `
-                    <div class="template-icon">${tpl.icon || '📦'}</div>
-                    <div class="template-name">${tpl.productName}</div>
-                    <div class="template-desc">${tpl.description || ''}</div>
-                    <div class="template-meta">
-                        ${tpl.media && tpl.media.length > 0 ? `<span class="template-meta-pill">📸 ${tpl.media.length}</span>` : ''}
-                        ${tpl.files && tpl.files.length > 0 ? `<span class="template-meta-pill">📄 ${tpl.files.length}</span>` : ''}
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        // "Custom" option
-        const customCard = document.createElement('div');
-        customCard.className = 'template-add-card';
-        customCard.onclick = () => {
-            // Skip claim, go to manual form
-            navigate('business');
-        };
-        customCard.innerHTML = `
-            <div class="template-add-icon">✏️</div>
-            <div class="template-add-label">Custom Entry</div>
-        `;
-        grid.appendChild(customCard);
-
-        // Reset customize area
-        document.getElementById('claimCustomize').style.display = 'none';
-        document.getElementById('claimSummary').style.display = 'none';
-        document.getElementById('claimBtn').disabled = true;
-        document.getElementById('claimBtn').style.opacity = '0.5';
-        document.getElementById('claimBtn').textContent = 'Select a template first';
-        mediaFiles.claim = [];
-    }
-
-    function selectClaimTemplate(index) {
-        selectedTemplateIndex = index;
-        const tpl = businessProfile.templates[index];
-
-        // Highlight selected
-        document.querySelectorAll('#claimTemplateGrid .template-card').forEach((c, i) => {
-            c.classList.toggle('selected', i === index);
-        });
-
-        // Show customize area with template data pre-filled
-        document.getElementById('claimCustomize').style.display = 'block';
-        document.getElementById('claimProdName').value = tpl.productName;
-        document.getElementById('claimDesc').value = tpl.description || '';
-
-        // Show summary
-        document.getElementById('claimSummary').style.display = 'block';
-        document.getElementById('claimSumBiz').textContent = businessProfile.name;
-        document.getElementById('claimSumProd').textContent = tpl.productName;
-        document.getElementById('claimSumContact').textContent =
-            [businessProfile.email, businessProfile.phone].filter(Boolean).join(' · ') || '—';
-
-        // Enable claim button
-        const btn = document.getElementById('claimBtn');
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.textContent = '🔗 Claim This QR Code';
-    }
-
-    function claimQRCode() {
-        if (selectedTemplateIndex < 0 || !businessProfile) return;
-
-        const tpl = businessProfile.templates[selectedTemplateIndex];
-
-        // Build businessData from profile + template + customizations
-        businessData = {
-            businessName: businessProfile.name,
-            productName: document.getElementById('claimProdName').value || tpl.productName,
-            description: document.getElementById('claimDesc').value || tpl.description,
-            email: businessProfile.email,
-            phone: businessProfile.phone,
-            links: businessProfile.links || [],
-            media: [...(businessProfile.media || []), ...(tpl.media || []), ...mediaFiles.claim],
-            files: tpl.files || []
-        };
-
-        qrCodeOwner = currentUser;
-        console.log('🔗 QR code claimed:', businessData.businessName, '→', businessData.productName);
-        console.log('⚡ Claimed in seconds using profile + template!');
-
-        document.getElementById('successMsg').textContent =
-            'QR code claimed! "' + businessData.productName + '" is now live.';
-        navigate('success');
-    }
 
     // ==========================================
     // GIVER FORM
