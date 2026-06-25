@@ -8644,7 +8644,11 @@
         const aud=document.getElementById('aud_'+uid);
         const btn=document.getElementById('btn_'+uid);
         if(!aud||!btn)return;
-        if(aud.paused){ aud.play(); btn.textContent='⏸'; }
+        if(aud.paused){
+            const pr=aud.play();
+            btn.textContent='⏸';
+            if(pr&&pr.catch)pr.catch(function(){ btn.textContent='▶'; });
+        }
         else { aud.pause(); btn.textContent='▶'; }
     }
 
@@ -8693,6 +8697,11 @@
         const container=document.getElementById('tapDetailCards'); container.innerHTML='';
         const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
         wrap.appendChild(buildTapFullCard(thread)); container.appendChild(wrap);
+        // iOS fix: media elements with inline src often won't load; re-assign src via JS
+        container.querySelectorAll('audio.tap-fc-audio-el').forEach(function(a){
+            var s=a.getAttribute('src'); if(s){ a.src=s; try{a.load();}catch(e){} }
+            if(typeof initVoicePlayer==='function'){ initVoicePlayer(a.id.replace('aud_','')); }
+        });
         // Hide ✏️ edit toggle for gift QRs (no edits allowed; delete is always visible on the card)
         const editBtn = document.getElementById('tapEditBtn');
         if (editBtn) editBtn.style.display = (thread.role === 'external') ? '' : 'none';
