@@ -5071,6 +5071,7 @@
                 var qr = entry.qr_codes || {};
                 var bizData = qr.business_data;
                 if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
+                if (qr.about_photos && qr.about_photos.length) { bizData = bizData || {}; bizData.aboutPhotos = qr.about_photos; }
                 var giverData = qr.giver_data;
                 if (typeof giverData === 'string') try { giverData = JSON.parse(giverData); } catch(e) { giverData = null; }
                 var receiverData = qr.receiver_data;
@@ -6238,6 +6239,7 @@
             // If business_data has a name, skip role selection and show profile directly
             var bizDataCheck = data.business_data;
             if (typeof bizDataCheck === 'string') { try { bizDataCheck = JSON.parse(bizDataCheck); } catch(e) { bizDataCheck = null; } }
+            if (data.about_photos && data.about_photos.length) { bizDataCheck = bizDataCheck || {}; bizDataCheck.aboutPhotos = data.about_photos; }
             if (bizDataCheck && bizDataCheck.name) {
                 showBusinessProfile(data, bizDataCheck);
                 return;
