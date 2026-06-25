@@ -6515,8 +6515,27 @@
         var slot = voiceRecorders[role];
         var preview = document.getElementById(role + 'VoicePreview');
         var audio = document.getElementById(role + 'VoiceAudio');
-        audio.src = slot.dataUrl;
+        if (!slot || !slot.blob) { return; }
+        var reader = new FileReader();
+        reader.onload = function(e) { audio.src = e.target.result; };
+        reader.readAsDataURL(slot.blob);
         preview.style.display = 'flex';
+    }
+
+    // Ensure a role's recording is fully stopped and its blob assembled before upload
+    async function finalizeVoiceBlob(role) {
+        var slot = voiceRecorders[role];
+        if (!slot) return null;
+        if (slot.recorder && slot.recorder.state === 'recording') {
+            stopRecording(role);
+        }
+        if (!slot.blob && ((slot.chunks && slot.chunks.length > 0) || slot.recorder)) {
+            await new Promise(function(resolve) {
+                var check = setInterval(function() { if (slot.blob) { clearInterval(check); resolve(); } }, 100);
+                setTimeout(function() { clearInterval(check); resolve(); }, 3000);
+            });
+        }
+        return slot.blob || null;
     }
     
     function deleteRecording(role) {
@@ -7096,7 +7115,8 @@
                 if (dot1err) dot1err.style.opacity = '1';
                 return;
             }
-            var voiceUrl = (voiceRecorders.giver && voiceRecorders.giver.blob) ? await uploadBlobToStorage(voiceRecorders.giver.blob, 'giver/' + qrId, 'voice') : null;
+            var giverVoiceBlob = await finalizeVoiceBlob('giver');
+            var voiceUrl = giverVoiceBlob ? await uploadBlobToStorage(giverVoiceBlob, 'giver/' + qrId, 'voice') : null;
             
             var secretPhrase = document.getElementById('qcGiverSecretPhrase').value.trim().toLowerCase();
             var recipientName = document.getElementById('qcGiverRecipientName').value.trim();
@@ -7389,7 +7409,8 @@
                 saveBtn.disabled = false;
                 return;
             }
-            var voiceUrl = (voiceRecorders.receiver && voiceRecorders.receiver.blob) ? await uploadBlobToStorage(voiceRecorders.receiver.blob, 'receiver/' + qrId, 'voice') : null;
+            var receiverVoiceBlob = await finalizeVoiceBlob('receiver');
+            var voiceUrl = receiverVoiceBlob ? await uploadBlobToStorage(receiverVoiceBlob, 'receiver/' + qrId, 'voice') : null;
             
             var receiverData = {
                 message: note,
