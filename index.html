@@ -3328,22 +3328,8 @@
             
             <!-- Business info section (shows if business data exists) -->
             <div id="qcBizSection" style="display: none;">
-                <div id="qcBizPhotos" style="display: none; margin-bottom: 1.5rem;"></div>
-                <h1 id="qcBizLabel" style="font-family: 'Crimson Pro', serif; font-size: 1.75rem;"></h1>
-                <p id="qcBizDetails" class="subtitle" style="white-space: pre-wrap;"></p>
+                <div id="qcBizPanel"></div>
                 <div id="qcBizMedia" class="thread-detail-photos" style="display: none; margin-top: 1rem;"></div>
-                <div id="qcBizVoicePlayback" class="tap-fc-voice" style="display:none; background:transparent; padding:0; margin-top: 1rem;">
-                    <div class="tap-fc-voice-label">Voice Note</div>
-                    <div class="tap-fc-voice-player">
-                        <button class="tap-fc-play-btn" id="btn_qcbiz" type="button" onclick="toggleVoicePlay('qcbiz')">▶</button>
-                        <div class="tap-fc-waveform" id="wave_qcbiz"></div>
-                        <div class="tap-fc-duration" id="dur_qcbiz">—</div>
-                    </div>
-                    <audio class="tap-fc-audio-el" id="aud_qcbiz" preload="metadata"></audio>
-                </div>
-                <div id="qcBizVideoPlayback" style="display:none; margin-top: 1rem;">
-                    <video id="qcBizVideoEl2" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>
-                </div>
                 <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
             </div>
             
@@ -6772,30 +6758,38 @@
         if (data.business_data || data.business_user_id || labelIsCustom || hasRealDetails || data.photo) {
             var bizSection = document.getElementById('qcBizSection');
             bizSection.style.display = 'block';
-            document.getElementById('qcBizLabel').textContent = labelIsCustom ? data.label : '';
-            document.getElementById('qcBizDetails').textContent = data.details || '';
-            
-            // Show business photos from business_data
-            var bizPhotosDiv = document.getElementById('qcBizPhotos');
+            // Business profile panel (consistent with scan landing + tapestry)
             var bizDataObj = data.business_data;
             try { if (typeof bizDataObj === 'string') bizDataObj = JSON.parse(bizDataObj); } catch(e) {}
-            var bizPhotos = (bizDataObj && bizDataObj.photos) ? bizDataObj.photos : [];
-            // Also check legacy single photo
-            if (bizPhotos.length === 0 && bizDataObj && bizDataObj.photo) bizPhotos = [bizDataObj.photo];
-            if (bizPhotos.length === 0 && data.photo) bizPhotos = [data.photo];
-            
-            if (bizPhotos.length > 0) {
-                var photosHtml = '<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">';
-                bizPhotos.forEach(function(url) {
-                    photosHtml += '<img src="' + url + '" style="max-width: ' + (bizPhotos.length === 1 ? '100%' : '48%') + '; border-radius: 14px; border: 2px solid var(--border-light); cursor: pointer;" onclick="window.open(this.src)">';
-                });
-                photosHtml += '</div>';
-                bizPhotosDiv.innerHTML = photosHtml;
-                bizPhotosDiv.style.display = 'block';
-            } else {
-                bizPhotosDiv.style.display = 'none';
+            var bizP = bizDataObj || {};
+            var bizAboutPhotos = (data.about_photos && data.about_photos.length) ? data.about_photos : (Array.isArray(bizP.aboutPhotos) ? bizP.aboutPhotos : []);
+            var bizPromo = (data.promotion && data.promotion.text) ? data.promotion : null;
+            var accToggleR = "var d=this.parentNode.querySelector('.acc-body');var a=this.querySelector('.acc-arrow');if(d.style.display==='none'){d.style.display='block';a.style.transform='rotate(180deg)';}else{d.style.display='none';a.style.transform='rotate(0deg)';}";
+            var accArrowR = '<span class="acc-arrow" style="display:inline-flex;align-items:center;transition:transform 0.2s ease;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>';
+            var panelHtml = '';
+            if (bizP.name) panelHtml += '<h1 style="font-family:\'Crimson Pro\',serif;font-size:1.75rem;font-weight:600;color:#3D2E24;margin:0 0 14px;">' + bizP.name + '</h1>';
+            var aboutInnerR = '';
+            if (bizP.description) aboutInnerR += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.05rem;color:#5D4E44;line-height:1.7;margin-bottom:10px;">\u201C' + bizP.description + '\u201D</div>';
+            if (bizAboutPhotos.length) {
+                aboutInnerR += '<div style="display:grid;grid-template-columns:repeat(' + Math.min(bizAboutPhotos.length,3) + ',1fr);gap:8px;">' +
+                    bizAboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
+                '</div>';
             }
-            
+            if (aboutInnerR) {
+                panelHtml += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
+                    '<div onclick="'+accToggleR+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:600;color:#2E2A28;">About</span>'+accArrowR+'</div>' +
+                    '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+aboutInnerR+'</div>' +
+                '</div>';
+            }
+            if (bizPromo) {
+                var promoInnerR = '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.2rem;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + bizPromo.text + '\u201D</div>' +
+                    ((bizPromo.photos && bizPromo.photos.length) ? '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">' + bizPromo.photos.slice(0,5).map(function(url){ var s=String(url).replace(/"/g,'&quot;'); return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:auto;display:block;"></div>'; }).join('') + '</div>' : '');
+                panelHtml += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
+                    '<div onclick="'+accToggleR+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:600;color:#2E2A28;">What\'s new</span><span style="background:#8B3A7F;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;">1</span>'+accArrowR+'</div>' +
+                    '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+promoInnerR+'</div>' +
+                '</div>';
+            }
+            document.getElementById('qcBizPanel').innerHTML = panelHtml;
             // Show media
             var mediaGrid = document.getElementById('qcBizMedia');
             var mediaItems = [];
@@ -6810,23 +6804,6 @@
                 mediaGrid.style.display = 'none';
             }
             
-            // Show business voice memo if available
-            var bizVoicePlay = document.getElementById('qcBizVoicePlayback');
-            if (bizDataObj && bizDataObj.voice) {
-                setupLiveVoicePlayer('qcbiz', bizDataObj.voice);
-                bizVoicePlay.style.display = 'block';
-            } else {
-                bizVoicePlay.style.display = 'none';
-            }
-            
-            // Show business video if available
-            var bizVideoPlay = document.getElementById('qcBizVideoPlayback');
-            if (bizDataObj && bizDataObj.video) {
-                document.getElementById('qcBizVideoEl2').src = posterUrl(bizDataObj.video);
-                bizVideoPlay.style.display = 'block';
-            } else {
-                bizVideoPlay.style.display = 'none';
-            }
         }
         
         // Role-specific content
