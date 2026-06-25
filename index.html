@@ -6364,7 +6364,7 @@
             try { var _u = (await _supabase.auth.getUser()).data.user; if (_u && data.giver_user_id === _u.id) isOwnerGiver = true; } catch(e) {}
             if (_gd && _gd.secret_phrase && !window._contentUnlocked && !isOwnerGiver) {
                 window._lockedGiverData = _gd;
-                document.getElementById('qcSecretLock').style.display = 'block';
+                document.getElementById('qcBizSection').style.display = 'none'; document.getElementById('qcSecretLock').style.display = 'block';
                 return;
             }
             if (data.giver_data) {
@@ -6455,7 +6455,7 @@
             if (typeof _gd2 === 'string') { try { _gd2 = JSON.parse(_gd2); } catch(e) { _gd2 = null; } }
             if (_gd2 && _gd2.secret_phrase && !window._contentUnlocked) {
                 window._lockedGiverData = _gd2;
-                document.getElementById('qcSecretLock').style.display = 'block';
+                document.getElementById('qcBizSection').style.display = 'none'; document.getElementById('qcSecretLock').style.display = 'block';
                 return;
             }
             document.getElementById('qcReceiverView').style.display = 'block';
