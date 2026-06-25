@@ -6370,7 +6370,7 @@
             if (data.giver_data) {
                 // Giver already added message — show it + receiver response
                 var giverData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
-                document.getElementById('qcGiverSent').style.display = 'block';
+                document.getElementById('qcBizSection').style.display = 'none'; document.getElementById('qcGiverSent').style.display = 'block';
 
                 // Populate "For [recipient name]" header
                 var _giverForName = (giverData.recipient_name || giverData.recipientName || '').trim();
@@ -6503,7 +6503,7 @@
                 // Already sent thank you
                 document.getElementById('qcReceiverPrompt').style.display = 'none';
                 document.getElementById('qcReceiverForm').style.display = 'none';
-                document.getElementById('qcReceiverSent').style.display = 'block';
+                document.getElementById('qcBizSection').style.display = 'none'; document.getElementById('qcReceiverSent').style.display = 'block';
             } else {
                 // Show prompt container
                 document.getElementById('qcReceiverPrompt').style.display = 'block';
