@@ -9126,13 +9126,21 @@
         if (thread.businessInfo) {
             var biz = thread.businessInfo;
             var bizDetails = '';
-            if (biz.description) bizDetails += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:0.95rem;color:#5D4E44;line-height:1.7;margin-bottom:10px;">\u201C'+biz.description+'\u201D</div>';
+            var accToggle = "var d=this.parentNode.querySelector('.acc-body');var a=this.querySelector('.acc-arrow');if(d.style.display==='none'){d.style.display='block';a.style.transform='rotate(180deg)';}else{d.style.display='none';a.style.transform='rotate(0deg)';}";
+            var accArrow = '<span class="acc-arrow" style="display:inline-flex;align-items:center;transition:transform 0.2s ease;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>';
+            var aboutInner = '';
+            if (biz.description) aboutInner += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:0.95rem;color:#5D4E44;line-height:1.7;margin-bottom:10px;">\u201C'+biz.description+'\u201D</div>';
             if (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) {
-                bizDetails += '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;margin-bottom:10px;">' +
+                aboutInner += '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;">' +
                     biz.aboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
                 '</div>';
             }
-            // Active promotion (pushed from dayduyen.tech) — only shows when present
+            if (aboutInner) {
+                bizDetails += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
+                    '<div onclick="'+accToggle+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:600;color:#2E2A28;">About</span>'+accArrow+'</div>' +
+                    '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+aboutInner+'</div>' +
+                '</div>';
+            }
             if (thread.promotion && thread.promotion.text) {
                 var promoPushed = thread.promotion.pushedAt ? new Date(thread.promotion.pushedAt) : null;
                 var promoTimeAgo = '';
@@ -9145,21 +9153,20 @@
                                  : 'just now';
                 }
                 var bizLabel = biz.name ? ('Now at ' + biz.name) : 'Currently';
-                bizDetails += '<div style="background:#fff;border-left:3px solid #8B3A7F;border-radius:0 8px 8px 0;padding:10px 12px;margin-top:10px;">'
-                    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
+                var promoInner = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">'
                         + '<span style="font-size:9px;letter-spacing:0.18em;color:#8B3A7F;font-weight:600;text-transform:uppercase;">' + bizLabel + '</span>'
                         + (promoTimeAgo ? '<span style="font-size:10px;color:#9A8478;margin-left:auto;">' + promoTimeAgo + '</span>' : '')
                     + '</div>'
-                    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.25rem;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + thread.promotion.text + '\u201D</div>'
+                    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.2rem;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + thread.promotion.text + '\u201D</div>'
                     + (thread.promotion.photos && thread.promotion.photos.length > 0
                         ? '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">' +
-                            thread.promotion.photos.slice(0, 5).map(function(url) {
-                                var safeUrl = url.replace(/"/g, '&quot;');
-                                return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + safeUrl + '" alt="" loading="lazy" style="width:100%;height:auto;display:block;"></div>';
-                            }).join('') +
+                            thread.promotion.photos.slice(0, 5).map(function(url) { var safeUrl = url.replace(/"/g, '&quot;'); return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + safeUrl + '" alt="" loading="lazy" style="width:100%;height:auto;display:block;"></div>'; }).join('') +
                           '</div>'
-                        : '')
-                + '</div>';
+                        : '');
+                bizDetails += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
+                    '<div onclick="'+accToggle+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:600;color:#2E2A28;">What\'s new</span><span style="background:#8B3A7F;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;">1</span>'+accArrow+'</div>' +
+                    '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+promoInner+'</div>' +
+                '</div>';
             }
             var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
             // Icon row: social icons (brand colors) + call + navigate (plum) — matches first-scan header
