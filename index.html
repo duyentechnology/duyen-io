@@ -7723,6 +7723,76 @@
         handleTapestrySearch();
     }
 
+    // ── Advanced tapestry search ────────────────────────────────────────────
+    // Diacritic-insensitive, lowercase normalizer (Duyên→duyen, café→cafe, đ→d).
+    function tapNormalize(s) {
+        s = (s == null ? '' : String(s)).normalize('NFD');
+        var out = '';
+        for (var i = 0; i < s.length; i++) {
+            var c = s.charCodeAt(i);
+            if (c >= 0x300 && c <= 0x36f) continue; // strip combining diacritical marks
+            out += s[i];
+        }
+        return out.replace(/[đĐ]/g, 'd').toLowerCase();
+    }
+
+    // Domain + readable name from a URL:
+    // "https://www.saigon-rose.com/x" → "saigon-rose.com saigon rose"
+    function tapUrlParts(url) {
+        if (!url) return '';
+        try {
+            var h = new URL(url).hostname.replace(/^www\./, '');
+            var name = h.split('.').slice(0, -1).join(' ').replace(/[-_]/g, ' ');
+            return h + ' ' + name;
+        } catch (e) { return String(url); }
+    }
+
+    // Every text field on a thread, joined — the full haystack we search.
+    function tapSearchText(t) {
+        var p = [];
+        var add = function(v){ if (v) p.push(v); };
+        add(t.title); add(t.from); add(t.message); add(t.giverMessage);
+        add(t.note); add(t.recipientName); add(t.category); add(t.role);
+        if (Array.isArray(t.tags)) add(t.tags.join(' '));
+        if (t.receiverResponse) { add(t.receiverResponse.message); add(t.receiverResponse.user); }
+        if (t.promotion) add(t.promotion.text);
+        var b = t.businessInfo;
+        if (b) {
+            add(b.name); add(b.description); add(b.email); add(b.phone); add(b.website);
+            if (b.address) add(b.address.full || (typeof b.address === 'string' ? b.address : ''));
+            if (b.social) Object.keys(b.social).forEach(function(k){ add(b.social[k]); });
+            add(tapUrlParts(b.website));
+        }
+        if (t.linkMeta) { add(t.linkMeta.title); add(t.linkMeta.description); add(t.linkMeta.url); add(tapUrlParts(t.linkMeta.url)); }
+        add(t.externalUrl); add(tapUrlParts(t.externalUrl));
+        try { var d = new Date(t.date); add(d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })); } catch (e) {}
+        return tapNormalize(p.join('  '));
+    }
+
+    // Higher-weight fields for ranking (name/title/domain float to the top).
+    function tapSearchPrimary(t) {
+        return tapNormalize([
+            t.title, t.from, (t.businessInfo && t.businessInfo.name) || '',
+            tapUrlParts(t.externalUrl || (t.linkMeta && t.linkMeta.url) || (t.businessInfo && t.businessInfo.website))
+        ].join('  '));
+    }
+
+    // Score a thread against normalized query terms; 0 = no match (all terms must appear).
+    function tapSearchScore(t, terms) {
+        if (!terms.length) return 0;
+        var hay = tapSearchText(t);
+        var primary = tapSearchPrimary(t);
+        var score = 0;
+        for (var i = 0; i < terms.length; i++) {
+            var term = terms[i];
+            if (hay.indexOf(term) === -1) return 0; // AND: every term must appear somewhere
+            score += 2;
+            if (primary.indexOf(term) !== -1) score += 4; // name/title/domain boost
+            if (new RegExp('(^|[^a-z0-9])' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(hay)) score += 1; // word-start boost
+        }
+        return score;
+    }
+
     function handleTapestrySearch() {
         const search = (document.getElementById('tapestrySearch')?.value || '').toLowerCase().trim();
 
@@ -7752,12 +7822,12 @@
             return;
         }
 
-        const filtered = userThreads.filter(t =>
-            (t.title || '').toLowerCase().includes(search) ||
-            (t.from || '').toLowerCase().includes(search) ||
-            (t.message || '').toLowerCase().includes(search) ||
-            (t.tags && t.tags.some(tag => tag.toLowerCase().includes(search)))
-        );
+        const terms = tapNormalize(search).split(/\s+/).filter(Boolean);
+        const filtered = userThreads
+            .map(t => ({ t, s: tapSearchScore(t, terms) }))
+            .filter(x => x.s > 0)
+            .sort((a, b) => b.s - a.s || new Date(b.t.date) - new Date(a.t.date))
+            .map(x => x.t);
 
         resultsEl.style.display = 'block';
         resultsEl.style.padding = '0 0 6rem';
