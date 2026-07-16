@@ -6008,7 +6008,7 @@
         
         var { data, error } = await _supabase.storage
             .from('qr-media')
-            .upload(path, file, { cacheControl: '3600', upsert: false });
+            .upload(path, file, { cacheControl: '31536000', upsert: false });
         
         if (error) {
             console.error('Upload error:', error);
@@ -6032,7 +6032,7 @@
         
         var { data, error } = await _supabase.storage
             .from('qr-media')
-            .upload(path, blob, { contentType: blob.type, cacheControl: '3600', upsert: false });
+            .upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false });
         
         if (error) {
             console.error('Voice upload error:', error);
@@ -7442,33 +7442,6 @@
     // ==========================================
     // BUSINESS FORM
     // ==========================================
-    function addLink() {
-        const container = document.getElementById('linksContainer');
-        const div = document.createElement('div');
-        div.className = 'link-row';
-        div.innerHTML = `
-            <input type="url" placeholder="https://another-link.com" data-link>
-            <button type="button" class="btn-icon" onclick="this.parentElement.remove()">×</button>
-        `;
-        container.appendChild(div);
-    }
-
-
-    // ==========================================
-    // BUSINESS PROFILE
-    // ==========================================
-
-
-
-
-    // ==========================================
-    // TEMPLATE EDITOR
-    // ==========================================
-
-    function pickIcon(icon) {
-        selectedIcon = icon;
-        document.getElementById('selectedIcon').textContent = icon;
-    }
 
 
     // ==========================================
@@ -7718,17 +7691,6 @@
                 };
                 reader.readAsDataURL(file);
             }
-        });
-    }
-
-    function handleFiles(input) {
-        const container = document.getElementById('filesList');
-        Array.from(input.files).forEach(file => {
-            docFiles.push({ name: file.name, size: file.size, type: file.type });
-            const div = document.createElement('div');
-            div.className = 'file-item';
-            div.innerHTML = `<div class="file-icon">📄</div><div class="file-info"><div class="file-name">${file.name}</div><div class="file-size">${(file.size/1024).toFixed(1)} KB</div></div><button class="btn-icon" onclick="this.parentElement.remove()">×</button>`;
-            container.appendChild(div);
         });
     }
 
