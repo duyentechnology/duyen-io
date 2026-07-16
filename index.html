@@ -3850,44 +3850,10 @@
             <div class="logo-text">DUYÊN</div>
         </div>
         <div class="card">
-            <!-- Business Owner Banner (hidden by default) -->
-            <div id="bizOwnerBanner" style="display: none;">
-                <div class="biz-owner-banner">
-                    <div class="biz-owner-banner-icon">🏢</div>
-                    <div class="biz-owner-banner-text">
-                        <div class="biz-owner-banner-label">Business Owner View</div>
-                        <div class="biz-owner-banner-sub">Personal content is private between givers and receivers</div>
-                    </div>
-                </div>
-            </div>
-
             <div class="business-header">
                 <div class="business-name" id="displayBizName">Happy Flowers</div>
                 <div class="product-name" id="displayProdName">Spring Bouquet Collection</div>
                 <p class="description" id="displayDesc">Hand-selected seasonal blooms arranged fresh this morning with care and love.</p>
-            </div>
-
-            <!-- Analytics Bar (business owners only, hidden by default) -->
-            <div id="analyticsBar" style="display: none;">
-                <div class="section-title">Your QR Code Activity</div>
-                <div class="analytics-bar">
-                    <div class="analytics-stat">
-                        <div class="analytics-stat-number" id="analyticScans">0</div>
-                        <div class="analytics-stat-label">Total Scans</div>
-                    </div>
-                    <div class="analytics-stat">
-                        <div class="analytics-stat-number" id="analyticGivers">0</div>
-                        <div class="analytics-stat-label">Gift Messages</div>
-                    </div>
-                    <div class="analytics-stat">
-                        <div class="analytics-stat-number" id="analyticResponses">0</div>
-                        <div class="analytics-stat-label">Responses</div>
-                    </div>
-                    <div class="analytics-stat">
-                        <div class="analytics-stat-number" id="analyticSaved">0</div>
-                        <div class="analytics-stat-label">Saved to Tapestry</div>
-                    </div>
-                </div>
             </div>
 
             <div class="section-title">Contact Information</div>
@@ -3912,58 +3878,7 @@
             <div id="mediaDisplay"></div>
             <div id="filesDisplay"></div>
 
-            <!-- PRIVACY SHIELD (shown to business owners) -->
-            <div id="privacyShield" style="display: none;">
-                <div class="privacy-shield">
-                    <div class="shield-icon">🔒</div>
-                    <h3>Personal Content Protected</h3>
-                    <p>Gift messages and receiver responses are private conversations between givers and receivers. This keeps their experience personal and meaningful.</p>
-                    <div class="privacy-badge">
-                        <span class="privacy-badge-dot"></span>
-                        Privacy by design
-                    </div>
-                </div>
-
-                <!-- Blurred preview of giver message -->
-                <div id="blurredGiver" style="display: none;">
-                    <div class="section-title">Gift Message</div>
-                    <div class="blurred-preview">
-                        <div class="blurred-content">
-                            <div class="fake-line"></div>
-                            <div class="fake-line"></div>
-                            <div class="fake-line"></div>
-                            <div class="fake-line"></div>
-                        </div>
-                        <div class="blurred-overlay">
-                            <div class="blurred-lock">🔒 Private</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Blurred preview of receiver response -->
-                <div id="blurredResponse" style="display: none;">
-                    <div class="section-title">Receiver's Response</div>
-                    <div class="blurred-preview">
-                        <div class="blurred-content">
-                            <div class="fake-line"></div>
-                            <div class="fake-line"></div>
-                            <div class="fake-line"></div>
-                        </div>
-                        <div class="blurred-overlay">
-                            <div class="blurred-lock">🔒 Private</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Edit business info button -->
-                <div class="action-section" style="margin-top: 2rem;">
-                    <div class="action-title">Manage Your Listing</div>
-                    <div class="action-subtitle">Update your business details anytime</div>
-                    <button class="btn btn-primary" onclick="window.location.href='https://dayduyen.tech/'">✏️ Edit Business Info</button>
-                </div>
-            </div>
-
-            <!-- PERSONAL CONTENT (hidden from business owners) -->
+            <!-- PERSONAL CONTENT -->
             <div id="personalContent">
                 <div id="giverMessageDisplay"></div>
 
@@ -4619,14 +4534,9 @@
     let selectedTemplateIndex = -1;
     let selectedIcon = '💐';
 
-    // QR Code ownership & analytics (per code)
-    let qrCodeOwner = null;          // email/id of the business owner who registered this code
+    // Per-code role identity
     let giverUserId = null;          // who left the giver message
     let receiverUserId = null;       // who left the receiver response
-
-    function isBusinessOwnerViewing() {
-        return isAuthenticated && qrCodeOwner && currentUser === qrCodeOwner;
-    }
 
     function isGiverViewing() {
         return isAuthenticated && giverUserId && currentUser === giverUserId;
@@ -5010,12 +4920,6 @@
     }
 
     function handleAction(action) {
-        // Block business owner from accessing personal content
-        if (isBusinessOwnerViewing()) {
-            console.log('🔐 Business owner blocked from personal content');
-            return;
-        }
-
         if (action === 'giver') {
             currentRole = 'giver';
             if (isAuthenticated) {
@@ -5109,7 +5013,6 @@
             businessData = {};
             giverData = {};
             responseData = {};
-            qrCodeOwner = null;
             giverUserId = null;
             receiverUserId = null;
             navigate('qr');
@@ -5473,7 +5376,6 @@
         businessData = {};
         giverData = {};
         responseData = {};
-        qrCodeOwner = null;
         giverUserId = null;
         receiverUserId = null;
         navigate('qr');
@@ -7473,9 +7375,6 @@
     // THREAD VIEW (Content Display)
     // ==========================================
     function displayContent() {
-        const isBizOwner = isBusinessOwnerViewing();
-        console.log('📄 Displaying content. Business owner viewing:', isBizOwner);
-
         // === BUSINESS INFO (always visible) ===
         document.getElementById('displayBizName').textContent = businessData.businessName || 'Happy Flowers';
         document.getElementById('displayProdName').textContent = businessData.productName || 'Spring Bouquet Collection';
@@ -7515,24 +7414,8 @@
             });
         }
 
-        // === PRIVACY LAYER: Business owner vs. everyone else ===
-        if (isBizOwner) {
-            // BUSINESS OWNER: show banner, analytics, privacy shield — hide personal content
-            document.getElementById('bizOwnerBanner').style.display = 'block';
-            document.getElementById('privacyShield').style.display = 'block';
-            document.getElementById('personalContent').style.display = 'none';
-
-            // Analytics removed (was non-functional; counters never persisted).
-            // If real analytics return one day, repopulate analyticsBar here.
-            document.getElementById('analyticsBar').style.display = 'none';
-            document.getElementById('blurredGiver').style.display = 'none';
-            document.getElementById('blurredResponse').style.display = 'none';
-
-        } else {
-            // GIVER / RECEIVER / GUEST: show personal content, hide business controls
-            document.getElementById('bizOwnerBanner').style.display = 'none';
-            document.getElementById('analyticsBar').style.display = 'none';
-            document.getElementById('privacyShield').style.display = 'none';
+        // === PERSONAL CONTENT (giver / receiver / guest) ===
+        {
             document.getElementById('personalContent').style.display = 'block';
 
             // Giver message
