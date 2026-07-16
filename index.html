@@ -3414,7 +3414,7 @@
 
             <!-- Already logged in option -->
             <div id="authLoggedIn" style="display: none; margin-bottom: 1.5rem;">
-                <button class="btn btn-primary btn-full" id="authContinueBtn" onclick="currentRole = currentRole || 'giver'; navigate('qrContent');" style="padding: 14px; font-size: 1rem;"></button>
+                <button class="btn btn-primary btn-full" id="authContinueBtn" onclick="continueAfterAuth()" style="padding: 14px; font-size: 1rem;"></button>
                 <div class="divider" style="margin-top: 1rem;"><span>or switch account</span></div>
             </div>
 
@@ -3830,7 +3830,7 @@
     <!-- Sticky header -->
     <header class="app-header">
         <div class="header-inner">
-            <a class="header-logo" id="logoFallback" onclick="navigate('home')" style="display:flex;">
+            <a class="header-logo" onclick="navigate('tapestry')" style="display:flex;">
                 <div class="logo-symbol">緣</div>
                 <div class="logo-text">DUYÊN</div>
             </a>
@@ -7099,6 +7099,17 @@
         proceedAfterAuth();
     }
 
+    // "Continue as [name]" on the auth screen: resume a gift/receive flow only
+    // if a scan is actually in progress; otherwise just go to the tapestry.
+    function continueAfterAuth() {
+        if (scannedQRData) {
+            if (!currentRole) currentRole = 'giver';
+            navigate('qrContent');
+        } else {
+            navigate('tapestry');
+        }
+    }
+
     function proceedAfterAuth() {
         // Restore destination if page was reloaded during auth (e.g. OAuth redirect)
         if (!window.postAuthDestination) {
@@ -7135,15 +7146,13 @@
             return;
         }
 
-        // If we have scanned QR data, go to content screen
+        // Only resume the gift composer if a scan is genuinely in progress;
+        // a plain sign-in returns to the tapestry.
         if (scannedQRData && currentRole) {
             navigate('qrContent');
             return;
         }
-
-        else if (currentRole === 'giver') navigate('qrContent');
-        else if (currentRole === 'receiver') navigate('qrContent');
-        else navigate('tapestry');
+        navigate('tapestry');
     }
 
     function togglePassword(id) {
