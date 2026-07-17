@@ -4000,6 +4000,18 @@
             <div id="userProviderBadge"><span class="user-provider-badge">📧 Email</span></div>
         </div>
 
+        <div id="userTokensSection" style="display:none;">
+            <div class="user-section-label">Moment Tokens</div>
+            <div style="background:#faf6fa;border:1px solid #eaddea;border-radius:14px;padding:16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;">
+                <div style="text-align:center;min-width:56px;">
+                    <div id="tokenBalanceValue" style="font-family:'Crimson Pro',serif;font-size:28px;font-weight:700;color:#8B3A7F;line-height:1;">—</div>
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#9A8478;margin-top:3px;">Tokens</div>
+                </div>
+                <div style="flex:1;font-size:0.82rem;color:var(--text-secondary);line-height:1.45;">Each moment you send costs 1 token. Packs are 5 for $5.</div>
+            </div>
+            <button class="user-action-btn user-action-btn-secondary" onclick="buyTokens(1)">Buy 5 tokens · $5</button>
+        </div>
+
         <div class="user-section-label">Security</div>
         <div id="userPasswordSection">
             <button class="user-action-btn user-action-btn-secondary" onclick="sendPasswordReset()">🔑 Send password reset email</button>
@@ -4952,12 +4964,74 @@
     // Send a moment: create a fresh code, open the gift composer in giver mode.
     // On save, the existing saveGiverData() updates this code and hands back the
     // duyen.io/q/<id> link to share — same flow as a physical card, started here.
+    // ── Tokens (Phase 2) ────────────────────────────────────────────────────
+    // Off until the token backend (supabase/) is deployed; flip to true then.
+    var TOKENS_ENABLED = false;
+    var tapTokenBalance = null;
+
+    async function loadTokenBalance() {
+        if (!TOKENS_ENABLED) return null;
+        try {
+            var res = await _supabase.rpc('get_or_create_wallet');
+            if (res.error) { console.warn('wallet load error:', res.error); return null; }
+            tapTokenBalance = (typeof res.data === 'number') ? res.data : parseInt(res.data, 10);
+            renderTokenBalance();
+            return tapTokenBalance;
+        } catch (e) { console.warn('loadTokenBalance error:', e); return null; }
+    }
+    function renderTokenBalance() {
+        var el = document.getElementById('tokenBalanceValue');
+        if (el && tapTokenBalance != null) el.textContent = tapTokenBalance;
+    }
+    async function buyTokens(quantity) {
+        try {
+            var res = await _supabase.functions.invoke('create-checkout', { body: { quantity: quantity || 1 } });
+            if (res.error || !res.data || !res.data.url) { alert('Could not start checkout. Please try again.'); return; }
+            window.location.href = res.data.url; // Stripe Checkout
+        } catch (e) { console.error('buyTokens error:', e); alert('Could not start checkout. Please try again.'); }
+    }
+    function promptBuyTokens() {
+        if (confirm("You're out of tokens. A 5-pack is $5 (1 token = 1 moment). Buy now?")) buyTokens(1);
+    }
+    // Spend 1 token for a moment (idempotent per code). Returns new balance, or -1 if none.
+    async function spendMomentToken(qrId) {
+        try {
+            var res = await _supabase.rpc('spend_token_for_moment', { p_qr_id: qrId });
+            if (res.error) { console.warn('spend error:', res.error); return null; }
+            var nb = (typeof res.data === 'number') ? res.data : parseInt(res.data, 10);
+            if (nb >= 0) { tapTokenBalance = nb; renderTokenBalance(); }
+            return nb;
+        } catch (e) { console.warn('spendMomentToken error:', e); return null; }
+    }
+    // After returning from Stripe Checkout (?tokens=success), refresh the balance.
+    function handleTokensReturn() {
+        if (!TOKENS_ENABLED) return;
+        try {
+            var params = new URLSearchParams(window.location.search);
+            var t = params.get('tokens');
+            if (!t) return;
+            params.delete('tokens');
+            var qs = params.toString();
+            history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''));
+            if (t === 'success') {
+                loadTokenBalance();
+                setTimeout(loadTokenBalance, 2500); // the webhook credits asynchronously
+                alert('Payment received — your tokens are on the way! 💜');
+            }
+        } catch (e) { console.warn('handleTokensReturn error:', e); }
+    }
+
     async function openSendMoment() {
         toggleFabMenu(false);
         if (!isAuthenticated) { navigate('auth'); return; }
         try {
             var user = (await _supabase.auth.getUser()).data.user;
             if (!user) { navigate('auth'); return; }
+            // Token gate: need at least 1 token to start a moment.
+            if (TOKENS_ENABLED) {
+                var bal = await loadTokenBalance();
+                if (bal !== null && bal <= 0) { promptBuyTokens(); return; }
+            }
             var res = await _supabase.from('qr_codes')
                 .insert({ user_id: user.id, source: 'moment', status: 'active', label: 'QR Code' })
                 .select().single();
@@ -5317,6 +5391,13 @@
             if (provider !== 'email') {
                 const sec = document.getElementById('userPasswordSection');
                 if (sec) sec.style.display = 'none';
+            }
+
+            // Moment tokens (only when the token system is on)
+            const tokSec = document.getElementById('userTokensSection');
+            if (tokSec) {
+                tokSec.style.display = TOKENS_ENABLED ? 'block' : 'none';
+                if (TOKENS_ENABLED) loadTokenBalance();
             }
         } catch(e) { console.error('Profile load error:', e); }
     }
@@ -6415,7 +6496,17 @@
                 date: new Date().toISOString(),
                 secret_phrase: secretPhrase || null
             };
-            
+
+            // Charge 1 token for a moment (idempotent per code; only blocks on truly empty).
+            if (TOKENS_ENABLED && scannedQRData.source === 'moment') {
+                var _nb = await spendMomentToken(scannedQRData.id);
+                if (_nb === -1) {
+                    var d1 = document.getElementById('qcDot1'); if (d1) d1.style.opacity = '1';
+                    promptBuyTokens();
+                    return;
+                }
+            }
+
             var { error } = await _supabase
                 .from('qr_codes')
                 .update({ giver_data: giverData, giver_user_id: (await _supabase.auth.getUser()).data.user.id })
@@ -6902,7 +6993,9 @@
             const tapTitle = document.getElementById('tapestryTitle');
             const displayName = currentUser.split(' ')[0];
             tapTitle.textContent = displayName + '\'s Life Tapestry';
-            
+
+            handleTokensReturn(); // if returning from Stripe Checkout
+
             // Only auto-navigate to tapestry if NOT on a QR scan URL
             const path = window.location.pathname;
             const hash = window.location.hash;
