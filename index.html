@@ -3157,8 +3157,8 @@
 
             <!-- Giver section: shows when role=giver and no giver data yet -->
             <div id="qcGiverForm" style="display: none;">
-                <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Add Your Gift Message</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Write a personal message for the person receiving this gift.</p>
+                <h2 id="qcGiverFormTitle" style="font-family: 'Crimson Pro', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Add Your Gift Message</h2>
+                <p id="qcGiverFormSub" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Write a personal message for the person receiving this gift.</p>
                 <div style="display: flex; gap: 12px; margin-bottom: 1rem;">
                     <div style="flex: 1;">
                         <label style="display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem;">To</label>
@@ -3202,7 +3202,7 @@
                     <div id="qcCheck1" onclick="qcCheck1Tap()" style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;cursor:pointer;">
                         <div id="qcDot1" style="width:22px;height:22px;border-radius:50%;border:2px solid #C9A0C4;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
                         <div>
-                            <div style="font-size:14px;font-weight:600;color:#2E2A28;font-family:sans-serif;">Save message to QR card</div>
+                            <div id="qcCheck1Title" style="font-size:14px;font-weight:600;color:#2E2A28;font-family:sans-serif;">Save message to QR card</div>
                             <div style="font-size:12px;color:#9A8478;margin-top:2px;font-family:sans-serif;">Tap to confirm and save</div>
                         </div>
                     </div>
@@ -6203,7 +6203,21 @@
                     document.getElementById('qcGiverWaiting').style.display = 'block';
                 }
             } else {
-                // Giver hasn't added message yet — show form
+                // Giver hasn't added a message yet — show the composer, with copy
+                // tuned to whether this is a digital "moment" or a physical gift card.
+                var _isMoment = data.source === 'moment';
+                var _gfTitle = document.getElementById('qcGiverFormTitle');
+                var _gfSub = document.getElementById('qcGiverFormSub');
+                var _gfCheck = document.getElementById('qcCheck1Title');
+                if (_isMoment) {
+                    if (_gfTitle) _gfTitle.textContent = 'Send a Moment';
+                    if (_gfSub) _gfSub.textContent = 'More than a text — a message, photos, even your voice, kept forever in both your tapestries.';
+                    if (_gfCheck) _gfCheck.textContent = 'Save & create your link';
+                } else {
+                    if (_gfTitle) _gfTitle.textContent = 'Add Your Gift Message';
+                    if (_gfSub) _gfSub.textContent = 'Write a personal message for the person receiving this gift.';
+                    if (_gfCheck) _gfCheck.textContent = 'Save message to QR card';
+                }
                 document.getElementById('qcGiverForm').style.display = 'block';
             }
         }
