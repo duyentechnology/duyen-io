@@ -4080,6 +4080,13 @@
             <div id="extTitleError" style="display: none; color: var(--brand-red); font-size: 0.8rem; margin-top: 4px; font-weight: 500;">Please give this thread a title</div>
         </div>
 
+        <!-- When did this happen? (optional backfill date) -->
+        <div class="form-group">
+            <label>When did this happen? <span style="color: var(--text-muted); font-weight: 400;">(optional)</span></label>
+            <input type="date" id="extDate">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Leave blank for today. Pick a past date to weave this moment back into your tapestry.</div>
+        </div>
+
         <!-- Category picker -->
         <div class="form-group">
             <label>Category</label>
@@ -4564,7 +4571,9 @@
                     title: title,
                     from: from || 'Someone special',
                     message: message || 'A meaningful moment',
-                    date: entry.created_at,
+                    date: entry.occurred_at || entry.created_at,
+                    createdAt: entry.created_at,
+                    occurred: !!entry.occurred_at,
                     tags: entry.tags || [],
                     icon: icon,
                     photos: photos,
@@ -4596,7 +4605,9 @@
                         title: 'A moment',
                         from: '',
                         message: '',
-                        date: entry.created_at,
+                        date: entry.occurred_at || entry.created_at,
+                        createdAt: entry.created_at,
+                        occurred: !!entry.occurred_at,
                         tags: [],
                         icon: entry.role === 'giver' ? '🎁' : entry.role === 'receiver' ? '💝' : '',
                         photos: [],
@@ -4940,6 +4951,9 @@
         document.getElementById('extPhotoPreview').innerHTML = '';
         document.getElementById('extPhotoCount').textContent = '';
 
+        // Reset backfill date (blank = today) and cap at today
+        resetExtDate();
+
         // Reset voice recorder
         deleteRecording('external');
 
@@ -5084,6 +5098,9 @@
         document.getElementById('extPhotoPreview').innerHTML = '';
         document.getElementById('extPhotoCount').textContent = '';
 
+        // Reset backfill date (blank = today) and cap at today
+        resetExtDate();
+
         // Reset voice recorder
         deleteRecording('external');
 
@@ -5096,6 +5113,18 @@
         document.querySelector('.category-option').classList.add('selected');
 
         navigate('externalQr');
+    }
+
+    // Reset the optional "when did this happen?" field and prevent future dates
+    function resetExtDate() {
+        const el = document.getElementById('extDate');
+        if (!el) return;
+        el.value = '';
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+        const dd = now.getDate().toString().padStart(2, '0');
+        el.max = yyyy + '-' + mm + '-' + dd;
     }
 
     function selectCategory(cat, el) {
@@ -5273,17 +5302,33 @@
                 });
             }
 
+            // Optional backfill date: when did this moment actually happen?
+            // Blank => leave occurred_at null so it falls back to created_at (now).
+            var occurredAt = null;
+            var extDateVal = (document.getElementById('extDate').value || '').trim();
+            if (extDateVal) {
+                // Parse as LOCAL noon so the calendar day is preserved across timezones.
+                var occurredDate = new Date(extDateVal + 'T12:00:00');
+                if (!isNaN(occurredDate.getTime())) {
+                    // Never store a future date — cap at now.
+                    if (occurredDate.getTime() > Date.now()) occurredDate = new Date();
+                    occurredAt = occurredDate.toISOString();
+                }
+            }
+
             // Also add to tapestry so it shows in the collection
             if (data && data[0]) {
+                var tapInsert = {
+                    user_id: user.id,
+                    qr_code_id: data[0].id,
+                    role: 'external',
+                    title: title,
+                    note: urlToSave
+                };
+                if (occurredAt) tapInsert.occurred_at = occurredAt;
                 var { data: tapData, error: tapError } = await _supabase
                     .from('tapestry')
-                    .insert({
-                        user_id: user.id,
-                        qr_code_id: data[0].id,
-                        role: 'external',
-                        title: title,
-                        note: urlToSave
-                    })
+                    .insert(tapInsert)
                     .select();
                 if (tapError) console.error('Tapestry insert error:', tapError);
                 // Store ID so "View Thread" opens the right entry
@@ -7754,11 +7799,15 @@
         var yr = d.getFullYear();
         return mon + ' ' + day + ' \u00B7 ' + yr;
     }
-    function tapDateFull(dateStr) {
+    function tapDateFull(dateStr, hideTime) {
         var d = new Date(dateStr);
         var mon = d.toLocaleDateString('en-US',{month:'short'});
         var day = d.getDate();
         var yr = d.getFullYear();
+        // Backfilled dates carry no real clock time \u2014 show the day only.
+        if (hideTime) {
+            return '<div class="tap-fc-date">' + mon + ' ' + day + ' \u00B7 ' + yr + '</div>';
+        }
         var hr = d.getHours();
         var min = d.getMinutes().toString().padStart(2,'0');
         var ampm = hr >= 12 ? 'P.M.' : 'A.M.';
@@ -7772,9 +7821,17 @@
         return d.toLocaleDateString('en-US', { month:'short', year:'numeric' });
     }
 
+    // Newest-first by effective date; ties (e.g. two backfilled to the same day)
+    // fall back to when the moment was actually saved so order stays stable.
+    function tapCompareNewest(a, b) {
+        const diff = new Date(b.date) - new Date(a.date);
+        if (diff) return diff;
+        return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
+    }
+
     function tapGetMonths() {
         const seen = new Set(); const months = [];
-        [...userThreads].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
+        [...userThreads].sort(tapCompareNewest).forEach(t=>{
             const k=tapGetMonthKey(t.date); if(!seen.has(k)){seen.add(k);months.push(k);}
         });
         return months;
@@ -7808,7 +7865,7 @@
             const source = month
                 ? userThreads.filter(t=>tapGetMonthKey(t.date)===month)
                 : [...userThreads];
-            const cards = source.sort((a,b)=>new Date(b.date)-new Date(a.date));
+            const cards = source.sort(tapCompareNewest);
             if(!cards.length){scroll.classList.remove('switching');return;}
             const tilts=[-7,8,-5,6,-8,5,-4,9,-6,7],tapes=[-3,3,2,-2,3,-3,2,-2,3,-1];
             cards.forEach((thread,i)=>{
@@ -8072,7 +8129,7 @@
         monthsToRender.forEach(m => {
             const monthThreads = userThreads
                 .filter(t => tapGetMonthKey(t.date) === m)
-                .sort((a,b) => new Date(b.date) - new Date(a.date));
+                .sort(tapCompareNewest);
             if (!monthThreads.length) return;
 
             const polaroidsHtml = monthThreads.map((t, i) => {
@@ -8424,7 +8481,7 @@
 
             <!-- Date — postmark style at the bottom -->
             <div style="text-align: center; margin-top: 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: #9A8478; letter-spacing: 0.05em;">
-                ${tapDateFull(thread.date)}
+                ${tapDateFull(thread.date, thread.occurred)}
             </div>
 
             <!-- Edit/delete controls — gift QRs get only a delete button (placed AFTER receiver response below); external keeps edit-mode block -->
