@@ -4067,8 +4067,8 @@
             <p class="subtitle" id="extScreenSubtitle">Add this moment to the days of your life</p>
         </div>
 
-        <!-- Scanned URL display -->
-        <div class="form-group">
+        <!-- Scanned URL display (hidden in the manual "Add a Moment" flow) -->
+        <div class="form-group" id="extUrlGroup">
             <label id="extUrlLabel">Link URL</label>
             <input type="url" id="externalUrl" placeholder="https://..." style="font-size: 0.85rem; word-break: break-all;">
         </div>
@@ -4083,7 +4083,7 @@
         <!-- When did this happen? (optional backfill date) -->
         <div class="form-group">
             <label>When did this happen? <span style="color: var(--text-muted); font-weight: 400;">(optional)</span></label>
-            <input type="date" id="extDate">
+            <input type="text" id="extDate" inputmode="numeric" autocomplete="off" placeholder="00/00/0000" maxlength="10" oninput="maskDateInput(this)">
             <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Leave blank for today. Pick a past date to weave this moment back into your tapestry.</div>
         </div>
 
@@ -4928,6 +4928,7 @@
         document.getElementById('extScreenTitle').textContent = 'Save to Your Tapestry';
         document.getElementById('extScreenSubtitle').textContent = 'Add this moment to the days of your life';
         document.getElementById('extUrlLabel').textContent = 'Link URL';
+        document.getElementById('extUrlGroup').style.display = '';
 
         // Populate screen
         document.getElementById('externalUrl').value = url;
@@ -5088,6 +5089,7 @@
         document.getElementById('extScreenTitle').textContent = 'Add a Moment';
         document.getElementById('extScreenSubtitle').textContent = 'Weave a moment into the days of your life';
         document.getElementById('extUrlLabel').textContent = 'Link URL (optional)';
+        document.getElementById('extUrlGroup').style.display = 'none';
 
         // Clear all fields (no URL auto-suggest for a typed memory)
         document.getElementById('externalUrl').value = '';
@@ -5120,11 +5122,16 @@
         const el = document.getElementById('extDate');
         if (!el) return;
         el.value = '';
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = (now.getMonth() + 1).toString().padStart(2, '0');
-        const dd = now.getDate().toString().padStart(2, '0');
-        el.max = yyyy + '-' + mm + '-' + dd;
+    }
+
+    // Format the typed "when did this happen?" field as MM/DD/YYYY (00/00/0000),
+    // inserting slashes automatically as digits are entered.
+    function maskDateInput(el) {
+        const digits = el.value.replace(/\D/g, '').slice(0, 8);
+        let out = digits.slice(0, 2);
+        if (digits.length >= 3) out += '/' + digits.slice(2, 4);
+        if (digits.length >= 5) out += '/' + digits.slice(4, 8);
+        el.value = out;
     }
 
     function selectCategory(cat, el) {
@@ -5307,12 +5314,17 @@
             var occurredAt = null;
             var extDateVal = (document.getElementById('extDate').value || '').trim();
             if (extDateVal) {
-                // Parse as LOCAL noon so the calendar day is preserved across timezones.
-                var occurredDate = new Date(extDateVal + 'T12:00:00');
-                if (!isNaN(occurredDate.getTime())) {
-                    // Never store a future date — cap at now.
-                    if (occurredDate.getTime() > Date.now()) occurredDate = new Date();
-                    occurredAt = occurredDate.toISOString();
+                // Typed as MM/DD/YYYY. Parse at LOCAL noon so the calendar day survives timezones.
+                var dm = extDateVal.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                if (dm) {
+                    var mo = parseInt(dm[1], 10), dy = parseInt(dm[2], 10), yr = parseInt(dm[3], 10);
+                    var occurredDate = new Date(yr, mo - 1, dy, 12, 0, 0);
+                    // Guard impossible dates (e.g. 13/40) — JS Date rolls them over, so verify the parts.
+                    if (!isNaN(occurredDate.getTime()) && occurredDate.getMonth() === mo - 1 && occurredDate.getDate() === dy) {
+                        // Never store a future date — cap at now.
+                        if (occurredDate.getTime() > Date.now()) occurredDate = new Date();
+                        occurredAt = occurredDate.toISOString();
+                    }
                 }
             }
 
