@@ -1274,6 +1274,53 @@
         .welcome-body em { display: none; }
         .highlight-box { display: none; }
 
+        /* "What you can do" feature list on the welcome screen */
+        .welcome-features {
+            text-align: left;
+            max-width: 460px;
+            margin: 0 auto 2.6rem;
+        }
+        .wf-item {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            padding: 15px 2px;
+            border-bottom: 1px solid #EDE3DC;
+        }
+        .wf-item:last-child { border-bottom: none; }
+        .wf-chip {
+            flex: 0 0 auto;
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            background: rgba(139, 58, 127, 0.09);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .wf-chip svg {
+            width: 20px;
+            height: 20px;
+            stroke: #8B3A7F;
+            fill: none;
+            stroke-width: 1.7;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .wf-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.02rem;
+            font-weight: 600;
+            color: #3D2E24;
+            margin-bottom: 2px;
+        }
+        .wf-desc {
+            font-size: 0.92rem;
+            line-height: 1.5;
+            color: #6B5751;
+            font-weight: 400;
+        }
+
         .welcome-actions {
             display: flex;
             flex-direction: column;
@@ -3058,20 +3105,38 @@
             <div class="logo-text">DUYÊN</div>
         </div>
 
-        <h1 class="welcome-headline">Duyên Preserves<br>What Matters</h1>
+        <h1 class="welcome-headline">Weave the Moments<br>of Your Life</h1>
 
         <div class="welcome-body">
-            <p>Each time you scan a QR code, you create a thread —
-            a lasting memory of a gift received, a person met,
-            or a place discovered. Together, these threads
-            weave the tapestry of your life.</p>
+            <p>Duyên turns what matters — gifts, people, places, milestones —
+            into a living tapestry you can revisit anytime. Add a memory in
+            seconds, or receive one from someone you love.</p>
+        </div>
+
+        <div class="welcome-features">
+            <div class="wf-item">
+                <div class="wf-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+                <div><div class="wf-title">Add a moment</div><div class="wf-desc">A memory with photos, video, or a voice note — dated to when it actually happened.</div></div>
+            </div>
+            <div class="wf-item">
+                <div class="wf-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="8.8" width="17" height="11.7" rx="1.5"/><line x1="3.5" y1="12.8" x2="20.5" y2="12.8"/><line x1="12" y1="8.8" x2="12" y2="20.5"/><path d="M12 8.8C12 8.8 10.2 3.9 7.8 5.2C6 6.2 8.4 8.8 12 8.8Z"/><path d="M12 8.8C12 8.8 13.8 3.9 16.2 5.2C18 6.2 15.6 8.8 12 8.8Z"/></svg></div>
+                <div><div class="wf-title">Receive a gift</div><div class="wf-desc">Scan a QR code and it becomes a lasting thread in your story.</div></div>
+            </div>
+            <div class="wf-item">
+                <div class="wf-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-6.8-4.4-6.8-9.2A3.4 3.4 0 0 1 12 8.2a3.4 3.4 0 0 1 6.8 2.6C18.8 15.6 12 20 12 20Z"/></svg></div>
+                <div><div class="wf-title">Give a moment</div><div class="wf-desc">Leave a memory — with a personal message — for someone special.</div></div>
+            </div>
+            <div class="wf-item">
+                <div class="wf-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.2" width="16" height="14.8" rx="2"/><line x1="4" y1="9.4" x2="20" y2="9.4"/><line x1="8.8" y1="3.2" x2="8.8" y2="6.4"/><line x1="15.2" y1="3.2" x2="15.2" y2="6.4"/><circle cx="8.5" cy="13" r=".9"/><circle cx="12" cy="13" r=".9"/><circle cx="15.5" cy="13" r=".9"/></svg></div>
+                <div><div class="wf-title">See it woven</div><div class="wf-desc">Your life organized by the days it happened, month by month.</div></div>
+            </div>
         </div>
 
         <div class="welcome-actions">
             <button class="btn btn-primary" onclick="navigate('auth')">Sign In to Your Tapestry</button>
         </div>
 
-        <div class="welcome-footer">Your first thread is just a scan away</div>
+        <div class="welcome-footer">Your story starts with a single moment</div>
     </div>
 </div>
 
