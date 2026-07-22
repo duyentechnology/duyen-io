@@ -2327,6 +2327,15 @@
             box-shadow: 0 4px 16px rgba(139, 58, 127, 0.28);
             transition: transform 0.2s;
         }
+        .fab-action-btn svg {
+            width: 32px;
+            height: 32px;
+            stroke: #8B3A7F;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
         .fab-action:hover .fab-action-btn {
             transform: scale(1.08);
         }
@@ -3996,15 +4005,15 @@
         <div class="fab-actions" id="fabActions">
             <button class="fab-action" onclick="openSendMoment()">
                 <span class="fab-action-label">Send a moment</span>
-                <span class="fab-action-btn">❤️</span>
+                <span class="fab-action-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-6.8-4.4-6.8-9.2A3.4 3.4 0 0 1 12 8.2a3.4 3.4 0 0 1 6.8 2.6C18.8 15.6 12 20 12 20Z"/></svg></span>
             </button>
             <button class="fab-action" onclick="openAddMemory()">
                 <span class="fab-action-label">Add a moment</span>
-                <span class="fab-action-btn">✏️</span>
+                <span class="fab-action-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3Z"/><line x1="13.5" y1="6.5" x2="16.5" y2="9.5"/></svg></span>
             </button>
             <button class="fab-action" onclick="toggleFabMenu(false); openScanner();">
                 <span class="fab-action-label">Scan a QR code</span>
-                <span class="fab-action-btn">📸</span>
+                <span class="fab-action-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5V6A2 2 0 0 1 6 4h2.5"/><path d="M15.5 4H18a2 2 0 0 1 2 2v2.5"/><path d="M20 15.5V18a2 2 0 0 1-2 2h-2.5"/><path d="M8.5 20H6a2 2 0 0 1-2-2v-2.5"/><line x1="4.5" y1="12" x2="19.5" y2="12"/></svg></span>
             </button>
         </div>
         <button class="fab fab-main-toggle" id="fabMain" onclick="toggleFabMenu()" title="Add to your tapestry">+</button>
