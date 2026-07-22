@@ -8485,8 +8485,9 @@
             ${linkCardHtml}
             ${voiceHtml}
 
-            <!-- "from" attribution (small, below media) -->
-            ${thread.role === 'external' && (!thread.from || thread.from === 'Scanned QR') ? '' : `<div style="text-align: center; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; color: #6B5751;">${fromPrefixes[thread.role]||'from'} <span style="color:#8B3A7F;font-weight:500;">${thread.from}</span></div>`}
+            <!-- "from" attribution (small, below media). Gift pathway only —
+                 woven moments (role 'external') carry no giver, so no byline. -->
+            ${thread.role === 'external' ? '' : `<div style="text-align: center; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; color: #6B5751;">${fromPrefixes[thread.role]||'from'} <span style="color:#8B3A7F;font-weight:500;">${thread.from}</span></div>`}
 
             ${(thread.externalUrl && !(thread.linkMeta && thread.linkMeta.image)) ? editField('url','Link',thread.externalUrl,'url') : ''}
             ${linkHtml}
@@ -8869,7 +8870,7 @@
                                 ${roleLabel}${thread.isFavorite ? ' ⭐' : ''}
                             </span>
                             <div class="thread-card-title">${thread.title}</div>
-                            <div class="thread-card-from">${thread.from}</div>
+                            ${thread.role === 'external' ? '' : `<div class="thread-card-from">${thread.from}</div>`}
                             <div class="thread-card-msg">${thread.message}</div>
                             ${mediaChips ? `<div style="margin-top:0.4rem;">${mediaChips}</div>` : ''}
                             <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
@@ -8899,7 +8900,7 @@
                                 ${roleLabel}${thread.isFavorite ? ' ⭐' : ''}
                             </span>
                             <div class="thread-card-title">${thread.title}</div>
-                            <div class="thread-card-from">${thread.from}</div>
+                            ${thread.role === 'external' ? '' : `<div class="thread-card-from">${thread.from}</div>`}
                             <div class="thread-card-msg">${bodyMsg}</div>
                             ${mediaChips ? `<div style="margin-top:0.4rem;">${mediaChips}</div>` : ''}
                             <div class="thread-tags">${(thread.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
