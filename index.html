@@ -5683,6 +5683,32 @@
         if (chev) chev.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
     }
 
+    // Menu viewer — full-screen lightbox for a business's uploaded menu photos.
+    function openMenuViewer() {
+        var photos = window.__menuPhotos || [];
+        if (!photos.length) return;
+        var overlay = document.getElementById('menuViewerOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'menuViewerOverlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,12,18,0.94);z-index:100000;overflow-y:auto;padding:56px 16px 44px;';
+            document.body.appendChild(overlay);
+        }
+        overlay.innerHTML =
+            '<div onclick="closeMenuViewer()" style="position:fixed;top:14px;right:16px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.16);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;z-index:1;">✕</div>' +
+            '<div style="text-align:center;color:#fff;font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;margin-bottom:20px;">Menu</div>' +
+            '<div style="max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px;">' +
+                photos.map(function(u){ return '<img src="' + String(u).replace(/"/g,'&quot;') + '" style="width:100%;border-radius:12px;display:block;" loading="lazy">'; }).join('') +
+            '</div>';
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMenuViewer() {
+        var o = document.getElementById('menuViewerOverlay');
+        if (o) o.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
     function showBusinessProfile(data, biz) {
         scannedQRData = data;
 
@@ -5717,6 +5743,10 @@
         }
         if (addr) {
             iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
+        }
+        if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
+            window.__menuPhotos = biz.menuPhotos;
+            iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
         }
         var iconRowHtml = iconsHtml ? '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:11px;">' + iconsHtml + '</div>' : '';
 
@@ -8516,6 +8546,10 @@
             }
             if (addr) {
                 iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
+            }
+            if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
+                window.__menuPhotos = biz.menuPhotos;
+                iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
             }
             var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:11px;">' + iconsHtml + '</div>' : '';
 
