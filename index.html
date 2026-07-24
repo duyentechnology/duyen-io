@@ -8262,7 +8262,7 @@
                 const visual = hasPhoto
                     ? `<img src="${t.photos[0]}" alt="${safeTitle}" loading="lazy">`
                     : hasLinkImage
-                        ? `<div style="width:100%;height:100%;background:#f5f0eb center/cover no-repeat;background-image:url('${linkImage.replace(/'/g,"\\'")}');"></div>`
+                        ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
                         : isExternalNote
                             ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
                             : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
@@ -8311,6 +8311,20 @@
 
     // Helper: append #t=0.1 so iOS Safari renders first frame as poster instead of black box
     function posterUrl(u) { return u ? (u + '#t=0.1') : u; }
+
+    // Link-preview image that degrades gracefully. og:image URLs are often dead, expired, or
+    // hotlink-protected (e.g. Marriott/Luma), so a raw CSS background-image leaves a blank box on
+    // failure. Render an <img> that, on error, swaps to the entry's emoji tile instead.
+    function linkImgFail(el, emoji) {
+        if (!el || !el.parentNode) return;
+        el.onerror = null;
+        el.parentNode.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;font-size:2rem;">' + (emoji || '🧵') + '</div>';
+    }
+    function linkImgInner(url, emoji) {
+        var safeUrl = String(url == null ? '' : url).replace(/"/g, '&quot;');
+        var safeEmoji = String(emoji || '🧵').replace(/'/g, "\\'");
+        return '<img src="' + safeUrl + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="linkImgFail(this,\'' + safeEmoji + '\')">';
+    }
 
     // Retry once on CDN miss/cold-start; on second failure show a soft fallback so the user knows the photo exists
     function tapMediaRetry(el) {
@@ -8435,9 +8449,8 @@
             if (hasRich) {
                 const title = esc(lm.title);
                 const desc  = esc(lm.description);
-                const imgUrl = (lm.image || '').replace(/'/g,"\\'");
                 return `<a href="${esc(targetUrl)}" target="_blank" rel="noopener noreferrer" style="display:block;background:white;border:1px solid #EEE7E1;border-radius:14px;overflow:hidden;margin:0 0 0.75rem;box-shadow:0 1px 8px rgba(0,0,0,0.08);text-decoration:none;">
-                    <div style="width:100%;aspect-ratio:1.91/1;background:#F7F1EC center/cover no-repeat;background-image:url('${imgUrl}');"></div>
+                    <div style="width:100%;aspect-ratio:1.91/1;background:#F7F1EC;">${linkImgInner(lm.image, thread.icon)}</div>
                     <div style="padding:12px 14px 14px;">
                         ${title ? `<div style="font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-weight:600;font-size:15px;color:#2E2A28;line-height:1.3;margin-bottom:4px;">${title}</div>` : ''}
                         ${desc  ? `<div style="font-size:12px;color:#6B5751;line-height:1.45;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${desc}</div>` : ''}
@@ -8994,7 +9007,7 @@
                     try { extDomain = new URL(thread.externalUrl).hostname.replace(/^www\./,''); } catch(e) {}
                 }
                 const visual = hasLinkImage
-                    ? `<div class="thread-card-image" style="background:#f5f0eb center/cover no-repeat;background-image:url('${linkImage.replace(/'/g,"\\'")}');"></div>`
+                    ? `<div class="thread-card-image" style="background:#f5f0eb;">${linkImgInner(linkImage, thread.icon)}</div>`
                     : isExternalNote
                         ? `<div class="thread-card-image" style="background:#FBF8F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:14px;line-height:1.45;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:40px;height:40px;border-radius:9px;background:white;display:flex;align-items:center;justify-content:center;padding:6px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                         : `<div class="thread-card-image" style="background:#f5f0eb;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">${thread.icon||'🧵'}</div>`;
