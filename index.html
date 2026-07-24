@@ -8266,13 +8266,19 @@
                         : isExternalNote
                             ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
                             : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
-                const domLine = (t.role === 'external' && linkDomain(t))
-                    ? `<div class="tap-polaroid-domain" style="font-size:10px;letter-spacing:0.03em;color:#8B3A7F;font-weight:500;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${linkDomain(t).replace(/</g,'&lt;')}</div>`
+                // External cards: label with the destination URL/domain, then the user's notes at a glance.
+                const extDomainLabel = (t.role === 'external') ? linkDomain(t) : '';
+                const extNote = (t.role === 'external' && t.message && t.message !== 'A meaningful moment')
+                    ? t.message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
                     : '';
+                const noteLine = extNote
+                    ? `<div class="tap-polaroid-note" style="font-size:11px;color:#6B5751;line-height:1.35;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${extNote}</div>`
+                    : '';
+                const caption = extDomainLabel ? extDomainLabel.replace(/</g,'&lt;') : tapPhotoCaption(t);
                 return `<div class="tap-polaroid" data-thread-id="${t.id}">
                     <div class="tap-polaroid-img">${visual}</div>
-                    <div class="tap-polaroid-caption">${tapPhotoCaption(t)}</div>
-                    ${domLine}
+                    <div class="tap-polaroid-caption">${caption}</div>
+                    ${noteLine}
                     <div class="tap-polaroid-date">${date}</div>
                 </div>`;
             }).join('');
