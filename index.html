@@ -7989,6 +7989,11 @@
                 const date=tapDateShort(thread.date);
                 const isNew=i===0;
                 const caption=tapPhotoCaption(thread);
+                // External cards: label with the destination URL/domain, then the user's notes.
+                const extDomainLabel = (thread.role === 'external') ? linkDomain(thread) : '';
+                const extNote = (thread.role === 'external' && thread.message && thread.message !== 'A meaningful moment')
+                    ? thread.message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                    : '';
                 // External scan with no photo but with a note → show the note as the visual and the domain as the caption
                 const isExternalNote = thread.role==='external' && !hasPhoto && thread.message;
                 // Link preview image (from Edge Function) — treat as photo when present
@@ -8013,7 +8018,8 @@
                                 : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
                     }
                     <div class="tap-col-body">
-                        <div class="tap-col-caption">${isExternalNote && !hasLinkImage && extDomain ? extDomain : caption}</div>
+                        <div class="tap-col-caption">${extDomainLabel ? extDomainLabel.replace(/</g,'&lt;') : (isExternalNote && !hasLinkImage && extDomain ? extDomain : caption)}</div>
+                        ${extNote ? `<div class="tap-col-note-text" style="font-size:10px;color:#6B5751;line-height:1.3;margin-top:1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${extNote}</div>` : ''}
                         <div class="tap-col-date">${date}</div>
                     </div>`;
                 scroll.appendChild(div);
