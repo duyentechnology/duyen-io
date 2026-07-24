@@ -7957,6 +7957,10 @@
         // Generate old-school photo caption from thread data
         const name = (thread.from && thread.from !== 'You' && thread.from !== 'Someone special') ? thread.from : null;
         const title = thread.title && !thread.title.match(/^QR-\d+$/i) ? thread.title : null;
+        if (thread.role === 'external') {
+            const extLbl = externalDisplayLabel(thread);   // og:title → domain; '' → fall through to stored title
+            if (extLbl) return extLbl;
+        }
         if (thread.role === 'giver') {
             if (thread.recipientName) return 'a gift to ' + thread.recipientName;
             return 'a gift you gave';
@@ -7990,7 +7994,7 @@
                 const isNew=i===0;
                 const caption=tapPhotoCaption(thread);
                 // External cards: label with the destination URL/domain, then the user's notes.
-                const extDomainLabel = (thread.role === 'external') ? linkDomain(thread) : '';
+                const extDomainLabel = externalDisplayLabel(thread);
                 const extNote = (thread.role === 'external' && thread.message && thread.message !== 'A meaningful moment')
                     ? thread.message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
                     : '';
@@ -8273,7 +8277,7 @@
                             ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
                             : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
                 // External cards: label with the destination URL/domain, then the user's notes at a glance.
-                const extDomainLabel = (t.role === 'external') ? linkDomain(t) : '';
+                const extDomainLabel = externalDisplayLabel(t);
                 const extNote = (t.role === 'external' && t.message && t.message !== 'A meaningful moment')
                     ? t.message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
                     : '';
@@ -8349,6 +8353,15 @@
         var u = (t.linkMeta && t.linkMeta.resolved_url) || t.externalUrl;
         if (!u) return '';
         try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
+    }
+    // Display label for an external scan: the link's real page title (og:title) when we have it,
+    // else the destination domain. Empty for non-external entries (or those with no link yet), so
+    // callers fall back to the stored title. This is display-only — the stored label is untouched.
+    function externalDisplayLabel(t) {
+        if (!t || t.role !== 'external') return '';
+        var title = (t.linkMeta && t.linkMeta.title) ? String(t.linkMeta.title).trim() : '';
+        if (title) return title;
+        return linkDomain(t);
     }
     // link_meta is filled asynchronously by the resolve-link edge function (fetch + redirect-follow,
     // a few seconds). If the tapestry renders before it lands, re-pull a few times so the preview
