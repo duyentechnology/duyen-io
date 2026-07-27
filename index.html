@@ -9036,10 +9036,8 @@
 
             <!-- Edit/delete controls — gift QRs get only a delete button (placed AFTER receiver response below); external keeps edit-mode block -->
             ${isGiftQR ? `` : `
-            <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}">
-                ${(thread.photos||[]).map(p=>`<img class="tap-fc-photo-thumb" src="${p}" alt="">`).join('')}
-            </div>
-            ${(thread.photos||[]).length > 0 ? `<div class="tap-fc-photo-count-label" id="photo-count-${tid}">${thread.photos.length}/10 photos</div>` : ''}
+            <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}"></div>
+            <div class="tap-fc-photo-count-label" id="photo-count-${tid}"></div>
             <input type="file" id="photo-input-${tid}" accept="image/*,video/*" multiple style="display:none;" onchange="handleEditPhotos('${tid}', this)">
             <button class="tap-fc-add-photos-btn" onclick="document.getElementById('photo-input-${tid}').click()">
                 <svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos
@@ -9242,6 +9240,7 @@
         const container=document.getElementById('tapDetailCards'); container.innerHTML='';
         const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
         wrap.appendChild(buildTapFullCard(thread)); container.appendChild(wrap);
+        try { renderEditPhotoGrid(thread.id, thread); } catch(e) {}
         // iOS fix: media elements with inline src often won't load; re-assign src via JS
         container.querySelectorAll('audio.tap-fc-audio-el').forEach(function(a){
             var s=a.getAttribute('src'); if(s){ a.src=s; try{a.load();}catch(e){} }
@@ -9790,6 +9789,67 @@
         }
     }
 
+    // Edit-mode media list (images + videos) as [{type,url}], from thread.media or legacy photos.
+    function editMediaList(thread) {
+        return (thread.media && thread.media.length)
+            ? thread.media.slice()
+            : (thread.photos || []).map(function (u) { return { type: 'image', url: u }; });
+    }
+
+    // Render the edit-mode photo/video grid: draggable to reorder, ✕ to remove. Order persists to DB.
+    function renderEditPhotoGrid(threadId, thread) {
+        var grid = document.getElementById('photo-grid-' + threadId);
+        if (!grid) return;
+        var media = editMediaList(thread);
+        grid.innerHTML = '';
+        media.forEach(function (m, idx) {
+            var url = m.url || m;
+            var isVid = m.type === 'video';
+            var div = document.createElement('div');
+            div.className = 'photo-preview-item';
+            div.dataset.idx = idx;
+            div.style.cssText = 'position:relative;width:90px;height:90px;border-radius:10px;overflow:hidden;border:0.5px solid #ddd;cursor:grab;flex:0 0 auto;';
+            div.innerHTML = (isVid
+                ? '<video src="' + url + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></video>'
+                  + '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.65rem;pointer-events:none;">▶</div>'
+                : '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;pointer-events:none;">')
+                + '<button class="remove-photo" onclick="removeEditPhoto(\'' + threadId + '\',' + idx + ')" aria-label="Remove" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(61,46,36,0.85);color:#fff;font-size:11px;line-height:20px;text-align:center;padding:0;cursor:pointer;">✕</button>';
+            grid.appendChild(div);
+        });
+        var countEl = document.getElementById('photo-count-' + threadId);
+        if (countEl) {
+            var imgN = media.filter(function (m) { return m.type !== 'video'; }).length;
+            var vidN = media.filter(function (m) { return m.type === 'video'; }).length;
+            var txt = [imgN && imgN + ' photo' + (imgN > 1 ? 's' : ''), vidN && vidN + ' video' + (vidN > 1 ? 's' : '')].filter(Boolean).join(', ');
+            countEl.textContent = media.length ? (txt + ' / 10') : '';
+        }
+        enableGridReorder(grid, function () { return editMediaList(thread); }, function (next) { commitEditMediaOrder(threadId, thread, next); });
+        setTimeout(function () { if (typeof seekVideoThumbnails === 'function') seekVideoThumbnails(grid); }, 60);
+    }
+
+    async function commitEditMediaOrder(threadId, thread, next) {
+        thread.media = next;
+        thread.photos = next.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
+        renderEditPhotoGrid(threadId, thread);          // reflect new order immediately (optimistic)
+        try {
+            await _supabase.from('qr_codes').update({ media: next }).eq('id', thread.qr_code_id);
+        } catch (e) { console.error('Reorder persist failed:', e); }
+    }
+
+    async function removeEditPhoto(threadId, idx) {
+        var thread = userThreads.find(function (t) { return t.id === threadId; });
+        if (!thread) return;
+        if (!confirm('Remove this from the moment?')) return;
+        var media = editMediaList(thread);
+        media.splice(idx, 1);
+        thread.media = media;
+        thread.photos = media.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
+        renderEditPhotoGrid(threadId, thread);
+        try {
+            await _supabase.from('qr_codes').update({ media: media }).eq('id', thread.qr_code_id);
+        } catch (e) { console.error('Remove persist failed:', e); }
+    }
+
     async function handleEditPhotos(threadId, input) {
         const thread = userThreads.find(t => t.id === threadId);
         if (!thread) return;
@@ -9859,47 +9919,8 @@
             thread.media = [...prevMedia, ...newUrls];
             thread.photos = thread.media.filter(m => m.type !== 'video').map(m => m.url);
 
-            const grid = document.getElementById('photo-grid-' + threadId);
-            if (grid) {
-                newUrls.forEach(item => {
-                    if (item.type === 'video') {
-                        const wrap = document.createElement('div');
-                        wrap.style.cssText = 'position:relative;width:90px;height:90px;border-radius:10px;overflow:hidden;border:0.5px solid #ddd;flex-shrink:0;display:inline-block;';
-                        const vid = document.createElement('video');
-                        vid.src = item.url;
-                        vid.muted = true;
-                        vid.playsInline = true;
-                        vid.preload = 'metadata';
-                        vid.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-                        vid.onloadedmetadata = () => { vid.currentTime = 0.5; };
-                        const overlay = document.createElement('div');
-                        overlay.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.65rem;';
-                        overlay.textContent = '▶';
-                        wrap.appendChild(vid);
-                        wrap.appendChild(overlay);
-                        grid.appendChild(wrap);
-                    } else {
-                        const img = document.createElement('img');
-                        img.className = 'tap-fc-photo-thumb';
-                        img.src = item.url;
-                        grid.appendChild(img);
-                    }
-                });
-            }
-
-            let countEl = document.getElementById('photo-count-' + threadId);
-            if (!countEl) {
-                countEl = document.createElement('div');
-                countEl.id = 'photo-count-' + threadId;
-                countEl.className = 'tap-fc-photo-count-label';
-                if (grid) grid.after(countEl);
-            }
-            const imgCount = thread.media.filter(m => m.type !== 'video').length;
-            const vidCount = thread.media.filter(m => m.type === 'video').length;
-            countEl.textContent = [imgCount && imgCount + ' photo' + (imgCount > 1 ? 's' : ''), vidCount && vidCount + ' video' + (vidCount > 1 ? 's' : '')].filter(Boolean).join(', ') + ' / 10';
-
-            // Don't re-render card — thumbnails update in place, collage rebuilds on Done
-            setTimeout(() => seekVideoThumbnails(document.getElementById('photo-grid-' + threadId)), 100);
+            // Re-render the whole edit grid (draggable + removable) in the new order.
+            renderEditPhotoGrid(threadId, thread);
 
         } catch(e) {
             console.error('Edit media error:', e);
