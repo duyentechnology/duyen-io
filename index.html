@@ -3272,6 +3272,9 @@
                 <!-- Confirm boxes — always visible at bottom of form -->
                 <div style="margin-top:1.5rem;">
 
+                    <!-- Save as draft — finish later; nothing sent, no token spent -->
+                    <button id="qcSaveDraftBtn" onclick="saveDraft()" style="display:none;width:100%;background:#fff;color:#8B3A7F;border:1.5px solid #C9A0C4;border-radius:12px;padding:12px;font-size:14px;font-weight:600;font-family:sans-serif;margin-bottom:12px;cursor:pointer;">Save as draft</button>
+
                     <!-- Box 1: tapping this saves and auto-checks -->
                     <div id="qcCheck1" onclick="qcCheck1Tap()" style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;cursor:pointer;">
                         <div id="qcDot1" style="width:22px;height:22px;border-radius:50%;border:2px solid #C9A0C4;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
@@ -4011,6 +4014,10 @@
                 <span class="fab-action-label">Add a moment</span>
                 <span class="fab-action-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3Z"/><line x1="13.5" y1="6.5" x2="16.5" y2="9.5"/></svg></span>
             </button>
+            <button class="fab-action" onclick="toggleFabMenu(false); navigate('drafts');">
+                <span class="fab-action-label">Drafts <span id="fabDraftCount" style="display:none;background:#8B3A7F;color:#fff;font-size:10px;font-weight:800;border-radius:20px;min-width:17px;height:17px;padding:0 5px;vertical-align:middle;place-items:center;"></span></span>
+                <span class="fab-action-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7l4 4v12H7z"/><path d="M14 4v4h4"/><line x1="9.5" y1="13" x2="14.5" y2="13"/><line x1="9.5" y1="16" x2="14.5" y2="16"/></svg></span>
+            </button>
             <button class="fab-action" onclick="toggleFabMenu(false); openScanner();">
                 <span class="fab-action-label">Scan a QR code</span>
                 <span class="fab-action-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5V6A2 2 0 0 1 6 4h2.5"/><path d="M15.5 4H18a2 2 0 0 1 2 2v2.5"/><path d="M20 15.5V18a2 2 0 0 1-2 2h-2.5"/><path d="M8.5 20H6a2 2 0 0 1-2-2v-2.5"/><line x1="4.5" y1="12" x2="19.5" y2="12"/></svg></span>
@@ -4257,6 +4264,30 @@
 
 
 
+
+<!-- =============================================
+     DRAFTS SCREEN
+============================================= -->
+<div class="screen" id="draftsScreen">
+    <header class="app-header">
+        <div class="header-inner">
+            <a class="header-logo" onclick="navigate('tapestry')">
+                <div class="logo-symbol">緣</div>
+            <div class="logo-text">DUYÊN</div>
+            </a>
+            <div class="header-actions">
+                <button class="header-btn header-btn-ghost" onclick="navigate('tapestry')">← Tapestry</button>
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <div style="text-align:center;margin-bottom:1.25rem;">
+            <h2 style="font-family:'Crimson Pro',serif;font-size:1.75rem;color:var(--text-primary);margin-bottom:0.25rem;">Drafts</h2>
+            <p class="subtitle">Moments you've started — finish them anytime. Nothing sends until you're ready.</p>
+        </div>
+        <div id="draftsList"></div>
+    </div>
+</div>
 
 <!-- =============================================
      SCREEN: ABOUT
@@ -4728,6 +4759,7 @@
             'response':   'responseScreen',
             'success':    'successScreen',
             'tapestry':   'tapestryScreen',
+            'drafts':     'draftsScreen',
             'externalQr': 'externalQrScreen',
             'threadDetail': 'threadDetailScreen',
             'about': 'aboutScreen',
@@ -4802,6 +4834,7 @@
         if (screen === 'threadView') displayContent();
         if (screen === 'receiver') populateReceiver();
         if (screen === 'tapestry') { initTapestry(); startNotifPolling(); initPWAPrompt(); } else { stopNotifPolling(); }
+        if (screen === 'drafts') initDrafts();
     }
 
     // ==========================================
@@ -5122,7 +5155,7 @@
                 if (bal !== null && bal <= 0) { promptBuyTokens(); return; }
             }
             var res = await _supabase.from('qr_codes')
-                .insert({ user_id: user.id, source: 'moment', status: 'active', label: 'QR Code' })
+                .insert({ user_id: user.id, source: 'moment', status: 'draft', label: 'QR Code' })
                 .select().single();
             if (res.error || !res.data) {
                 console.error('Create moment error:', res.error);
@@ -5150,6 +5183,7 @@
         });
         try { giverPhotoFileList = []; } catch(e) {}
         try { giverVideoFile = null; } catch(e) {}
+        try { giverExisting = { photos: [], video: null, voice: null }; } catch(e) {}
         try { if (typeof deleteRecording === 'function') deleteRecording('giver'); } catch(e) {}
     }
 
@@ -5962,6 +5996,8 @@
     var giverPhotoFileList = [];
     var giverVideoFile = null;
     var giverVideoPreviewUrl = null;
+    // Media carried over from a resumed draft (already-uploaded URLs), merged with any newly added files on save.
+    var giverExisting = { photos: [], video: null, voice: null };
     var receiverPhotoFileList = [];
     var receiverVideoFile = null;
     var receiverVideoPreviewUrl = null;
@@ -6367,8 +6403,9 @@
                 document.getElementById('qcBizSection').style.display = 'none'; document.getElementById('qcSecretLock').style.display = 'block';
                 return;
             }
-            if (data.giver_data) {
-                // Giver already added message — show it + receiver response
+            if (data.giver_data && data.status !== 'draft') {
+                // Giver already added message AND sent it — show it + receiver response.
+                // (A draft keeps giver_data but status='draft', so it falls through to the composer.)
                 var giverData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
                 document.getElementById('qcBizSection').style.display = 'none'; document.getElementById('qcGiverSent').style.display = 'block';
 
@@ -6460,6 +6497,9 @@
                     if (_gfSub) _gfSub.textContent = 'Write a personal message for the person receiving this gift.';
                     if (_gfCheck) _gfCheck.textContent = 'Save message to QR card';
                 }
+                // "Save as draft" only applies to digital moments (not physical gift cards).
+                var _sdBtn = document.getElementById('qcSaveDraftBtn');
+                if (_sdBtn) _sdBtn.style.display = _isMoment ? 'block' : 'none';
                 document.getElementById('qcGiverForm').style.display = 'block';
             }
         }
@@ -6607,10 +6647,12 @@
         });
     }
 
-    async function saveGiverData() {
+    async function saveGiverData(mode) {
+        mode = mode || 'send';
+        var isDraft = (mode === 'draft');
         if (!scannedQRData) return;
         var message = document.getElementById('qcGiverMessage').value.trim();
-        if (!message) { alert('Please write a message'); return; }
+        if (!isDraft && !message) { alert('Please write a message'); return; }
         
         if (!isAuthenticated) {
             window.postAuthDestination = 'qrContent';
@@ -6625,14 +6667,14 @@
         try {
             var qrId = scannedQRData.id;
             
-            // Upload photos to Storage
-            var photoUrls = [];
+            // Upload photos to Storage — start from any already-uploaded photos carried over from a draft.
+            var photoUrls = (giverExisting && giverExisting.photos) ? giverExisting.photos.slice() : [];
             for (var i = 0; i < giverPhotoFileList.length; i++) {
                 var url = await uploadToStorage(giverPhotoFileList[i], 'giver/' + qrId);
                 if (url) photoUrls.push(url);
             }
-            
-            var videoUrl = giverVideoFile ? await uploadToStorage(giverVideoFile, 'giver/' + qrId) : null;
+
+            var videoUrl = giverVideoFile ? await uploadToStorage(giverVideoFile, 'giver/' + qrId) : ((giverExisting && giverExisting.video) || null);
             // If a video was selected but upload returned null, halt with a visible error
             if (giverVideoFile && !videoUrl) {
                 alert('Video upload failed: ' + (window._lastUploadError || 'unknown error') + '\n\nTry a shorter or smaller video.');
@@ -6641,7 +6683,7 @@
                 return;
             }
             var giverVoiceBlob = await finalizeVoiceBlob('giver');
-            var voiceUrl = giverVoiceBlob ? await uploadBlobToStorage(giverVoiceBlob, 'giver/' + qrId, 'voice') : null;
+            var voiceUrl = giverVoiceBlob ? await uploadBlobToStorage(giverVoiceBlob, 'giver/' + qrId, 'voice') : ((giverExisting && giverExisting.voice) || null);
             
             var secretPhrase = document.getElementById('qcGiverSecretPhrase').value.trim().toLowerCase();
             var recipientName = document.getElementById('qcGiverRecipientName').value.trim();
@@ -6659,7 +6701,8 @@
             };
 
             // Charge 1 token for a moment (idempotent per code; only blocks on truly empty).
-            if (TOKENS_ENABLED && scannedQRData.source === 'moment') {
+            // Drafts never charge — the token is spent only when the moment is actually sent.
+            if (!isDraft && TOKENS_ENABLED && scannedQRData.source === 'moment') {
                 var _nb = await spendMomentToken(scannedQRData.id);
                 if (_nb === -1) {
                     var d1 = document.getElementById('qcDot1'); if (d1) d1.style.opacity = '1';
@@ -6670,16 +6713,24 @@
 
             var { error } = await _supabase
                 .from('qr_codes')
-                .update({ giver_data: giverData, giver_user_id: (await _supabase.auth.getUser()).data.user.id })
+                .update({ giver_data: giverData, giver_user_id: (await _supabase.auth.getUser()).data.user.id, status: isDraft ? 'draft' : 'active' })
                 .eq('id', scannedQRData.id);
-            
+
             if (error) {
                 console.error('Save giver error:', error);
                 alert('Error saving. Please try again.');
                 return;
             }
-            
+
             scannedQRData.giver_data = giverData;
+            scannedQRData.status = isDraft ? 'draft' : 'active';
+
+            // Draft: persist quietly and return to the Drafts list — no token, no share link.
+            if (isDraft) {
+                showMomentToast('Draft saved · nothing sent yet');
+                navigate('drafts');
+                return;
+            }
 
             // Populate share URL
             var shareUrl = 'https://duyen.io/q/' + scannedQRData.id;
@@ -6705,6 +6756,193 @@
             if (dot1err) dot1err.style.opacity = '1';
             alert('Error saving. Please try again.');
         }
+    }
+
+    // ── Drafts ──────────────────────────────────────────────────────────────
+    // Save the moment-in-progress without sending: no message required, no token
+    // charged, status stays 'draft'. Returns to the Drafts list.
+    function saveDraft() {
+        if (!isAuthenticated) {
+            currentRole = 'giver';
+            window.postAuthDestination = 'qrContent';
+            if (scannedQRData && scannedQRData.id) sessionStorage.setItem('pendingQRCode', scannedQRData.id);
+            navigate('auth');
+            return;
+        }
+        var msg = (document.getElementById('qcGiverMessage').value || '').trim();
+        var rcp = (document.getElementById('qcGiverRecipientName').value || '').trim();
+        var frm = (document.getElementById('qcGiverFromName').value || '').trim();
+        var hasMedia = (giverPhotoFileList && giverPhotoFileList.length) || giverVideoFile ||
+            (giverExisting && (giverExisting.photos.length || giverExisting.video || giverExisting.voice));
+        if (!msg && !rcp && !frm && !hasMedia) {
+            alert('Add a message, a name, or a photo before saving a draft.');
+            return;
+        }
+        var btn = document.getElementById('qcSaveDraftBtn');
+        if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+        saveGiverData('draft').finally(function(){
+            if (btn) { btn.textContent = 'Save as draft'; btn.disabled = false; }
+        });
+    }
+
+    function draftEsc(s) {
+        return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // Lightweight bottom toast reused across moment/draft confirmations.
+    function showMomentToast(text) {
+        var t = document.getElementById('momentToast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'momentToast';
+            t.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#3D2E24;color:#FDF8F5;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:500;box-shadow:0 8px 32px rgba(61,46,36,.28);z-index:9999;max-width:86%;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;';
+            document.body.appendChild(t);
+        }
+        t.textContent = text;
+        requestAnimationFrame(function(){ t.style.opacity = '1'; });
+        clearTimeout(window._momentToastT);
+        window._momentToastT = setTimeout(function(){ t.style.opacity = '0'; }, 2600);
+    }
+
+    async function initDrafts() {
+        var listEl = document.getElementById('draftsList');
+        if (listEl) listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2.5rem 1rem;">Loading…</div>';
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (!user) { navigate('auth'); return; }
+            var { data, error } = await _supabase.from('qr_codes')
+                .select('id, giver_data, updated_at, created_at')
+                .eq('user_id', user.id).eq('source', 'moment').eq('status', 'draft')
+                .not('giver_data', 'is', null)
+                .order('updated_at', { ascending: false });
+            if (error) {
+                console.error('Load drafts error:', error);
+                if (listEl) listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2.5rem 1rem;">Could not load drafts.</div>';
+                return;
+            }
+            renderDrafts(data || []);
+            updateDraftCount((data || []).length);
+        } catch (e) {
+            console.error('initDrafts error:', e);
+            if (listEl) listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2.5rem 1rem;">Could not load drafts.</div>';
+        }
+    }
+
+    function renderDrafts(rows) {
+        var listEl = document.getElementById('draftsList');
+        if (!listEl) return;
+        if (!rows.length) {
+            listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:3rem 1rem;line-height:1.6;">No drafts yet.<br>Start a moment and tap <b style="color:var(--brand-red);">Save as draft</b> to keep it here.</div>';
+            return;
+        }
+        listEl.innerHTML = rows.map(function(r) {
+            var gd = r.giver_data;
+            if (typeof gd === 'string') { try { gd = JSON.parse(gd); } catch(e) { gd = {}; } }
+            gd = gd || {};
+            var to = gd.recipient_name ? ('To ' + draftEsc(gd.recipient_name)) : 'No recipient yet';
+            var snip = gd.message ? draftEsc(gd.message)
+                : '<span style="color:var(--text-muted);font-style:italic;">No message written</span>';
+            var bits = [];
+            if (gd.photos && gd.photos.length) bits.push(gd.photos.length + (gd.photos.length === 1 ? ' photo' : ' photos'));
+            if (gd.video) bits.push('video');
+            if (gd.voice) bits.push('🎙 voice');
+            var when = (typeof tapDateShort === 'function') ? tapDateShort(r.updated_at || r.created_at) : '';
+            var avatar = gd.recipient_name ? draftEsc(gd.recipient_name).charAt(0).toUpperCase() : '?';
+            return '<div onclick="resumeDraft(\'' + r.id + '\')" style="display:flex;gap:11px;align-items:flex-start;padding:13px;margin-bottom:11px;background:#fff;border:1px solid var(--border-light);border-radius:15px;box-shadow:var(--card-shadow);cursor:pointer;">'
+                + '<div style="width:38px;height:38px;border-radius:11px;flex:0 0 auto;background:var(--blush);display:flex;align-items:center;justify-content:center;font-family:\'Crimson Pro\',serif;font-weight:700;color:var(--brand-red);font-size:15px;">' + avatar + '</div>'
+                + '<div style="min-width:0;flex:1;">'
+                + '<div style="font-size:13.5px;font-weight:700;color:var(--text-primary);">' + to + '</div>'
+                + '<div style="font-size:12.5px;color:var(--text-secondary);margin:2px 0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + snip + '</div>'
+                + '<div style="font-size:11px;color:var(--text-muted);">' + (bits.length ? ('<span style="background:var(--blush);border:1px solid var(--border-light);border-radius:20px;padding:1px 7px;color:var(--brand-red);font-weight:600;">' + bits.join(' · ') + '</span> ') : '') + 'edited ' + when + '</div>'
+                + '</div>'
+                + '<button onclick="event.stopPropagation();deleteDraft(\'' + r.id + '\')" title="Delete draft" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);align-self:center;padding:4px;">🗑</button>'
+                + '</div>';
+        }).join('');
+    }
+
+    async function resumeDraft(id) {
+        try {
+            var { data, error } = await _supabase.from('qr_codes').select('*').eq('id', id).single();
+            if (error || !data) { alert('Could not open that draft.'); return; }
+            resetGiverComposer();
+            scannedQRData = data;
+            window.scannedQRCode = data.id;
+            currentRole = 'giver';
+            var gd = data.giver_data;
+            if (typeof gd === 'string') { try { gd = JSON.parse(gd); } catch(e) { gd = null; } }
+            gd = gd || {};
+            var set = function(elId, val) { var el = document.getElementById(elId); if (el) el.value = val || ''; };
+            set('qcGiverMessage', gd.message);
+            set('qcGiverRecipientName', gd.recipient_name);
+            set('qcGiverFromName', gd.from_name);
+            set('qcGiverSecretPhrase', gd.secret_phrase);
+            giverExisting = { photos: (gd.photos || []).slice(), video: gd.video || null, voice: gd.voice || null };
+            renderExistingGiverMedia();
+            navigate('qrContent');
+        } catch (e) {
+            console.error('resumeDraft error:', e);
+            alert('Could not open that draft.');
+        }
+    }
+
+    // Show a resumed draft's already-uploaded media as previews in the composer.
+    function renderExistingGiverMedia() {
+        var pv = document.getElementById('qcGiverPhotoPreview');
+        if (pv && giverExisting.photos) {
+            giverExisting.photos.forEach(function(u) {
+                var img = document.createElement('img');
+                img.src = u;
+                img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:10px;border:2px solid var(--border-light);';
+                pv.appendChild(img);
+            });
+        }
+        if (giverExisting.video) {
+            var vp = document.getElementById('qcGiverVideoPreview');
+            if (vp) {
+                var v = document.createElement('video');
+                v.src = giverExisting.video; v.controls = true;
+                v.style.cssText = 'max-width:100%;border-radius:10px;margin-top:0.25rem;';
+                vp.appendChild(v);
+            }
+        }
+        if (giverExisting.voice) {
+            var vaud = document.getElementById('giverVoiceAudio');
+            var vpre = document.getElementById('giverVoicePreview');
+            if (vaud) vaud.src = giverExisting.voice;
+            if (vpre) vpre.style.display = 'flex';
+        }
+    }
+
+    async function deleteDraft(id) {
+        if (!confirm('Delete this draft? This can\'t be undone.')) return;
+        try {
+            var { error } = await _supabase.from('qr_codes').delete().eq('id', id);
+            if (error) { alert('Could not delete. Please try again.'); return; }
+            initDrafts();
+        } catch (e) {
+            console.error('deleteDraft error:', e);
+            alert('Could not delete. Please try again.');
+        }
+    }
+
+    function updateDraftCount(n) {
+        var el = document.getElementById('fabDraftCount');
+        if (!el) return;
+        if (n && n > 0) { el.textContent = n; el.style.display = 'inline-grid'; }
+        else { el.style.display = 'none'; }
+    }
+
+    // Refresh the FAB drafts badge (cheap count) — called when the tapestry loads.
+    async function refreshDraftCount() {
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (!user) { updateDraftCount(0); return; }
+            var { count } = await _supabase.from('qr_codes')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', user.id).eq('source', 'moment').eq('status', 'draft')
+                .not('giver_data', 'is', null);
+            updateDraftCount(count || 0);
+        } catch (e) { /* non-critical */ }
     }
 
     function qcCheck1Tap() {
@@ -8915,6 +9153,7 @@
     // ==========================================
     async function initTapestry() {
         await loadTapestryFromDB();
+        refreshDraftCount();   // keep the FAB Drafts badge current
         // Clear search
         const s1 = document.getElementById('tapestrySearch');
         const s2 = document.getElementById('tapestrySearchMobile');
