@@ -8731,10 +8731,10 @@
             const domLine = dom ? `<div style="font-size:12px;color:#8B3A7F;word-break:break-all;text-align:center;margin:2px 0 10px;">${dom.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : '';
             return `${domLine}<div class="tap-fc-link-row">
                 <a href="${safeOpen}" target="_blank" rel="noopener noreferrer" class="tap-fc-link-btn">
-                    🔗 Open Link
+                    <svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4.5"/></svg>Open Link
                 </a>
                 <button class="tap-fc-link-btn" onclick="shareExternalLink('${safeOpenJs}', '${safeTitle}')">
-                    ↗ Share
+                    <svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6"/><path d="M8.2 13.2l7.6 4.6"/></svg>Share
                 </button>
             </div>`;
         })() : '';
