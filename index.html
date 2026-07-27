@@ -3256,7 +3256,7 @@
                 </div>
                 <div class="voice-memo-box">
                     <label>🎙️ Voice Memo (optional)</label>
-                    <button class="voice-btn" id="giverVoiceBtn" onclick="toggleRecording('giver')">🎙️ Record Voice Memo</button>
+                    <button class="voice-btn" id="giverVoiceBtn" onclick="toggleRecording('giver')"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo</button>
                     <div id="giverVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="giverTimerText">0:00</span></div>
                     <div id="giverVoicePreview" style="display:none;" class="voice-preview">
                         <span>🎙️</span>
@@ -3447,7 +3447,7 @@
                     </div>
                     <div class="voice-memo-box">
                         <label>🎙️ Voice Memo (optional)</label>
-                        <button class="voice-btn" id="receiverVoiceBtn" onclick="toggleRecording('receiver')">🎙️ Record Voice Memo</button>
+                        <button class="voice-btn" id="receiverVoiceBtn" onclick="toggleRecording('receiver')"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo</button>
                         <div id="receiverVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="receiverTimerText">0:00</span></div>
                         <div id="receiverVoicePreview" style="display:none;" class="voice-preview">
                             <span>🎙️</span>
@@ -4173,19 +4173,19 @@
             <label>Category</label>
             <div class="category-picker">
                 <div class="category-option selected" onclick="selectCategory('thing', this)">
-                    <span class="cat-icon">🎁</span>
+                    <span class="cat-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8"/><path d="M12 8v12"/><path d="M12 8C12 8 10.8 4 8.6 4 6.9 4 6.4 6.6 8 8"/><path d="M12 8C12 8 13.2 4 15.4 4 17.1 4 17.6 6.6 16 8"/></svg></span>
                     <span class="cat-label">Thing</span>
                 </div>
                 <div class="category-option" onclick="selectCategory('person', this)">
-                    <span class="cat-icon">👤</span>
+                    <span class="cat-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/></svg></span>
                     <span class="cat-label">Person</span>
                 </div>
                 <div class="category-option" onclick="selectCategory('place', this)">
-                    <span class="cat-icon">📍</span>
+                    <span class="cat-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><path d="M12 22s7-6.3 7-12A7 7 0 0 0 5 10c0 5.7 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
                     <span class="cat-label">Place</span>
                 </div>
                 <div class="category-option" onclick="selectCategory('event', this)">
-                    <span class="cat-icon">🎉</span>
+                    <span class="cat-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17"/><path d="M8 3v4"/><path d="M16 3v4"/><circle cx="12" cy="14.5" r="1.4" fill="#8B3A7F" stroke="none"/></svg></span>
                     <span class="cat-label">Event</span>
                 </div>
             </div>
@@ -4202,7 +4202,7 @@
             <label>Photos & Videos</label>
             <div style="display: flex; align-items: center; gap: 10px;">
                 <button class="btn btn-secondary" onclick="document.getElementById('extPhotoInput').click()" style="font-size: 0.9rem; padding: 10px 18px;">
-                    📷 Add Photos & Videos
+                    <svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px;" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos
                 </button>
                 <span style="font-size: 0.8rem; color: var(--text-muted);" id="extPhotoCount"></span>
             </div>
@@ -4213,7 +4213,7 @@
         <!-- Voice memo -->
         <div class="form-group">
             <label>Voice Memo</label>
-            <button class="voice-btn" id="externalVoiceBtn" onclick="toggleRecording('external')">🎙️ Record Voice Memo</button>
+            <button class="voice-btn" id="externalVoiceBtn" onclick="toggleRecording('external')"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px;" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo</button>
             <div id="externalVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="externalTimerText">0:00</span></div>
             <div id="externalVoicePreview" style="display:none;" class="voice-preview">
                 <audio id="externalVoiceAudio" controls></audio>
@@ -4235,7 +4235,7 @@
 
         <!-- Save buttons -->
         <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 2rem; margin-bottom: 3rem;">
-            <button class="btn btn-primary" onclick="saveExternalScan()" style="width: 100%;">🧵 Weave into My Tapestry</button>
+            <button class="btn btn-primary" onclick="saveExternalScan()" style="width: 100%;"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px;" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10"/><path d="M7 20h10"/><path d="M8 4v16"/><path d="M16 4v16"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h8"/></svg>Weave into My Tapestry</button>
             <button class="btn btn-secondary" onclick="navigate('tapestry')" style="width: 100%;">Cancel</button>
         </div>
     </div>
@@ -6146,7 +6146,7 @@
             
             var btn = document.getElementById(role + 'VoiceBtn');
             btn.className = 'voice-btn recording';
-            btn.innerHTML = '⏹️ Stop Recording';
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Stop Recording';
             
             var timerDiv = document.getElementById(role + 'VoiceTimer');
             timerDiv.style.display = 'block';
@@ -6216,7 +6216,7 @@
         }
         document.getElementById(role + 'VoicePreview').style.display = 'none';
         var btn = document.getElementById(role + 'VoiceBtn');
-        btn.innerHTML = '🎙️ Record Voice Memo';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo';
     }
 
 
@@ -8930,7 +8930,7 @@
                     <audio controls src="${thread.voiceUrl}" id="voice-edit-audio-${tid}"></audio>
                 </div>` : ''}
                 <button class="voice-btn" id="edit-voice-btn-${tid}" onclick="toggleEditRecording('${tid}')">
-                    ${thread.hasVoice ? '🎙️ Re-record' : '🎙️ Record Voice Memo'}
+                    ${thread.hasVoice ? '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record' : '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo'}
                 </button>
                 <div id="edit-voice-timer-${tid}" style="display:none; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="edit-timer-text-${tid}">0:00</span></div>
                 <div id="edit-voice-preview-${tid}" style="display:none;" class="tap-fc-voice-edit-player">
@@ -9563,7 +9563,7 @@
             // Stop recording
             slot.recorder.stop();
             clearInterval(slot.timer);
-            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '🎙️ Re-record';
+            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record';
             document.getElementById('edit-voice-timer-' + threadId).style.display = 'none';
         } else {
             // Start recording
@@ -9593,7 +9593,7 @@
                 };
 
                 slot.recorder.start();
-                document.getElementById('edit-voice-btn-' + threadId).innerHTML = '⏹️ Stop Recording';
+                document.getElementById('edit-voice-btn-' + threadId).innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Stop Recording';
                 document.getElementById('edit-voice-btn-' + threadId).classList.add('recording');
                 document.getElementById('edit-voice-timer-' + threadId).style.display = 'block';
                 document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
@@ -9615,7 +9615,7 @@
         if (slot) { slot.blob = null; slot.chunks = []; }
         document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
         const thread = userThreads.find(t => t.id === threadId);
-        document.getElementById('edit-voice-btn-' + threadId).innerHTML = thread && thread.hasVoice ? '🎙️ Re-record' : '🎙️ Record Voice Memo';
+        document.getElementById('edit-voice-btn-' + threadId).innerHTML = thread && thread.hasVoice ? '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record' : '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo';
         document.getElementById('edit-voice-btn-' + threadId).classList.remove('recording');
     }
 
@@ -9658,7 +9658,7 @@
                 }
             }
             document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
-            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '🎙️ Re-record';
+            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record';
             slot.blob = null;
 
         } catch(e) {
