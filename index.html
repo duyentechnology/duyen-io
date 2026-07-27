@@ -8607,7 +8607,16 @@
     // completion, so a still-null link_meta means it hasn't finished yet.
     var _tapPreviewRetries = 0;
     function maybeRefreshPendingPreviews() {
-        var pending = userThreads.some(function (t) { return t.role === 'external' && t.externalUrl && !t.linkMeta; });
+        // Only entries whose resolve-link may still be in flight (created in the last ~90s).
+        // Older external entries legitimately have no link_meta forever — refreshing for them
+        // would re-render (and briefly hide/re-wire) the whole tapestry on every visit, which
+        // drops taps mid-render. Scope it tightly so a normal visit never churns.
+        var now = Date.now();
+        var pending = userThreads.some(function (t) {
+            if (t.role !== 'external' || !t.externalUrl || t.linkMeta) return false;
+            var created = t.createdAt ? new Date(t.createdAt).getTime() : 0;
+            return created && (now - created) < 90000;
+        });
         if (!pending || _tapPreviewRetries >= 3) return;
         _tapPreviewRetries++;
         setTimeout(function () {
