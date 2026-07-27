@@ -4995,7 +4995,7 @@
                     🌐 Open Link
                 </a>
                 <button class="btn btn-primary" onclick="promptSaveExternal('${url}')" style="width: 100%;">
-                    🧵 Save to My Tapestry
+                    <svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10"/><path d="M7 20h10"/><path d="M8 4v16"/><path d="M16 4v16"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h8"/></svg>Save to My Tapestry
                 </button>
                 <button class="btn btn-secondary" onclick="navigate('tapestry')" style="width: 100%; border: none; color: var(--text-muted);">
                     Skip
@@ -5461,7 +5461,7 @@
             console.error('Save external error:', e);
             alert('Error saving. Please try again.');
         } finally {
-            if (saveBtn) { saveBtn.textContent = '🧵 Weave into Tapestry'; saveBtn.disabled = false; }
+            if (saveBtn) { saveBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10"/><path d="M7 20h10"/><path d="M8 4v16"/><path d="M16 4v16"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h8"/></svg>Weave into My Tapestry'; saveBtn.disabled = false; }
         }
     }
 
@@ -8921,7 +8921,7 @@
             ${(thread.photos||[]).length > 0 ? `<div class="tap-fc-photo-count-label" id="photo-count-${tid}">${thread.photos.length}/10 photos</div>` : ''}
             <input type="file" id="photo-input-${tid}" accept="image/*,video/*" multiple style="display:none;" onchange="handleEditPhotos('${tid}', this)">
             <button class="tap-fc-add-photos-btn" onclick="document.getElementById('photo-input-${tid}').click()">
-                📷 Add Photos & Videos
+                <svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos
             </button>
             <div class="tap-fc-voice-edit" id="voice-edit-${tid}">
                 <div class="tap-fc-voice-edit-label">Voice Memo</div>
@@ -9709,7 +9709,7 @@
         }
 
         if (!validatedFiles.length) {
-            if (btn) { btn.textContent = '📷 Add Photos & Videos'; btn.disabled = false; }
+            if (btn) { btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos'; btn.disabled = false; }
             input.value = '';
             return;
         }
@@ -9784,7 +9784,7 @@
             console.error('Edit media error:', e);
             alert('Error uploading.');
         } finally {
-            if (btn) { btn.textContent = '📷 Add Photos & Videos'; btn.disabled = false; }
+            if (btn) { btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos'; btn.disabled = false; }
             input.value = '';
         }
     }
