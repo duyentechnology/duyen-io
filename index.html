@@ -5297,6 +5297,8 @@
         extPhotos.forEach((item, idx) => {
             const div = document.createElement('div');
             div.className = 'photo-preview-item';
+            div.dataset.idx = idx;
+            div.style.cursor = 'grab';
             if (item.isVideo) {
                 div.innerHTML = `
                     <div style="position:relative;width:100%;height:100%;">
@@ -5311,11 +5313,104 @@
             }
             container.appendChild(div);
         });
+
+        // Hint + enable press-and-drag reordering when there's more than one.
+        var hint = document.getElementById('extPhotoReorderHint');
+        if (extPhotos.length > 1) {
+            if (!hint) {
+                hint = document.createElement('div');
+                hint.id = 'extPhotoReorderHint';
+                hint.style.cssText = 'font-size:0.78rem;color:var(--text-muted);margin-top:6px;';
+                hint.textContent = 'Press and hold a photo, then drag to reorder';
+                container.parentNode.insertBefore(hint, container.nextSibling);
+            }
+            hint.style.display = '';
+        } else if (hint) {
+            hint.style.display = 'none';
+        }
+        enableGridReorder(container, function(){ return extPhotos; }, function(next){ extPhotos = next; renderExtPhotoPreview(); });
     }
 
     function removeExtPhoto(idx) {
         extPhotos.splice(idx, 1);
         renderExtPhotoPreview();
+    }
+
+    // ── Press-and-drag photo reordering (touch + mouse, no libraries) ─────────
+    // Long-press an item to lift it, drag over siblings to reorder live, release
+    // to commit. Container-level delegation so it survives re-renders. Items must
+    // carry data-idx matching their index in the backing array.
+    var _gridDrag = null;
+    function enableGridReorder(container, getArr, commit) {
+        if (!container || container._reorderInit) {
+            if (container) { container._reorderGetArr = getArr; container._reorderCommit = commit; }
+            return;
+        }
+        container._reorderInit = true;
+        container._reorderGetArr = getArr;
+        container._reorderCommit = commit;
+        container.addEventListener('pointerdown', function (e) {
+            if (e.button != null && e.button !== 0) return; // left/touch only
+            var item = e.target.closest('.photo-preview-item');
+            if (!item || item.parentNode !== container) return;
+            if (e.target.closest('.remove-photo')) return;  // let remove work
+            var pid = e.pointerId, sx = e.clientX, sy = e.clientY, started = false;
+            var lp = setTimeout(start, 180);
+
+            function start() {
+                started = true;
+                _gridDrag = true;
+                try { item.setPointerCapture(pid); } catch (_) {}
+                item.style.transition = 'transform .06s';
+                item.style.transform = 'scale(1.07)';
+                item.style.opacity = '0.9';
+                item.style.zIndex = '50';
+                item.style.boxShadow = '0 8px 24px rgba(61,46,36,0.28)';
+                document.body.style.userSelect = 'none';
+                if (navigator.vibrate) { try { navigator.vibrate(10); } catch (_) {} }
+            }
+            function move(ev) {
+                if (ev.pointerId !== pid) return;
+                if (!started) {
+                    if (Math.abs(ev.clientX - sx) > 8 || Math.abs(ev.clientY - sy) > 8) end(); // moved first → scroll/tap
+                    return;
+                }
+                ev.preventDefault();
+                var kids = Array.prototype.slice.call(container.children).filter(function (k) { return k.classList && k.classList.contains('photo-preview-item'); });
+                for (var i = 0; i < kids.length; i++) {
+                    if (kids[i] === item) continue;
+                    var r = kids[i].getBoundingClientRect();
+                    if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) {
+                        var overBefore = (Array.prototype.indexOf.call(container.children, kids[i]) < Array.prototype.indexOf.call(container.children, item));
+                        container.insertBefore(item, overBefore ? kids[i] : kids[i].nextSibling);
+                        break;
+                    }
+                }
+            }
+            function end(ev) {
+                clearTimeout(lp);
+                document.removeEventListener('pointermove', move);
+                document.removeEventListener('pointerup', end);
+                document.removeEventListener('pointercancel', end);
+                if (started) {
+                    var order = Array.prototype.slice.call(container.children)
+                        .filter(function (k) { return k.dataset && k.dataset.idx != null; })
+                        .map(function (k) { return parseInt(k.dataset.idx, 10); });
+                    var arr = container._reorderGetArr();
+                    var next = order.map(function (i) { return arr[i]; });
+                    item.style.transform = ''; item.style.opacity = ''; item.style.zIndex = '';
+                    item.style.boxShadow = ''; item.style.transition = '';
+                    document.body.style.userSelect = '';
+                    try { item.releasePointerCapture(pid); } catch (_) {}
+                    _gridDrag = null;
+                    container._reorderCommit(next);   // reorders backing array + re-renders
+                }
+                _gridDrag = null;
+            }
+            document.addEventListener('pointermove', move);
+            document.addEventListener('pointerup', end);
+            document.addEventListener('pointercancel', end);
+        });
     }
 
     async function saveExternalScan() {
