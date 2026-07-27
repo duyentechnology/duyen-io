@@ -4338,14 +4338,14 @@
       </div>
     </div>
     <div class="about-back-wrap">
-      <button class="about-back-btn" onclick="navigate('tapestry')">← Back to Tapestry</button>
+      <button class="about-back-btn" onclick="navigate('tapestry')"><svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Back to Tapestry</button>
     </div>
   </section>
 </div>
 
 <!-- LIGHTBOX -->
 <div class="tap-lightbox" id="tapLightbox" onclick="if(event.target===this)closeLightbox()">
-    <button class="tap-lightbox-close" onclick="closeLightbox()">✕</button>
+    <button class="tap-lightbox-close" onclick="closeLightbox()" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="tap-lightbox-main" id="tapLightboxMain">
         <button class="tap-lightbox-arrow prev" onclick="lightboxNav(-1)">‹</button>
         <div id="tapLightboxContent" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"></div>
