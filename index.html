@@ -3785,14 +3785,14 @@
             <div class="section-title">Contact Information</div>
             <div class="contact-grid">
                 <div class="contact-item">
-                    <div class="contact-icon">📧</div>
+                    <div class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg></div>
                     <div>
                         <div class="contact-label">Email</div>
                         <div class="contact-value" id="displayEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3d55585151527d555c4d4d445b51524a584f4e135e5250">[email&#160;protected]</a></div>
                     </div>
                 </div>
                 <div class="contact-item">
-                    <div class="contact-icon">📱</div>
+                    <div class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg></div>
                     <div>
                         <div class="contact-label">Phone</div>
                         <div class="contact-value" id="displayPhone">(555) 123-4567</div>
@@ -5191,7 +5191,7 @@
 
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;">
                 <a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; text-decoration: none; display: block; box-sizing: border-box;">
-                    🌐 Open Link
+                    <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>Open Link
                 </a>
                 <button class="btn btn-primary" onclick="promptSaveExternal('${url}')" style="width: 100%;">
                     <svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10"/><path d="M7 20h10"/><path d="M8 4v16"/><path d="M16 4v16"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h8"/></svg>Save to My Tapestry
@@ -6541,7 +6541,7 @@
             
             var btn = document.getElementById(role + 'VoiceBtn');
             btn.className = 'voice-btn';
-            btn.innerHTML = '🎙️ Record Again';
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Again';
             document.getElementById(role + 'VoiceTimer').style.display = 'none';
         }
     }
@@ -7251,7 +7251,7 @@
                 + '<div style="font-size:12.5px;color:var(--text-secondary);margin:2px 0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + snip + '</div>'
                 + '<div style="font-size:11px;color:var(--text-muted);">' + (bits.length ? ('<span style="background:var(--blush);border:1px solid var(--border-light);border-radius:20px;padding:1px 7px;color:var(--brand-red);font-weight:600;">' + bits.join(' · ') + '</span> ') : '') + 'edited ' + when + '</div>'
                 + '</div>'
-                + '<button onclick="event.stopPropagation();deleteDraft(\'' + r.id + '\')" title="Delete draft" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);align-self:center;padding:4px;">🗑</button>'
+                + '<button onclick="event.stopPropagation();deleteDraft(\'' + r.id + '\')" title="Delete draft" style="background:none;border:none;cursor:pointer;color:var(--text-muted);align-self:center;padding:4px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v5M14 11v5"/></svg></button>'
                 + '</div>';
         }).join('');
     }
@@ -8152,7 +8152,7 @@
         if (businessData.links && businessData.links.length > 0) {
             linksEl.innerHTML = '<div class="section-title">Connect With Us</div>';
             businessData.links.forEach(link => {
-                linksEl.innerHTML += `<a href="${safeUrl(link)}" class="link-item" target="_blank" rel="noopener noreferrer"><div class="contact-icon">🌐</div><div style="flex:1; word-break:break-all;">${sanitize(link)}</div><div style="color:var(--text-muted);">→</div></a>`;
+                linksEl.innerHTML += `<a href="${safeUrl(link)}" class="link-item" target="_blank" rel="noopener noreferrer"><div class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg></div><div style="flex:1; word-break:break-all;">${sanitize(link)}</div><div style="color:var(--text-muted);">→</div></a>`;
             });
         }
 
@@ -8246,7 +8246,7 @@
                     btns = '<div class="action-title">Your Message Is Live ✨</div>';
                     btns += '<div class="action-subtitle">When the recipient scans this code, they\'ll see your message</div>';
                     btns += '<div class="btn-group">';
-                    btns += '<button class="btn btn-secondary" onclick="handleAction(\'giver\')">✏️ Edit My Message</button>';
+                    btns += '<button class="btn btn-secondary" onclick="handleAction(\'giver\')"><svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align:-3px;margin-right:5px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg>Edit My Message</button>';
                     btns += '</div>';
                 } else {
                     // RECEIVER (or anyone else) seeing the giver's message — they can respond
@@ -8270,7 +8270,7 @@
                     btns = '<div class="action-title">Your Response Is Live ✨</div>';
                     btns += '<div class="action-subtitle">' + giverData.giverName + ' can now see your message</div>';
                     btns += '<div class="btn-group">';
-                    btns += '<button class="btn btn-secondary" onclick="handleAction(\'editResponse\')">✏️ Edit My Response</button>';
+                    btns += '<button class="btn btn-secondary" onclick="handleAction(\'editResponse\')"><svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align:-3px;margin-right:5px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg>Edit My Response</button>';
                     btns += '<button class="btn btn-primary" onclick="navigate(\'tapestry\')">View My Tapestry →</button>';
                     btns += '</div>';
                 } else {
@@ -9235,7 +9235,7 @@
             }
             return `<div class="tap-fc-field-row" id="field-${tid}-${fieldKey}">
                 <div class="tap-fc-field-value" id="val-${tid}-${fieldKey}">${value}</div>
-                <span class="tap-fc-edit-icon" onclick="startInlineEdit('${tid}','${fieldKey}','${value.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">✎</span>
+                <span class="tap-fc-edit-icon" onclick="startInlineEdit('${tid}','${fieldKey}','${value.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg></span>
             </div>`;
         };
 
@@ -9390,18 +9390,18 @@
                 <button class="voice-btn" id="edit-voice-btn-${tid}" onclick="toggleEditRecording('${tid}')">
                     ${thread.hasVoice ? '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record' : '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo'}
                 </button>
-                <div id="edit-voice-timer-${tid}" style="display:none; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="edit-timer-text-${tid}">0:00</span></div>
+                <div id="edit-voice-timer-${tid}" style="display:none; font-size:0.85rem; color:var(--text-muted);"><svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align:-2px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="edit-timer-text-${tid}">0:00</span></div>
                 <div id="edit-voice-preview-${tid}" style="display:none;" class="tap-fc-voice-edit-player">
                     <audio id="edit-voice-audio-${tid}" controls></audio>
-                    <button onclick="cancelEditRecording('${tid}')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--text-muted);">🗑️</button>
+                    <button onclick="cancelEditRecording('${tid}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v5M14 11v5"/></svg></button>
                     <button onclick="saveEditVoice('${tid}')" style="background:#8B3A7F;color:white;border:none;border-radius:20px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;">✓ Save</button>
                 </div>
             </div>
-            <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')">🗑 Delete Memory</button>
+            <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')"><svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v5M14 11v5"/></svg>Delete Memory</button>
             `}
         </div>
         ${(thread.role === 'giver' || thread.role === 'receiver') && thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}
-        ${isGiftQR ? `<button class="tap-fc-delete-btn" style="display:block;" onclick="confirmDeleteThread('${tid}')">🗑 Remove from Tapestry</button>` : ''}`;
+        ${isGiftQR ? `<button class="tap-fc-delete-btn" style="display:block;" onclick="confirmDeleteThread('${tid}')"><svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v5M14 11v5"/></svg>Remove from Tapestry</button>` : ''}`;
         // Wire up audio after insert
         if(thread.hasVoice && thread.voiceUrl){
             setTimeout(()=>initVoicePlayer('vp_'+thread.id),100);
@@ -9729,8 +9729,8 @@
             }
 
             const mediaChips = [
-                thread.hasVoice ? `<span class="media-chip">🎙️ voice</span>` : '',
-                thread.hasVideo ? `<span class="media-chip">🎬 video</span>` : '',
+                thread.hasVoice ? `<span class="media-chip"><svg viewBox="0 0 24 24" width="13" height="13" style="vertical-align:-2px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>voice</span>` : '',
+                thread.hasVideo ? `<span class="media-chip"><svg viewBox="0 0 24 24" width="13" height="13" style="vertical-align:-2px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>video</span>` : '',
             ].join('');
 
             const card = document.createElement('div');
@@ -9825,7 +9825,7 @@
                 <div class="thread-detail-card">
                     <h3>🔗 Original Link</h3>
                     <a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" class="thread-detail-url">
-                        <span style="font-size: 1.5rem;">🌐</span>
+                        <span style="display:inline-flex;color:#8B3A7F;"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg></span>
                         <span>${thread.externalUrl}</span>
                     </a>
                 </div>
@@ -9881,11 +9881,11 @@
             <div style="display: flex; flex-direction: column; gap: 12px; margin: 2rem 0 3rem;">
                 ${isExternal && thread.externalUrl ? `
                     <a href="${thread.externalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; text-decoration: none; display: block; box-sizing: border-box; text-align: center;">
-                        🌐 Open Original Link
+                        <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>Open Original Link
                     </a>
                 ` : ''}
                 <button class="btn btn-secondary" onclick="hideThread(${thread.id})" style="width: 100%;">
-                    ${thread.isHidden ? '👁️ Unhide from Tapestry' : '🙈 Hide from Tapestry'}
+                    ${thread.isHidden ? '<svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Unhide from Tapestry' : '<svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7c2 0 3.8.6 5.3 1.5M22 12s-3.5 7-10 7c-2 0-3.8-.6-5.3-1.5"/><path d="M9.5 9.5a3 3 0 0 0 4.2 4.2"/><line x1="3" y1="3" x2="21" y2="21"/></svg>Hide from Tapestry'}
                 </button>
                 <button class="btn btn-secondary" onclick="navigate('tapestry')" style="width: 100%; border: none; color: var(--text-muted);">
                     ← Back to Tapestry
@@ -9994,7 +9994,7 @@
         if (fieldRow) {
             fieldRow.innerHTML = `
                 <div class="tap-fc-field-value" id="val-${threadId}-${fieldKey}">${newValue}</div>
-                <span class="tap-fc-edit-icon" onclick="startInlineEdit('${threadId}','${fieldKey}','${newValue.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">✎</span>`;
+                <span class="tap-fc-edit-icon" onclick="startInlineEdit('${threadId}','${fieldKey}','${newValue.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg></span>`;
         }
     }
 
