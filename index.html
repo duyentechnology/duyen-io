@@ -1140,6 +1140,15 @@
             cursor: pointer;
         }
         .notif-mark-read:hover { text-decoration: underline; }
+        .notif-clear-all {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .notif-clear-all:hover { text-decoration: underline; color: var(--text-secondary); }
         .notif-list {
             overflow-y: auto;
             max-height: 360px;
@@ -1166,6 +1175,23 @@
         }
         .notif-icon { font-size: 1.5rem; flex-shrink: 0; }
         .notif-content { flex: 1; min-width: 0; }
+        .notif-delete {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.05rem;
+            line-height: 1;
+            padding: 2px 4px;
+            border-radius: 6px;
+            opacity: 0.45;
+            transition: opacity 0.15s, background 0.15s, color 0.15s;
+            align-self: center;
+        }
+        .notif-item:hover .notif-delete { opacity: 0.75; }
+        .notif-delete:hover { opacity: 1; background: rgba(139,58,127,0.1); color: var(--brand-red); }
+        @media (hover: none) { .notif-delete { opacity: 0.6; } }
         .notif-title {
             font-weight: 600;
             font-size: 0.9rem;
@@ -3256,7 +3282,7 @@
                 </div>
                 <div class="voice-memo-box">
                     <label>🎙️ Voice Memo (optional)</label>
-                    <button class="voice-btn" id="giverVoiceBtn" onclick="toggleRecording('giver')">🎙️ Record Voice Memo</button>
+                    <button class="voice-btn" id="giverVoiceBtn" onclick="toggleRecording('giver')"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo</button>
                     <div id="giverVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="giverTimerText">0:00</span></div>
                     <div id="giverVoicePreview" style="display:none;" class="voice-preview">
                         <span>🎙️</span>
@@ -3271,6 +3297,9 @@
                 </div>
                 <!-- Confirm boxes — always visible at bottom of form -->
                 <div style="margin-top:1.5rem;">
+
+                    <!-- Save as draft — finish later; nothing sent, no token spent -->
+                    <button id="qcSaveDraftBtn" onclick="saveDraft()" style="display:none;width:100%;background:#fff;color:#8B3A7F;border:1.5px solid #C9A0C4;border-radius:12px;padding:12px;font-size:14px;font-weight:600;font-family:sans-serif;margin-bottom:12px;cursor:pointer;">Save as draft</button>
 
                     <!-- Box 1: tapping this saves and auto-checks -->
                     <div id="qcCheck1" onclick="qcCheck1Tap()" style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;cursor:pointer;">
@@ -3444,7 +3473,7 @@
                     </div>
                     <div class="voice-memo-box">
                         <label>🎙️ Voice Memo (optional)</label>
-                        <button class="voice-btn" id="receiverVoiceBtn" onclick="toggleRecording('receiver')">🎙️ Record Voice Memo</button>
+                        <button class="voice-btn" id="receiverVoiceBtn" onclick="toggleRecording('receiver')"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo</button>
                         <div id="receiverVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="receiverTimerText">0:00</span></div>
                         <div id="receiverVoicePreview" style="display:none;" class="voice-preview">
                             <span>🎙️</span>
@@ -3940,7 +3969,10 @@
     <div class="notif-panel" id="notifPanel">
         <div class="notif-panel-header">
             <h3>Notifications</h3>
-            <button class="notif-mark-read" id="notifMarkAllBtn" onclick="markAllNotificationsRead()">Mark all read</button>
+            <div style="display:flex;align-items:center;gap:0.85rem;">
+                <button class="notif-mark-read" id="notifMarkAllBtn" onclick="markAllNotificationsRead()">Mark all read</button>
+                <button class="notif-clear-all" id="notifClearAllBtn" onclick="clearAllNotifications()">Clear all</button>
+            </div>
         </div>
         <div class="notif-list" id="notifList">
             <div class="notif-empty">
@@ -4010,6 +4042,10 @@
             <button class="fab-action" onclick="openAddMemory()">
                 <span class="fab-action-label">Add a moment</span>
                 <span class="fab-action-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3Z"/><line x1="13.5" y1="6.5" x2="16.5" y2="9.5"/></svg></span>
+            </button>
+            <button class="fab-action" onclick="toggleFabMenu(false); navigate('drafts');">
+                <span class="fab-action-label">Drafts <span id="fabDraftCount" style="display:none;background:#8B3A7F;color:#fff;font-size:10px;font-weight:800;border-radius:20px;min-width:17px;height:17px;padding:0 5px;vertical-align:middle;place-items:center;"></span></span>
+                <span class="fab-action-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7l4 4v12H7z"/><path d="M14 4v4h4"/><line x1="9.5" y1="13" x2="14.5" y2="13"/><line x1="9.5" y1="16" x2="14.5" y2="16"/></svg></span>
             </button>
             <button class="fab-action" onclick="toggleFabMenu(false); openScanner();">
                 <span class="fab-action-label">Scan a QR code</span>
@@ -4166,19 +4202,19 @@
             <label>Category</label>
             <div class="category-picker">
                 <div class="category-option selected" onclick="selectCategory('thing', this)">
-                    <span class="cat-icon">🎁</span>
+                    <span class="cat-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8"/><path d="M12 8v12"/><path d="M12 8C12 8 10.8 4 8.6 4 6.9 4 6.4 6.6 8 8"/><path d="M12 8C12 8 13.2 4 15.4 4 17.1 4 17.6 6.6 16 8"/></svg></span>
                     <span class="cat-label">Thing</span>
                 </div>
                 <div class="category-option" onclick="selectCategory('person', this)">
-                    <span class="cat-icon">👤</span>
+                    <span class="cat-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/></svg></span>
                     <span class="cat-label">Person</span>
                 </div>
                 <div class="category-option" onclick="selectCategory('place', this)">
-                    <span class="cat-icon">📍</span>
+                    <span class="cat-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><path d="M12 22s7-6.3 7-12A7 7 0 0 0 5 10c0 5.7 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
                     <span class="cat-label">Place</span>
                 </div>
                 <div class="category-option" onclick="selectCategory('event', this)">
-                    <span class="cat-icon">🎉</span>
+                    <span class="cat-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17"/><path d="M8 3v4"/><path d="M16 3v4"/><circle cx="12" cy="14.5" r="1.4" fill="#8B3A7F" stroke="none"/></svg></span>
                     <span class="cat-label">Event</span>
                 </div>
             </div>
@@ -4195,7 +4231,7 @@
             <label>Photos & Videos</label>
             <div style="display: flex; align-items: center; gap: 10px;">
                 <button class="btn btn-secondary" onclick="document.getElementById('extPhotoInput').click()" style="font-size: 0.9rem; padding: 10px 18px;">
-                    📷 Add Photos & Videos
+                    <svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px;" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos
                 </button>
                 <span style="font-size: 0.8rem; color: var(--text-muted);" id="extPhotoCount"></span>
             </div>
@@ -4206,7 +4242,7 @@
         <!-- Voice memo -->
         <div class="form-group">
             <label>Voice Memo</label>
-            <button class="voice-btn" id="externalVoiceBtn" onclick="toggleRecording('external')">🎙️ Record Voice Memo</button>
+            <button class="voice-btn" id="externalVoiceBtn" onclick="toggleRecording('external')"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px;" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo</button>
             <div id="externalVoiceTimer" style="display:none; margin-top:0.5rem; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="externalTimerText">0:00</span></div>
             <div id="externalVoicePreview" style="display:none;" class="voice-preview">
                 <audio id="externalVoiceAudio" controls></audio>
@@ -4228,7 +4264,7 @@
 
         <!-- Save buttons -->
         <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 2rem; margin-bottom: 3rem;">
-            <button class="btn btn-primary" onclick="saveExternalScan()" style="width: 100%;">🧵 Weave into My Tapestry</button>
+            <button class="btn btn-primary" onclick="saveExternalScan()" style="width: 100%;"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px;" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10"/><path d="M7 20h10"/><path d="M8 4v16"/><path d="M16 4v16"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h8"/></svg>Weave into My Tapestry</button>
             <button class="btn btn-secondary" onclick="navigate('tapestry')" style="width: 100%;">Cancel</button>
         </div>
     </div>
@@ -4257,6 +4293,30 @@
 
 
 
+
+<!-- =============================================
+     DRAFTS SCREEN
+============================================= -->
+<div class="screen" id="draftsScreen">
+    <header class="app-header">
+        <div class="header-inner">
+            <a class="header-logo" onclick="navigate('tapestry')">
+                <div class="logo-symbol">緣</div>
+            <div class="logo-text">DUYÊN</div>
+            </a>
+            <div class="header-actions">
+                <button class="header-btn header-btn-ghost" onclick="navigate('tapestry')">← Tapestry</button>
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <div style="text-align:center;margin-bottom:1.25rem;">
+            <h2 style="font-family:'Crimson Pro',serif;font-size:1.75rem;color:var(--text-primary);margin-bottom:0.25rem;">Drafts</h2>
+            <p class="subtitle">Moments you've started — finish them anytime. Nothing sends until you're ready.</p>
+        </div>
+        <div id="draftsList"></div>
+    </div>
+</div>
 
 <!-- =============================================
      SCREEN: ABOUT
@@ -4290,31 +4350,31 @@
       <div class="about-panel-thread"></div>
       <div class="about-pillars">
         <div class="about-pillar">
-          <div class="about-pillar-icon">🎁</div>
+          <div class="about-pillar-icon"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8"/><path d="M12 8v12"/><path d="M12 8C12 8 10.8 4 8.6 4 6.9 4 6.4 6.6 8 8"/><path d="M12 8C12 8 13.2 4 15.4 4 17.1 4 17.6 6.6 16 8"/></svg></div>
           <div class="about-pillar-title">Things</div>
           <div class="about-pillar-desc">Every thing you receive carries someone's heart</div>
         </div>
         <div class="about-pillar">
-          <div class="about-pillar-icon">👤</div>
+          <div class="about-pillar-icon"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/></svg></div>
           <div class="about-pillar-title">People</div>
           <div class="about-pillar-desc">Every person leaves their mark on you</div>
         </div>
         <div class="about-pillar">
-          <div class="about-pillar-icon">📍</div>
+          <div class="about-pillar-icon"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><path d="M12 22s7-6.3 7-12A7 7 0 0 0 5 10c0 5.7 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
           <div class="about-pillar-title">Places</div>
           <div class="about-pillar-desc">Every place becomes part of your journey</div>
         </div>
       </div>
     </div>
     <div class="about-back-wrap">
-      <button class="about-back-btn" onclick="navigate('tapestry')">← Back to Tapestry</button>
+      <button class="about-back-btn" onclick="navigate('tapestry')"><svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Back to Tapestry</button>
     </div>
   </section>
 </div>
 
 <!-- LIGHTBOX -->
 <div class="tap-lightbox" id="tapLightbox" onclick="if(event.target===this)closeLightbox()">
-    <button class="tap-lightbox-close" onclick="closeLightbox()">✕</button>
+    <button class="tap-lightbox-close" onclick="closeLightbox()" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="tap-lightbox-main" id="tapLightboxMain">
         <button class="tap-lightbox-arrow prev" onclick="lightboxNav(-1)">‹</button>
         <div id="tapLightboxContent" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"></div>
@@ -4728,6 +4788,7 @@
             'response':   'responseScreen',
             'success':    'successScreen',
             'tapestry':   'tapestryScreen',
+            'drafts':     'draftsScreen',
             'externalQr': 'externalQrScreen',
             'threadDetail': 'threadDetailScreen',
             'about': 'aboutScreen',
@@ -4802,6 +4863,7 @@
         if (screen === 'threadView') displayContent();
         if (screen === 'receiver') populateReceiver();
         if (screen === 'tapestry') { initTapestry(); startNotifPolling(); initPWAPrompt(); } else { stopNotifPolling(); }
+        if (screen === 'drafts') initDrafts();
     }
 
     // ==========================================
@@ -4962,7 +5024,7 @@
                     🌐 Open Link
                 </a>
                 <button class="btn btn-primary" onclick="promptSaveExternal('${url}')" style="width: 100%;">
-                    🧵 Save to My Tapestry
+                    <svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10"/><path d="M7 20h10"/><path d="M8 4v16"/><path d="M16 4v16"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h8"/></svg>Save to My Tapestry
                 </button>
                 <button class="btn btn-secondary" onclick="navigate('tapestry')" style="width: 100%; border: none; color: var(--text-muted);">
                     Skip
@@ -5122,7 +5184,7 @@
                 if (bal !== null && bal <= 0) { promptBuyTokens(); return; }
             }
             var res = await _supabase.from('qr_codes')
-                .insert({ user_id: user.id, source: 'moment', status: 'active', label: 'QR Code' })
+                .insert({ user_id: user.id, source: 'moment', status: 'draft', label: 'QR Code' })
                 .select().single();
             if (res.error || !res.data) {
                 console.error('Create moment error:', res.error);
@@ -5148,8 +5210,9 @@
         ['qcGiverPhotoPreview','qcGiverVideoPreview'].forEach(function(id){
             var el = document.getElementById(id); if (el) el.innerHTML = '';
         });
-        try { giverPhotoFileList = []; } catch(e) {}
+        try { giverPhotoFileList = []; giverPhotos = []; } catch(e) {}
         try { giverVideoFile = null; } catch(e) {}
+        try { giverExisting = { photos: [], video: null, voice: null }; } catch(e) {}
         try { if (typeof deleteRecording === 'function') deleteRecording('giver'); } catch(e) {}
     }
 
@@ -5263,6 +5326,8 @@
         extPhotos.forEach((item, idx) => {
             const div = document.createElement('div');
             div.className = 'photo-preview-item';
+            div.dataset.idx = idx;
+            div.style.cursor = 'grab';
             if (item.isVideo) {
                 div.innerHTML = `
                     <div style="position:relative;width:100%;height:100%;">
@@ -5277,11 +5342,104 @@
             }
             container.appendChild(div);
         });
+
+        // Hint + enable press-and-drag reordering when there's more than one.
+        var hint = document.getElementById('extPhotoReorderHint');
+        if (extPhotos.length > 1) {
+            if (!hint) {
+                hint = document.createElement('div');
+                hint.id = 'extPhotoReorderHint';
+                hint.style.cssText = 'font-size:0.78rem;color:var(--text-muted);margin-top:6px;';
+                hint.textContent = 'Press and hold a photo, then drag to reorder';
+                container.parentNode.insertBefore(hint, container.nextSibling);
+            }
+            hint.style.display = '';
+        } else if (hint) {
+            hint.style.display = 'none';
+        }
+        enableGridReorder(container, function(){ return extPhotos; }, function(next){ extPhotos = next; renderExtPhotoPreview(); });
     }
 
     function removeExtPhoto(idx) {
         extPhotos.splice(idx, 1);
         renderExtPhotoPreview();
+    }
+
+    // ── Press-and-drag photo reordering (touch + mouse, no libraries) ─────────
+    // Long-press an item to lift it, drag over siblings to reorder live, release
+    // to commit. Container-level delegation so it survives re-renders. Items must
+    // carry data-idx matching their index in the backing array.
+    var _gridDrag = null;
+    function enableGridReorder(container, getArr, commit) {
+        if (!container || container._reorderInit) {
+            if (container) { container._reorderGetArr = getArr; container._reorderCommit = commit; }
+            return;
+        }
+        container._reorderInit = true;
+        container._reorderGetArr = getArr;
+        container._reorderCommit = commit;
+        container.addEventListener('pointerdown', function (e) {
+            if (e.button != null && e.button !== 0) return; // left/touch only
+            var item = e.target.closest('.photo-preview-item');
+            if (!item || item.parentNode !== container) return;
+            if (e.target.closest('.remove-photo')) return;  // let remove work
+            var pid = e.pointerId, sx = e.clientX, sy = e.clientY, started = false;
+            var lp = setTimeout(start, 180);
+
+            function start() {
+                started = true;
+                _gridDrag = true;
+                try { item.setPointerCapture(pid); } catch (_) {}
+                item.style.transition = 'transform .06s';
+                item.style.transform = 'scale(1.07)';
+                item.style.opacity = '0.9';
+                item.style.zIndex = '50';
+                item.style.boxShadow = '0 8px 24px rgba(61,46,36,0.28)';
+                document.body.style.userSelect = 'none';
+                if (navigator.vibrate) { try { navigator.vibrate(10); } catch (_) {} }
+            }
+            function move(ev) {
+                if (ev.pointerId !== pid) return;
+                if (!started) {
+                    if (Math.abs(ev.clientX - sx) > 8 || Math.abs(ev.clientY - sy) > 8) end(); // moved first → scroll/tap
+                    return;
+                }
+                ev.preventDefault();
+                var kids = Array.prototype.slice.call(container.children).filter(function (k) { return k.classList && k.classList.contains('photo-preview-item'); });
+                for (var i = 0; i < kids.length; i++) {
+                    if (kids[i] === item) continue;
+                    var r = kids[i].getBoundingClientRect();
+                    if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) {
+                        var overBefore = (Array.prototype.indexOf.call(container.children, kids[i]) < Array.prototype.indexOf.call(container.children, item));
+                        container.insertBefore(item, overBefore ? kids[i] : kids[i].nextSibling);
+                        break;
+                    }
+                }
+            }
+            function end(ev) {
+                clearTimeout(lp);
+                document.removeEventListener('pointermove', move);
+                document.removeEventListener('pointerup', end);
+                document.removeEventListener('pointercancel', end);
+                if (started) {
+                    var order = Array.prototype.slice.call(container.children)
+                        .filter(function (k) { return k.dataset && k.dataset.idx != null; })
+                        .map(function (k) { return parseInt(k.dataset.idx, 10); });
+                    var arr = container._reorderGetArr();
+                    var next = order.map(function (i) { return arr[i]; });
+                    item.style.transform = ''; item.style.opacity = ''; item.style.zIndex = '';
+                    item.style.boxShadow = ''; item.style.transition = '';
+                    document.body.style.userSelect = '';
+                    try { item.releasePointerCapture(pid); } catch (_) {}
+                    _gridDrag = null;
+                    container._reorderCommit(next);   // reorders backing array + re-renders
+                }
+                _gridDrag = null;
+            }
+            document.addEventListener('pointermove', move);
+            document.addEventListener('pointerup', end);
+            document.addEventListener('pointercancel', end);
+        });
     }
 
     async function saveExternalScan() {
@@ -5427,7 +5585,7 @@
             console.error('Save external error:', e);
             alert('Error saving. Please try again.');
         } finally {
-            if (saveBtn) { saveBtn.textContent = '🧵 Weave into Tapestry'; saveBtn.disabled = false; }
+            if (saveBtn) { saveBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10"/><path d="M7 20h10"/><path d="M8 4v16"/><path d="M16 4v16"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h8"/></svg>Weave into My Tapestry'; saveBtn.disabled = false; }
         }
     }
 
@@ -5444,6 +5602,29 @@
     // ==========================================
     // AUTH
     // ==========================================
+
+    // The domain the account was created on. duyen.io and dayduyen.tech share
+    // one Supabase auth pool, so we stamp the host into user_metadata to tell
+    // signups apart. Strips a leading www. so duyen.io / www.duyen.io coalesce.
+    function signupDomain() {
+        try { return (window.location.hostname || '').replace(/^www\./, ''); }
+        catch (e) { return ''; }
+    }
+
+    // Set signup_domain if it isn't already recorded. Covers OAuth signups
+    // (which can't pass metadata at sign-in) and backfills existing users the
+    // next time they authenticate. Never overwrites an existing value.
+    async function ensureSignupDomain(user) {
+        try {
+            if (!user) return;
+            var meta = user.user_metadata || {};
+            if (meta.signup_domain) return;
+            var dom = signupDomain();
+            if (!dom) return;
+            await _supabase.auth.updateUser({ data: { signup_domain: dom } });
+        } catch (e) { console.warn('ensureSignupDomain failed', e); }
+    }
+
     async function handleGoogleAuth() {
         console.log('🔵 Google auth');
         const { error } = await _supabase.auth.signInWithOAuth({
@@ -5728,27 +5909,27 @@
         ];
         var iconsHtml = '';
         if (biz.website) {
-            iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
+            iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
         }
         socialDefs.forEach(function(s){
             var url = soc[s.key];
             if (!url) return;
-            iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
+            iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
         });
         if (biz.phone) {
-            iconsHtml += '<a href="tel:' + biz.phone + '" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
+            iconsHtml += '<a href="tel:' + biz.phone + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
         }
         if (biz.email) {
-            iconsHtml += '<a href="mailto:' + biz.email + '" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
+            iconsHtml += '<a href="mailto:' + biz.email + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
         }
         if (addr) {
-            iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
+            iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
         }
         if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
             window.__menuPhotos = biz.menuPhotos;
-            iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
+            iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
         }
-        var iconRowHtml = iconsHtml ? '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:11px;">' + iconsHtml + '</div>' : '';
+        var iconRowHtml = iconsHtml ? '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
 
         var html =
             // Close button
@@ -5757,13 +5938,13 @@
             '</div>' +
             // Header — persistent: 緣 DUYÊN logo left, origin text middle, icon row (socials + call + navigate) under
             '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #E0CFE0;">' +
-                '<div style="flex-shrink:0;text-align:center;width:72px;">' +
-                    '<span style="font-family:\'Crimson Pro\',serif;font-size:52px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
-                    '<span style="font-family:\'DM Sans\',sans-serif;font-size:10px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:2px;">DUYÊN</span>' +
+                '<div style="flex-shrink:0;text-align:center;width:92px;">' +
+                    '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
+                    '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>' +
                 '</div>' +
                 '<div style="flex:1;min-width:0;">' +
-                    '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
-                    '<div style="font-size:13px;color:#6B5751;line-height:1.4;margin-top:6px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
+                    '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
+                    '<div style="font-size:15px;color:#6B5751;line-height:1.45;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
                     iconRowHtml +
                 '</div>' +
             '</div>' +
@@ -5779,7 +5960,7 @@
                             (biz.description ? '<div style="font-family:\'Crimson Pro\',serif;font-size:18px;font-style:italic;color:#5D4E44;line-height:1.75;margin-bottom:14px;">\u201C' + biz.description + '\u201D</div>' : '') +
                             ((Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) ?
                                 '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;">' +
-                                biz.aboutPhotos.slice(0,3).map(function(u){ return '<div style="aspect-ratio:1;border-radius:10px;overflow:hidden;"><img src="' + u + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>'; }).join('') +
+                                biz.aboutPhotos.slice(0,3).map(function(u){ return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;"><img src="' + u + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>'; }).join('') +
                                 '</div>'
                             : '') +
                         '</div>' +
@@ -5960,8 +6141,13 @@
     // Keep original file references for storage upload
     var bizVideoPreviewUrl = null;
     var giverPhotoFileList = [];
+    // Unified ordered list of giver photos: { file:File|null, url:string|null, dataUrl, isVideo:false }.
+    // Reorder, save, and draft-resume all read from this, so the chosen order is preserved.
+    var giverPhotos = [];
     var giverVideoFile = null;
     var giverVideoPreviewUrl = null;
+    // Media carried over from a resumed draft (already-uploaded URLs), merged with any newly added files on save.
+    var giverExisting = { photos: [], video: null, voice: null };
     var receiverPhotoFileList = [];
     var receiverVideoFile = null;
     var receiverVideoPreviewUrl = null;
@@ -6110,7 +6296,7 @@
             
             var btn = document.getElementById(role + 'VoiceBtn');
             btn.className = 'voice-btn recording';
-            btn.innerHTML = '⏹️ Stop Recording';
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Stop Recording';
             
             var timerDiv = document.getElementById(role + 'VoiceTimer');
             timerDiv.style.display = 'block';
@@ -6180,7 +6366,7 @@
         }
         document.getElementById(role + 'VoicePreview').style.display = 'none';
         var btn = document.getElementById(role + 'VoiceBtn');
-        btn.innerHTML = '🎙️ Record Voice Memo';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo';
     }
 
 
@@ -6367,8 +6553,9 @@
                 document.getElementById('qcBizSection').style.display = 'none'; document.getElementById('qcSecretLock').style.display = 'block';
                 return;
             }
-            if (data.giver_data) {
-                // Giver already added message — show it + receiver response
+            if (data.giver_data && data.status !== 'draft') {
+                // Giver already added message AND sent it — show it + receiver response.
+                // (A draft keeps giver_data but status='draft', so it falls through to the composer.)
                 var giverData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
                 document.getElementById('qcBizSection').style.display = 'none'; document.getElementById('qcGiverSent').style.display = 'block';
 
@@ -6460,6 +6647,9 @@
                     if (_gfSub) _gfSub.textContent = 'Write a personal message for the person receiving this gift.';
                     if (_gfCheck) _gfCheck.textContent = 'Save message to QR card';
                 }
+                // "Save as draft" only applies to digital moments (not physical gift cards).
+                var _sdBtn = document.getElementById('qcSaveDraftBtn');
+                if (_sdBtn) _sdBtn.style.display = _isMoment ? 'block' : 'none';
                 document.getElementById('qcGiverForm').style.display = 'block';
             }
         }
@@ -6591,26 +6781,44 @@
 
     function handleGiverPhotos(input) {
         var files = Array.from(input.files);
-        var total = giverPhotoFileList.length + files.length;
-        if (total > 5) { alert('Maximum 5 photos'); input.value = ''; return; }
-        var preview = document.getElementById('qcGiverPhotoPreview');
+        if (giverPhotos.length + files.length > 5) { alert('Maximum 5 photos'); input.value = ''; return; }
         files.forEach(function(file) {
-            giverPhotoFileList.push(file);
             var reader = new FileReader();
             reader.onload = function(e) {
-                var img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:10px;border:2px solid var(--border-light);';
-                preview.appendChild(img);
+                giverPhotos.push({ file: file, url: null, dataUrl: e.target.result, isVideo: false });
+                renderGiverPhotoPreview();
             };
             reader.readAsDataURL(file);
         });
     }
 
-    async function saveGiverData() {
+    function renderGiverPhotoPreview() {
+        var container = document.getElementById('qcGiverPhotoPreview');
+        if (!container) return;
+        container.innerHTML = '';
+        giverPhotos.forEach(function(item, idx) {
+            var div = document.createElement('div');
+            div.className = 'photo-preview-item';
+            div.dataset.idx = idx;
+            div.style.cssText = 'position:relative;width:70px;height:70px;cursor:grab;';
+            div.innerHTML = '<img src="' + item.dataUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px;border:2px solid var(--border-light);display:block;pointer-events:none;">'
+                + '<button class="remove-photo" onclick="removeGiverPhoto(' + idx + ')" aria-label="Remove" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#3D2E24;color:#fff;font-size:11px;line-height:20px;text-align:center;padding:0;cursor:pointer;">✕</button>';
+            container.appendChild(div);
+        });
+        enableGridReorder(container, function(){ return giverPhotos; }, function(next){ giverPhotos = next; renderGiverPhotoPreview(); });
+    }
+
+    function removeGiverPhoto(idx) {
+        giverPhotos.splice(idx, 1);
+        renderGiverPhotoPreview();
+    }
+
+    async function saveGiverData(mode) {
+        mode = mode || 'send';
+        var isDraft = (mode === 'draft');
         if (!scannedQRData) return;
         var message = document.getElementById('qcGiverMessage').value.trim();
-        if (!message) { alert('Please write a message'); return; }
+        if (!isDraft && !message) { alert('Please write a message'); return; }
         
         if (!isAuthenticated) {
             window.postAuthDestination = 'qrContent';
@@ -6625,14 +6833,18 @@
         try {
             var qrId = scannedQRData.id;
             
-            // Upload photos to Storage
+            // Upload photos in the user's chosen order; already-uploaded draft URLs are kept as-is.
             var photoUrls = [];
-            for (var i = 0; i < giverPhotoFileList.length; i++) {
-                var url = await uploadToStorage(giverPhotoFileList[i], 'giver/' + qrId);
-                if (url) photoUrls.push(url);
+            for (var i = 0; i < giverPhotos.length; i++) {
+                var gp = giverPhotos[i];
+                if (gp.url) { photoUrls.push(gp.url); }
+                else if (gp.file) {
+                    var url = await uploadToStorage(gp.file, 'giver/' + qrId);
+                    if (url) photoUrls.push(url);
+                }
             }
-            
-            var videoUrl = giverVideoFile ? await uploadToStorage(giverVideoFile, 'giver/' + qrId) : null;
+
+            var videoUrl = giverVideoFile ? await uploadToStorage(giverVideoFile, 'giver/' + qrId) : ((giverExisting && giverExisting.video) || null);
             // If a video was selected but upload returned null, halt with a visible error
             if (giverVideoFile && !videoUrl) {
                 alert('Video upload failed: ' + (window._lastUploadError || 'unknown error') + '\n\nTry a shorter or smaller video.');
@@ -6641,7 +6853,7 @@
                 return;
             }
             var giverVoiceBlob = await finalizeVoiceBlob('giver');
-            var voiceUrl = giverVoiceBlob ? await uploadBlobToStorage(giverVoiceBlob, 'giver/' + qrId, 'voice') : null;
+            var voiceUrl = giverVoiceBlob ? await uploadBlobToStorage(giverVoiceBlob, 'giver/' + qrId, 'voice') : ((giverExisting && giverExisting.voice) || null);
             
             var secretPhrase = document.getElementById('qcGiverSecretPhrase').value.trim().toLowerCase();
             var recipientName = document.getElementById('qcGiverRecipientName').value.trim();
@@ -6659,7 +6871,8 @@
             };
 
             // Charge 1 token for a moment (idempotent per code; only blocks on truly empty).
-            if (TOKENS_ENABLED && scannedQRData.source === 'moment') {
+            // Drafts never charge — the token is spent only when the moment is actually sent.
+            if (!isDraft && TOKENS_ENABLED && scannedQRData.source === 'moment') {
                 var _nb = await spendMomentToken(scannedQRData.id);
                 if (_nb === -1) {
                     var d1 = document.getElementById('qcDot1'); if (d1) d1.style.opacity = '1';
@@ -6670,16 +6883,24 @@
 
             var { error } = await _supabase
                 .from('qr_codes')
-                .update({ giver_data: giverData, giver_user_id: (await _supabase.auth.getUser()).data.user.id })
+                .update({ giver_data: giverData, giver_user_id: (await _supabase.auth.getUser()).data.user.id, status: isDraft ? 'draft' : 'active' })
                 .eq('id', scannedQRData.id);
-            
+
             if (error) {
                 console.error('Save giver error:', error);
                 alert('Error saving. Please try again.');
                 return;
             }
-            
+
             scannedQRData.giver_data = giverData;
+            scannedQRData.status = isDraft ? 'draft' : 'active';
+
+            // Draft: persist quietly and return to the Drafts list — no token, no share link.
+            if (isDraft) {
+                showMomentToast('Draft saved · nothing sent yet');
+                navigate('drafts');
+                return;
+            }
 
             // Populate share URL
             var shareUrl = 'https://duyen.io/q/' + scannedQRData.id;
@@ -6705,6 +6926,187 @@
             if (dot1err) dot1err.style.opacity = '1';
             alert('Error saving. Please try again.');
         }
+    }
+
+    // ── Drafts ──────────────────────────────────────────────────────────────
+    // Save the moment-in-progress without sending: no message required, no token
+    // charged, status stays 'draft'. Returns to the Drafts list.
+    function saveDraft() {
+        if (!isAuthenticated) {
+            currentRole = 'giver';
+            window.postAuthDestination = 'qrContent';
+            if (scannedQRData && scannedQRData.id) sessionStorage.setItem('pendingQRCode', scannedQRData.id);
+            navigate('auth');
+            return;
+        }
+        var msg = (document.getElementById('qcGiverMessage').value || '').trim();
+        var rcp = (document.getElementById('qcGiverRecipientName').value || '').trim();
+        var frm = (document.getElementById('qcGiverFromName').value || '').trim();
+        var hasMedia = (giverPhotos && giverPhotos.length) || giverVideoFile ||
+            (giverExisting && (giverExisting.video || giverExisting.voice));
+        if (!msg && !rcp && !frm && !hasMedia) {
+            alert('Add a message, a name, or a photo before saving a draft.');
+            return;
+        }
+        var btn = document.getElementById('qcSaveDraftBtn');
+        if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+        saveGiverData('draft').finally(function(){
+            if (btn) { btn.textContent = 'Save as draft'; btn.disabled = false; }
+        });
+    }
+
+    function draftEsc(s) {
+        return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // Lightweight bottom toast reused across moment/draft confirmations.
+    function showMomentToast(text) {
+        var t = document.getElementById('momentToast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'momentToast';
+            t.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#3D2E24;color:#FDF8F5;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:500;box-shadow:0 8px 32px rgba(61,46,36,.28);z-index:9999;max-width:86%;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;';
+            document.body.appendChild(t);
+        }
+        t.textContent = text;
+        requestAnimationFrame(function(){ t.style.opacity = '1'; });
+        clearTimeout(window._momentToastT);
+        window._momentToastT = setTimeout(function(){ t.style.opacity = '0'; }, 2600);
+    }
+
+    async function initDrafts() {
+        var listEl = document.getElementById('draftsList');
+        if (listEl) listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2.5rem 1rem;">Loading…</div>';
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (!user) { navigate('auth'); return; }
+            var { data, error } = await _supabase.from('qr_codes')
+                .select('id, giver_data, updated_at, created_at')
+                .eq('user_id', user.id).eq('source', 'moment').eq('status', 'draft')
+                .not('giver_data', 'is', null)
+                .order('updated_at', { ascending: false });
+            if (error) {
+                console.error('Load drafts error:', error);
+                if (listEl) listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2.5rem 1rem;">Could not load drafts.</div>';
+                return;
+            }
+            renderDrafts(data || []);
+            updateDraftCount((data || []).length);
+        } catch (e) {
+            console.error('initDrafts error:', e);
+            if (listEl) listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2.5rem 1rem;">Could not load drafts.</div>';
+        }
+    }
+
+    function renderDrafts(rows) {
+        var listEl = document.getElementById('draftsList');
+        if (!listEl) return;
+        if (!rows.length) {
+            listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:3rem 1rem;line-height:1.6;">No drafts yet.<br>Start a moment and tap <b style="color:var(--brand-red);">Save as draft</b> to keep it here.</div>';
+            return;
+        }
+        listEl.innerHTML = rows.map(function(r) {
+            var gd = r.giver_data;
+            if (typeof gd === 'string') { try { gd = JSON.parse(gd); } catch(e) { gd = {}; } }
+            gd = gd || {};
+            var to = gd.recipient_name ? ('To ' + draftEsc(gd.recipient_name)) : 'No recipient yet';
+            var snip = gd.message ? draftEsc(gd.message)
+                : '<span style="color:var(--text-muted);font-style:italic;">No message written</span>';
+            var bits = [];
+            if (gd.photos && gd.photos.length) bits.push(gd.photos.length + (gd.photos.length === 1 ? ' photo' : ' photos'));
+            if (gd.video) bits.push('video');
+            if (gd.voice) bits.push('🎙 voice');
+            var when = (typeof tapDateShort === 'function') ? tapDateShort(r.updated_at || r.created_at) : '';
+            var avatar = gd.recipient_name ? draftEsc(gd.recipient_name).charAt(0).toUpperCase() : '?';
+            return '<div onclick="resumeDraft(\'' + r.id + '\')" style="display:flex;gap:11px;align-items:flex-start;padding:13px;margin-bottom:11px;background:#fff;border:1px solid var(--border-light);border-radius:15px;box-shadow:var(--card-shadow);cursor:pointer;">'
+                + '<div style="width:38px;height:38px;border-radius:11px;flex:0 0 auto;background:var(--blush);display:flex;align-items:center;justify-content:center;font-family:\'Crimson Pro\',serif;font-weight:700;color:var(--brand-red);font-size:15px;">' + avatar + '</div>'
+                + '<div style="min-width:0;flex:1;">'
+                + '<div style="font-size:13.5px;font-weight:700;color:var(--text-primary);">' + to + '</div>'
+                + '<div style="font-size:12.5px;color:var(--text-secondary);margin:2px 0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + snip + '</div>'
+                + '<div style="font-size:11px;color:var(--text-muted);">' + (bits.length ? ('<span style="background:var(--blush);border:1px solid var(--border-light);border-radius:20px;padding:1px 7px;color:var(--brand-red);font-weight:600;">' + bits.join(' · ') + '</span> ') : '') + 'edited ' + when + '</div>'
+                + '</div>'
+                + '<button onclick="event.stopPropagation();deleteDraft(\'' + r.id + '\')" title="Delete draft" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);align-self:center;padding:4px;">🗑</button>'
+                + '</div>';
+        }).join('');
+    }
+
+    async function resumeDraft(id) {
+        try {
+            var { data, error } = await _supabase.from('qr_codes').select('*').eq('id', id).single();
+            if (error || !data) { alert('Could not open that draft.'); return; }
+            resetGiverComposer();
+            scannedQRData = data;
+            window.scannedQRCode = data.id;
+            currentRole = 'giver';
+            var gd = data.giver_data;
+            if (typeof gd === 'string') { try { gd = JSON.parse(gd); } catch(e) { gd = null; } }
+            gd = gd || {};
+            var set = function(elId, val) { var el = document.getElementById(elId); if (el) el.value = val || ''; };
+            set('qcGiverMessage', gd.message);
+            set('qcGiverRecipientName', gd.recipient_name);
+            set('qcGiverFromName', gd.from_name);
+            set('qcGiverSecretPhrase', gd.secret_phrase);
+            giverPhotos = (gd.photos || []).map(function(u){ return { file: null, url: u, dataUrl: u, isVideo: false }; });
+            giverExisting = { photos: [], video: gd.video || null, voice: gd.voice || null };
+            renderExistingGiverMedia();
+            renderGiverPhotoPreview();
+            navigate('qrContent');
+        } catch (e) {
+            console.error('resumeDraft error:', e);
+            alert('Could not open that draft.');
+        }
+    }
+
+    // Show a resumed draft's already-uploaded media as previews in the composer.
+    function renderExistingGiverMedia() {
+        // Photos are handled by renderGiverPhotoPreview() (giverPhotos); here we only restore video + voice.
+        if (giverExisting.video) {
+            var vp = document.getElementById('qcGiverVideoPreview');
+            if (vp) {
+                var v = document.createElement('video');
+                v.src = giverExisting.video; v.controls = true;
+                v.style.cssText = 'max-width:100%;border-radius:10px;margin-top:0.25rem;';
+                vp.appendChild(v);
+            }
+        }
+        if (giverExisting.voice) {
+            var vaud = document.getElementById('giverVoiceAudio');
+            var vpre = document.getElementById('giverVoicePreview');
+            if (vaud) vaud.src = giverExisting.voice;
+            if (vpre) vpre.style.display = 'flex';
+        }
+    }
+
+    async function deleteDraft(id) {
+        if (!confirm('Delete this draft? This can\'t be undone.')) return;
+        try {
+            var { error } = await _supabase.from('qr_codes').delete().eq('id', id);
+            if (error) { alert('Could not delete. Please try again.'); return; }
+            initDrafts();
+        } catch (e) {
+            console.error('deleteDraft error:', e);
+            alert('Could not delete. Please try again.');
+        }
+    }
+
+    function updateDraftCount(n) {
+        var el = document.getElementById('fabDraftCount');
+        if (!el) return;
+        if (n && n > 0) { el.textContent = n; el.style.display = 'inline-grid'; }
+        else { el.style.display = 'none'; }
+    }
+
+    // Refresh the FAB drafts badge (cheap count) — called when the tapestry loads.
+    async function refreshDraftCount() {
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (!user) { updateDraftCount(0); return; }
+            var { count } = await _supabase.from('qr_codes')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', user.id).eq('source', 'moment').eq('status', 'draft')
+                .not('giver_data', 'is', null);
+            updateDraftCount(count || 0);
+        } catch (e) { /* non-critical */ }
     }
 
     function qcCheck1Tap() {
@@ -7131,6 +7533,7 @@
             if (isAuthenticated) return; // already handled by getSession
             isAuthenticated = true;
             window._authNavigated = true;
+            ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
@@ -7149,6 +7552,7 @@
             // Set auth state but DON'T navigate if we're on a QR scan URL
             isAuthenticated = true;
             window._authNavigated = true;
+            ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
@@ -7207,7 +7611,7 @@
         const btn = document.querySelector('#signupScreen .btn-primary');
         btn.disabled = true; btn.textContent = 'Creating account...';
         const { data, error } = await _supabase.auth.signUp({
-            email, password: pw, options: { data: { full_name: name } }
+            email, password: pw, options: { data: { full_name: name, signup_domain: signupDomain() } }
         });
         btn.disabled = false; btn.textContent = 'Create Account';
         if (error) { alert('Signup failed: ' + error.message); return; }
@@ -7777,7 +8181,9 @@
                 + '<div class="notif-title">' + escapeHtml(n.title) + '</div>'
                 + '<div class="notif-msg">' + escapeHtml(n.message || '') + '</div>'
                 + '<div class="notif-time">' + timeAgo + '</div>'
-                + '</div></div>';
+                + '</div>'
+                + '<button class="notif-delete" title="Remove this notification" aria-label="Remove this notification" onclick="event.stopPropagation(); deleteNotification(\'' + n.id + '\')">✕</button>'
+                + '</div>';
         }).join('');
     }
 
@@ -7837,28 +8243,48 @@
         // Navigate to the QR code if available
         if (qrCodeId) {
             toggleNotifPanel();
-            
+
             // Check if user is already giver or receiver on this QR
             try {
                 var user = (await _supabase.auth.getUser()).data.user;
                 if (user) {
+                    // If the user has removed this memory from their tapestry, the
+                    // notification is stale — don't open a locked/removed gift.
+                    // Show a message and clear the notification instead.
+                    var { data: tapRows } = await _supabase.from('tapestry')
+                        .select('id').eq('user_id', user.id).eq('qr_code_id', qrCodeId).limit(1);
+                    if (!tapRows || tapRows.length === 0) {
+                        await dismissStaleNotification(notifId, user.id, qrCodeId);
+                        showMomentToast('That memory was removed from your tapestry');
+                        return;
+                    }
+
                     var { data: qrData } = await _supabase.from('qr_codes').select('*').eq('id', qrCodeId).limit(1);
                     if (qrData && qrData.length > 0) {
                         var qr = qrData[0];
-                        if (qr.giver_user_id === user.id || qr.receiver_user_id === user.id) {
+                        // Recognise giver, receiver, AND the QR owner/creator (qr.user_id).
+                        // Owner-branch thank-you notifications fire precisely when the owner
+                        // is NOT the giver, so without the user_id check the owner would fail
+                        // this test and get dumped into the fresh-scan "origin" claim page.
+                        if (qr.giver_user_id === user.id || qr.receiver_user_id === user.id || qr.user_id === user.id) {
                             // User already has a role — skip role selection, go straight to content
                             scannedQRData = qr;
-                            currentRole = (qr.giver_user_id === user.id) ? 'giver' : 'receiver';
+                            currentRole = (qr.receiver_user_id === user.id && qr.giver_user_id !== user.id) ? 'receiver' : 'giver';
                             navigate('qrContent');
                             populateQRContent();
                             return;
                         }
+                    } else {
+                        // The QR itself no longer exists — clear the dangling notification.
+                        await dismissStaleNotification(notifId, user.id, qrCodeId);
+                        showMomentToast('That content is no longer available');
+                        return;
                     }
                 }
             } catch(e) {
                 console.error('Notification role check error:', e);
             }
-            
+
             // Fallback — normal flow
             window.scannedQRCode = qrCodeId;
             navigate('qrContent');
@@ -7866,9 +8292,44 @@
         }
     }
 
+    // Remove a stale notification (and any siblings for the same gift) once the
+    // underlying memory is gone or has been removed from the user's tapestry.
+    async function dismissStaleNotification(notifId, userId, qrCodeId) {
+        try {
+            await _supabase.from('notifications').delete()
+                .eq('user_id', userId).eq('qr_code_id', qrCodeId);
+        } catch(e) { console.warn('dismissStaleNotification failed', e); }
+        notificationsData = notificationsData.filter(function(n){ return n.qr_code_id !== qrCodeId; });
+        renderNotifications();
+        updateNotifBadge();
+    }
+
+    // Remove a single notification (the per-row ✕ control).
+    async function deleteNotification(notifId) {
+        try {
+            await _supabase.from('notifications').delete().eq('id', notifId);
+        } catch(e) { console.warn('deleteNotification failed', e); }
+        notificationsData = notificationsData.filter(function(n){ return n.id !== notifId; });
+        renderNotifications();
+        updateNotifBadge();
+    }
+
+    // Clear every notification for the current user.
+    async function clearAllNotifications() {
+        if (!isAuthenticated || notificationsData.length === 0) return;
+        if (!confirm('Clear all notifications? This can\'t be undone.')) return;
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (user) await _supabase.from('notifications').delete().eq('user_id', user.id);
+        } catch(e) { console.warn('clearAllNotifications failed', e); }
+        notificationsData = [];
+        renderNotifications();
+        updateNotifBadge();
+    }
+
     async function markAllNotificationsRead() {
         if (!isAuthenticated || notificationsData.length === 0) return;
-        
+
         try {
             var user = (await _supabase.auth.getUser()).data.user;
             if (!user) return;
@@ -8369,7 +8830,16 @@
     // completion, so a still-null link_meta means it hasn't finished yet.
     var _tapPreviewRetries = 0;
     function maybeRefreshPendingPreviews() {
-        var pending = userThreads.some(function (t) { return t.role === 'external' && t.externalUrl && !t.linkMeta; });
+        // Only entries whose resolve-link may still be in flight (created in the last ~90s).
+        // Older external entries legitimately have no link_meta forever — refreshing for them
+        // would re-render (and briefly hide/re-wire) the whole tapestry on every visit, which
+        // drops taps mid-render. Scope it tightly so a normal visit never churns.
+        var now = Date.now();
+        var pending = userThreads.some(function (t) {
+            if (t.role !== 'external' || !t.externalUrl || t.linkMeta) return false;
+            var created = t.createdAt ? new Date(t.createdAt).getTime() : 0;
+            return created && (now - created) < 90000;
+        });
         if (!pending || _tapPreviewRetries >= 3) return;
         _tapPreviewRetries++;
         setTimeout(function () {
@@ -8484,10 +8954,10 @@
             const domLine = dom ? `<div style="font-size:12px;color:#8B3A7F;word-break:break-all;text-align:center;margin:2px 0 10px;">${dom.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : '';
             return `${domLine}<div class="tap-fc-link-row">
                 <a href="${safeOpen}" target="_blank" rel="noopener noreferrer" class="tap-fc-link-btn">
-                    🔗 Open Link
+                    <svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4.5"/></svg>Open Link
                 </a>
                 <button class="tap-fc-link-btn" onclick="shareExternalLink('${safeOpenJs}', '${safeTitle}')">
-                    ↗ Share
+                    <svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6"/><path d="M8.2 13.2l7.6 4.6"/></svg>Share
                 </button>
             </div>`;
         })() : '';
@@ -8549,15 +9019,15 @@
             var accToggle = "var d=this.parentNode.querySelector('.acc-body');var a=this.querySelector('.acc-arrow');if(d.style.display==='none'){d.style.display='block';a.style.transform='rotate(180deg)';}else{d.style.display='none';a.style.transform='rotate(0deg)';}";
             var accArrow = '<span class="acc-arrow" style="display:inline-flex;align-items:center;transition:transform 0.2s ease;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>';
             var aboutInner = '';
-            if (biz.description) aboutInner += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:0.95rem;color:#5D4E44;line-height:1.7;margin-bottom:10px;">\u201C'+biz.description+'\u201D</div>';
+            if (biz.description) aboutInner += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.12rem;color:#5D4E44;line-height:1.7;margin-bottom:12px;">\u201C'+biz.description+'\u201D</div>';
             if (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) {
                 aboutInner += '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;">' +
-                    biz.aboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
+                    biz.aboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
                 '</div>';
             }
             if (aboutInner) {
                 bizDetails += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
-                    '<div onclick="'+accToggle+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:600;color:#2E2A28;">About</span>'+accArrow+'</div>' +
+                    '<div onclick="'+accToggle+'" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:18px;font-weight:600;color:#2E2A28;">About</span>'+accArrow+'</div>' +
                     '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+aboutInner+'</div>' +
                 '</div>';
             }
@@ -8601,37 +9071,37 @@
             ];
             var iconsHtml = '';
             if (biz.website) {
-                iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
+                iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
             }
             socialDefs.forEach(function(s){
                 var url = soc[s.key];
                 if (!url) return;
-                iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
+                iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
             });
             if (biz.phone) {
-                iconsHtml += '<a href="tel:' + biz.phone + '" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
+                iconsHtml += '<a href="tel:' + biz.phone + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
             }
             if (biz.email) {
-                iconsHtml += '<a href="mailto:' + biz.email + '" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
+                iconsHtml += '<a href="mailto:' + biz.email + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
             }
             if (addr) {
-                iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
+                iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
             }
             if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
                 window.__menuPhotos = biz.menuPhotos;
-                iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
+                iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
             }
-            var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:11px;">' + iconsHtml + '</div>' : '';
+            var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
 
             originHtml = '<div style="background:#EFE5EF;">' +
                 '<div style="cursor:pointer;padding:13px 14px;display:flex;align-items:center;gap:13px;" onclick="var d=this.parentNode.querySelector(\'.origin-details\');var a=this.querySelector(\'.origin-arrow\');if(d.style.display===\'none\'){d.style.display=\'block\';a.style.transform=\'rotate(180deg)\';}else{d.style.display=\'none\';a.style.transform=\'rotate(0deg)\';}">' +
-                    '<div style="flex-shrink:0;text-align:center;width:72px;">' +
-                        '<span style="font-family:\'Crimson Pro\',serif;font-size:52px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
-                        '<span style="font-family:\'DM Sans\',sans-serif;font-size:10px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:2px;">DUYÊN</span>' +
+                    '<div style="flex-shrink:0;text-align:center;width:92px;">' +
+                        '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
+                        '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>' +
                     '</div>' +
                     '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
-                        '<div style="font-size:13px;color:#6B5751;line-height:1.4;margin-top:6px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
+                        '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
+                        '<div style="font-size:15px;color:#6B5751;line-height:1.45;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
                         iconRowHtml +
                     '</div>' +
                     '<span class="origin-arrow" style="width:32px;height:32px;border-radius:50%;background:rgba(139,58,127,0.12);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s ease;">' +
@@ -8677,13 +9147,11 @@
 
             <!-- Edit/delete controls — gift QRs get only a delete button (placed AFTER receiver response below); external keeps edit-mode block -->
             ${isGiftQR ? `` : `
-            <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}">
-                ${(thread.photos||[]).map(p=>`<img class="tap-fc-photo-thumb" src="${p}" alt="">`).join('')}
-            </div>
-            ${(thread.photos||[]).length > 0 ? `<div class="tap-fc-photo-count-label" id="photo-count-${tid}">${thread.photos.length}/10 photos</div>` : ''}
+            <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}"></div>
+            <div class="tap-fc-photo-count-label" id="photo-count-${tid}"></div>
             <input type="file" id="photo-input-${tid}" accept="image/*,video/*" multiple style="display:none;" onchange="handleEditPhotos('${tid}', this)">
             <button class="tap-fc-add-photos-btn" onclick="document.getElementById('photo-input-${tid}').click()">
-                📷 Add Photos & Videos
+                <svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos
             </button>
             <div class="tap-fc-voice-edit" id="voice-edit-${tid}">
                 <div class="tap-fc-voice-edit-label">Voice Memo</div>
@@ -8692,7 +9160,7 @@
                     <audio controls src="${thread.voiceUrl}" id="voice-edit-audio-${tid}"></audio>
                 </div>` : ''}
                 <button class="voice-btn" id="edit-voice-btn-${tid}" onclick="toggleEditRecording('${tid}')">
-                    ${thread.hasVoice ? '🎙️ Re-record' : '🎙️ Record Voice Memo'}
+                    ${thread.hasVoice ? '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record' : '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo'}
                 </button>
                 <div id="edit-voice-timer-${tid}" style="display:none; font-size:0.85rem; color:var(--text-muted);">⏱️ <span id="edit-timer-text-${tid}">0:00</span></div>
                 <div id="edit-voice-preview-${tid}" style="display:none;" class="tap-fc-voice-edit-player">
@@ -8883,6 +9351,7 @@
         const container=document.getElementById('tapDetailCards'); container.innerHTML='';
         const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
         wrap.appendChild(buildTapFullCard(thread)); container.appendChild(wrap);
+        try { renderEditPhotoGrid(thread.id, thread); } catch(e) {}
         // iOS fix: media elements with inline src often won't load; re-assign src via JS
         container.querySelectorAll('audio.tap-fc-audio-el').forEach(function(a){
             var s=a.getAttribute('src'); if(s){ a.src=s; try{a.load();}catch(e){} }
@@ -8915,6 +9384,7 @@
     // ==========================================
     async function initTapestry() {
         await loadTapestryFromDB();
+        refreshDraftCount();   // keep the FAB Drafts badge current
         // Clear search
         const s1 = document.getElementById('tapestrySearch');
         const s2 = document.getElementById('tapestrySearchMobile');
@@ -9310,6 +9780,20 @@
         // and the physical QR card keeps working.
         await _supabase.from('tapestry').delete().eq('id', threadId);
 
+        // Also clear THIS user's notifications tied to that gift, so removing a
+        // Polaroid doesn't leave behind notifications that point at a memory the
+        // user no longer keeps. Scoped to user_id, so other parties keep theirs.
+        try {
+            var _u = (await _supabase.auth.getUser()).data.user;
+            if (_u && thread.qr_code_id) {
+                await _supabase.from('notifications').delete()
+                    .eq('user_id', _u.id).eq('qr_code_id', thread.qr_code_id);
+                notificationsData = notificationsData.filter(function(n){ return n.qr_code_id !== thread.qr_code_id; });
+                renderNotifications();
+                updateNotifBadge();
+            }
+        } catch(e) { console.warn('Notification cleanup on delete failed', e); }
+
         // Remove from local cache and close panel
         userThreads = userThreads.filter(t => t.id !== threadId);
         closeTapDetail();
@@ -9324,7 +9808,7 @@
             // Stop recording
             slot.recorder.stop();
             clearInterval(slot.timer);
-            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '🎙️ Re-record';
+            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record';
             document.getElementById('edit-voice-timer-' + threadId).style.display = 'none';
         } else {
             // Start recording
@@ -9354,7 +9838,7 @@
                 };
 
                 slot.recorder.start();
-                document.getElementById('edit-voice-btn-' + threadId).innerHTML = '⏹️ Stop Recording';
+                document.getElementById('edit-voice-btn-' + threadId).innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Stop Recording';
                 document.getElementById('edit-voice-btn-' + threadId).classList.add('recording');
                 document.getElementById('edit-voice-timer-' + threadId).style.display = 'block';
                 document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
@@ -9376,7 +9860,7 @@
         if (slot) { slot.blob = null; slot.chunks = []; }
         document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
         const thread = userThreads.find(t => t.id === threadId);
-        document.getElementById('edit-voice-btn-' + threadId).innerHTML = thread && thread.hasVoice ? '🎙️ Re-record' : '🎙️ Record Voice Memo';
+        document.getElementById('edit-voice-btn-' + threadId).innerHTML = thread && thread.hasVoice ? '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record' : '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo';
         document.getElementById('edit-voice-btn-' + threadId).classList.remove('recording');
     }
 
@@ -9419,7 +9903,7 @@
                 }
             }
             document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
-            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '🎙️ Re-record';
+            document.getElementById('edit-voice-btn-' + threadId).innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record';
             slot.blob = null;
 
         } catch(e) {
@@ -9428,6 +9912,67 @@
         } finally {
             if (saveBtn) { saveBtn.textContent = '✓ Save'; saveBtn.disabled = false; }
         }
+    }
+
+    // Edit-mode media list (images + videos) as [{type,url}], from thread.media or legacy photos.
+    function editMediaList(thread) {
+        return (thread.media && thread.media.length)
+            ? thread.media.slice()
+            : (thread.photos || []).map(function (u) { return { type: 'image', url: u }; });
+    }
+
+    // Render the edit-mode photo/video grid: draggable to reorder, ✕ to remove. Order persists to DB.
+    function renderEditPhotoGrid(threadId, thread) {
+        var grid = document.getElementById('photo-grid-' + threadId);
+        if (!grid) return;
+        var media = editMediaList(thread);
+        grid.innerHTML = '';
+        media.forEach(function (m, idx) {
+            var url = m.url || m;
+            var isVid = m.type === 'video';
+            var div = document.createElement('div');
+            div.className = 'photo-preview-item';
+            div.dataset.idx = idx;
+            div.style.cssText = 'position:relative;width:90px;height:90px;border-radius:10px;overflow:hidden;border:0.5px solid #ddd;cursor:grab;flex:0 0 auto;';
+            div.innerHTML = (isVid
+                ? '<video src="' + url + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></video>'
+                  + '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.65rem;pointer-events:none;">▶</div>'
+                : '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;pointer-events:none;">')
+                + '<button class="remove-photo" onclick="removeEditPhoto(\'' + threadId + '\',' + idx + ')" aria-label="Remove" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(61,46,36,0.85);color:#fff;font-size:11px;line-height:20px;text-align:center;padding:0;cursor:pointer;">✕</button>';
+            grid.appendChild(div);
+        });
+        var countEl = document.getElementById('photo-count-' + threadId);
+        if (countEl) {
+            var imgN = media.filter(function (m) { return m.type !== 'video'; }).length;
+            var vidN = media.filter(function (m) { return m.type === 'video'; }).length;
+            var txt = [imgN && imgN + ' photo' + (imgN > 1 ? 's' : ''), vidN && vidN + ' video' + (vidN > 1 ? 's' : '')].filter(Boolean).join(', ');
+            countEl.textContent = media.length ? (txt + ' / 10') : '';
+        }
+        enableGridReorder(grid, function () { return editMediaList(thread); }, function (next) { commitEditMediaOrder(threadId, thread, next); });
+        setTimeout(function () { if (typeof seekVideoThumbnails === 'function') seekVideoThumbnails(grid); }, 60);
+    }
+
+    async function commitEditMediaOrder(threadId, thread, next) {
+        thread.media = next;
+        thread.photos = next.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
+        renderEditPhotoGrid(threadId, thread);          // reflect new order immediately (optimistic)
+        try {
+            await _supabase.from('qr_codes').update({ media: next }).eq('id', thread.qr_code_id);
+        } catch (e) { console.error('Reorder persist failed:', e); }
+    }
+
+    async function removeEditPhoto(threadId, idx) {
+        var thread = userThreads.find(function (t) { return t.id === threadId; });
+        if (!thread) return;
+        if (!confirm('Remove this from the moment?')) return;
+        var media = editMediaList(thread);
+        media.splice(idx, 1);
+        thread.media = media;
+        thread.photos = media.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
+        renderEditPhotoGrid(threadId, thread);
+        try {
+            await _supabase.from('qr_codes').update({ media: media }).eq('id', thread.qr_code_id);
+        } catch (e) { console.error('Remove persist failed:', e); }
     }
 
     async function handleEditPhotos(threadId, input) {
@@ -9470,7 +10015,7 @@
         }
 
         if (!validatedFiles.length) {
-            if (btn) { btn.textContent = '📷 Add Photos & Videos'; btn.disabled = false; }
+            if (btn) { btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos'; btn.disabled = false; }
             input.value = '';
             return;
         }
@@ -9499,53 +10044,14 @@
             thread.media = [...prevMedia, ...newUrls];
             thread.photos = thread.media.filter(m => m.type !== 'video').map(m => m.url);
 
-            const grid = document.getElementById('photo-grid-' + threadId);
-            if (grid) {
-                newUrls.forEach(item => {
-                    if (item.type === 'video') {
-                        const wrap = document.createElement('div');
-                        wrap.style.cssText = 'position:relative;width:90px;height:90px;border-radius:10px;overflow:hidden;border:0.5px solid #ddd;flex-shrink:0;display:inline-block;';
-                        const vid = document.createElement('video');
-                        vid.src = item.url;
-                        vid.muted = true;
-                        vid.playsInline = true;
-                        vid.preload = 'metadata';
-                        vid.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-                        vid.onloadedmetadata = () => { vid.currentTime = 0.5; };
-                        const overlay = document.createElement('div');
-                        overlay.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.65rem;';
-                        overlay.textContent = '▶';
-                        wrap.appendChild(vid);
-                        wrap.appendChild(overlay);
-                        grid.appendChild(wrap);
-                    } else {
-                        const img = document.createElement('img');
-                        img.className = 'tap-fc-photo-thumb';
-                        img.src = item.url;
-                        grid.appendChild(img);
-                    }
-                });
-            }
-
-            let countEl = document.getElementById('photo-count-' + threadId);
-            if (!countEl) {
-                countEl = document.createElement('div');
-                countEl.id = 'photo-count-' + threadId;
-                countEl.className = 'tap-fc-photo-count-label';
-                if (grid) grid.after(countEl);
-            }
-            const imgCount = thread.media.filter(m => m.type !== 'video').length;
-            const vidCount = thread.media.filter(m => m.type === 'video').length;
-            countEl.textContent = [imgCount && imgCount + ' photo' + (imgCount > 1 ? 's' : ''), vidCount && vidCount + ' video' + (vidCount > 1 ? 's' : '')].filter(Boolean).join(', ') + ' / 10';
-
-            // Don't re-render card — thumbnails update in place, collage rebuilds on Done
-            setTimeout(() => seekVideoThumbnails(document.getElementById('photo-grid-' + threadId)), 100);
+            // Re-render the whole edit grid (draggable + removable) in the new order.
+            renderEditPhotoGrid(threadId, thread);
 
         } catch(e) {
             console.error('Edit media error:', e);
             alert('Error uploading.');
         } finally {
-            if (btn) { btn.textContent = '📷 Add Photos & Videos'; btn.disabled = false; }
+            if (btn) { btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos'; btn.disabled = false; }
             input.value = '';
         }
     }
