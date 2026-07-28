@@ -1,18 +1,16 @@
 // Edge Function: create-checkout
 // ---------------------------------------------------------------------------
-// Starts a Stripe Checkout session to buy token bundles (5 tokens = $5).
+// Starts a Stripe Checkout session to buy token bundles ($5 = 5 tokens).
 // Called from the app: db.functions.invoke('create-checkout', { body: { quantity } })
 // Returns { url } — the app redirects the user there.
 //
-// Secrets (supabase secrets set ...):
-//   STRIPE_SECRET_KEY   sk_test_… / sk_live_…
+// Uses the Stripe REST API via plain fetch (no SDK import) so the function
+// boots cleanly on the Supabase edge runtime.
+//
+// Secrets (Edge Function secrets):
+//   STRIPE_SECRET_KEY   sk_live_… / sk_test_…
 //   APP_URL             https://duyen.io   (optional; where Stripe returns the user)
-// The $5 / 5-token bundle is priced inline (price_data) — no Stripe product
-// needs to be created ahead of time.
 // Auto-provided: SUPABASE_URL, SUPABASE_ANON_KEY
-
-import Stripe from "https://esm.sh/stripe@16.2.0?target=deno";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -31,50 +29,48 @@ Deno.serve(async (req) => {
 
   const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
   const APP_URL = Deno.env.get("APP_URL") || "https://duyen.io";
-  if (!STRIPE_SECRET_KEY) {
-    return json({ error: "Stripe not configured (STRIPE_SECRET_KEY)." }, 501);
-  }
+  if (!STRIPE_SECRET_KEY) return json({ error: "Stripe not configured (STRIPE_SECRET_KEY)." }, 501);
 
-  // Identify the caller from their JWT.
+  // Identify the caller from their JWT via the Supabase Auth REST endpoint.
   const authHeader = req.headers.get("Authorization") || "";
   if (!authHeader.startsWith("Bearer ")) return json({ error: "Missing bearer token" }, 401);
-  const supa = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-    global: { headers: { Authorization: authHeader } },
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const ures = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { Authorization: authHeader, apikey: ANON },
   });
-  const { data: userData, error: userErr } = await supa.auth.getUser();
-  if (userErr || !userData?.user) return json({ error: "Not authenticated" }, 401);
-  const user = userData.user;
+  if (!ures.ok) return json({ error: "Not authenticated" }, 401);
+  const user = await ures.json();
+  if (!user?.id) return json({ error: "Not authenticated" }, 401);
 
-  // How many bundles (clamped).
+  // How many bundles (clamped 1..20).
   let quantity = 1;
-  try { const b = await req.json(); quantity = Math.max(1, Math.min(20, parseInt(b?.quantity, 10) || 1)); } catch { /* default 1 */ }
+  try { const b = await req.json(); quantity = Math.max(1, Math.min(20, parseInt(b?.quantity, 10) || 1)); } catch { /* default */ }
   const tokens = quantity * TOKENS_PER_BUNDLE;
 
-  const stripe = new Stripe(STRIPE_SECRET_KEY, {
-    apiVersion: "2024-06-20",
-    httpClient: Stripe.createFetchHttpClient(),
-  });
+  // Build a Checkout session via the Stripe REST API (form-encoded).
+  const p = new URLSearchParams();
+  p.set("mode", "payment");
+  p.set("line_items[0][price_data][currency]", "usd");
+  p.set("line_items[0][price_data][unit_amount]", String(BUNDLE_PRICE_CENTS));
+  p.set("line_items[0][price_data][product_data][name]", "Moment Tokens (5-pack)");
+  p.set("line_items[0][quantity]", String(quantity));
+  p.set("client_reference_id", user.id);
+  if (user.email) p.set("customer_email", user.email);
+  p.set("metadata[user_id]", user.id);
+  p.set("metadata[tokens]", String(tokens));
+  p.set("success_url", `${APP_URL}/?tokens=success`);
+  p.set("cancel_url", `${APP_URL}/?tokens=cancel`);
 
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [{
-        price_data: {
-          currency: "usd",
-          unit_amount: BUNDLE_PRICE_CENTS,
-          product_data: { name: "Moment Tokens (5-pack)" },
-        },
-        quantity,
-      }],
-      client_reference_id: user.id,
-      customer_email: user.email ?? undefined,
-      metadata: { user_id: user.id, tokens: String(tokens) },
-      success_url: `${APP_URL}/?tokens=success`,
-      cancel_url: `${APP_URL}/?tokens=cancel`,
-    });
-    return json({ url: session.url });
-  } catch (e) {
-    console.error("create-checkout error:", e);
+  const sres = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${STRIPE_SECRET_KEY}`, "Content-Type": "application/x-www-form-urlencoded" },
+    body: p.toString(),
+  });
+  const session = await sres.json();
+  if (!sres.ok) {
+    console.error("create-checkout stripe error:", session?.error?.message || session);
     return json({ error: "Could not start checkout." }, 500);
   }
+  return json({ url: session.url });
 });
