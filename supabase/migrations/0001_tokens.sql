@@ -51,7 +51,7 @@ begin
       on conflict (user_id) do nothing;
     insert into token_ledger(user_id, delta, reason, ref)
       values (v_uid, 5, 'signup_bonus', v_uid::text)
-      on conflict (reason, ref) do nothing;
+      on conflict (reason, ref) where ref is not null do nothing;  -- match the PARTIAL unique index
     select balance into v_balance from wallets where user_id = v_uid;
   end if;
   return coalesce(v_balance, 0);

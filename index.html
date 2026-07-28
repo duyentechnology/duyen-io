@@ -3298,6 +3298,15 @@
                 <!-- Confirm boxes — always visible at bottom of form -->
                 <div style="margin-top:1.5rem;">
 
+                    <!-- Token note: how sending a moment is priced (first 5 free, then $5 / 5-pack) -->
+                    <div id="qcTokenNote" style="display:none;align-items:center;gap:10px;background:#faf6fa;border:1px solid #eaddea;border-radius:12px;padding:11px 14px;margin-bottom:12px;">
+                        <span style="font-size:18px;line-height:1;">💜</span>
+                        <div style="font-size:12.5px;color:#6b5560;line-height:1.4;font-family:sans-serif;">
+                            <span id="qcTokenNoteText">Each moment you send uses 1 token.</span>
+                            <a onclick="buyTokens(1)" style="color:#8B3A7F;font-weight:600;cursor:pointer;white-space:nowrap;">Buy more →</a>
+                        </div>
+                    </div>
+
                     <!-- Save as draft — finish later; nothing sent, no token spent -->
                     <button id="qcSaveDraftBtn" onclick="saveDraft()" style="display:none;width:100%;background:#fff;color:#8B3A7F;border:1.5px solid #C9A0C4;border-radius:12px;padding:12px;font-size:14px;font-weight:600;font-family:sans-serif;margin-bottom:12px;cursor:pointer;">Save as draft</button>
 
@@ -4117,7 +4126,7 @@
                     <div id="tokenBalanceValue" style="font-family:'Crimson Pro',serif;font-size:28px;font-weight:700;color:#8B3A7F;line-height:1;">—</div>
                     <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#9A8478;margin-top:3px;">Tokens</div>
                 </div>
-                <div style="flex:1;font-size:0.82rem;color:var(--text-secondary);line-height:1.45;">Each moment you send costs 1 token. Packs are 5 for $5.</div>
+                <div style="flex:1;font-size:0.82rem;color:var(--text-secondary);line-height:1.45;">Your first 5 moments are free. After that, each moment you send costs 1 token — packs are 5 for $5.</div>
             </div>
             <button class="user-action-btn user-action-btn-secondary" onclick="buyTokens(1)">Buy 5 tokens · $5</button>
         </div>
@@ -5133,6 +5142,22 @@
     function renderTokenBalance() {
         var el = document.getElementById('tokenBalanceValue');
         if (el && tapTokenBalance != null) el.textContent = tapTokenBalance;
+        renderComposerTokenNote();
+    }
+    // Show the "1 token per moment · N left" note inside the moment composer.
+    // Only when tokens are on AND we're composing a moment (not scanning a card).
+    function renderComposerTokenNote() {
+        var note = document.getElementById('qcTokenNote');
+        var txt  = document.getElementById('qcTokenNoteText');
+        if (!note || !txt) return;
+        var isMoment = TOKENS_ENABLED && scannedQRData && scannedQRData.source === 'moment';
+        if (!isMoment) { note.style.display = 'none'; return; }
+        var n = (tapTokenBalance == null) ? null : tapTokenBalance;
+        if (n == null)      txt.textContent = 'Each moment you send uses 1 token. Your first 5 were free. ';
+        else if (n <= 0)    txt.textContent = "You're out of tokens — a 5-pack is $5. ";
+        else if (n === 1)   txt.textContent = 'Sending this moment uses your last token. ';
+        else                txt.textContent = 'Each moment uses 1 token — you have ' + n + ' left. ';
+        note.style.display = 'flex';
     }
     async function buyTokens(quantity) {
         try {
@@ -5196,6 +5221,7 @@
             window.scannedQRCode = res.data.id;
             currentRole = 'giver';
             navigate('qrContent');              // navigate hook runs populateQRContent()
+            renderComposerTokenNote();          // show "1 token per moment · N left" now that source is known
         } catch (e) {
             console.error('openSendMoment error:', e);
             alert('Could not start a new moment. Please try again.');
@@ -6651,6 +6677,12 @@
                 var _sdBtn = document.getElementById('qcSaveDraftBtn');
                 if (_sdBtn) _sdBtn.style.display = _isMoment ? 'block' : 'none';
                 document.getElementById('qcGiverForm').style.display = 'block';
+                // Token note: only for digital moments. Load balance if we don't have it yet.
+                if (_isMoment && TOKENS_ENABLED) {
+                    if (tapTokenBalance == null) loadTokenBalance(); else renderComposerTokenNote();
+                } else {
+                    var _tn = document.getElementById('qcTokenNote'); if (_tn) _tn.style.display = 'none';
+                }
             }
         }
         else if (currentRole === 'receiver') {
@@ -7534,6 +7566,7 @@
             isAuthenticated = true;
             window._authNavigated = true;
             ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
+            if (TOKENS_ENABLED) loadTokenBalance(); // grant 5 free on first login + preload the number
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
@@ -7553,6 +7586,7 @@
             isAuthenticated = true;
             window._authNavigated = true;
             ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
+            if (TOKENS_ENABLED) loadTokenBalance(); // grant 5 free on first login + preload the number
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
