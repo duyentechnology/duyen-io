@@ -3302,10 +3302,10 @@
                 <!-- Confirm boxes — always visible at bottom of form -->
                 <div style="margin-top:1.5rem;">
 
-                    <!-- Token banner: pricing + balance + buy (first 5 free, then $5 / 5-pack) -->
+                    <!-- Token banner: pricing + balance + buy (first 10 free, then $5 / 5-pack) -->
                     <div id="qcTokenNote" style="display:none;background:linear-gradient(135deg,#faf4fa,#f2e6f2);border:1.5px solid #e3cfe0;border-radius:18px;padding:22px 20px;margin-bottom:18px;text-align:center;">
                         <div style="font-size:34px;line-height:1;margin-bottom:8px;">💜</div>
-                        <div id="qcTokenNoteTitle" style="font-family:'Crimson Pro',serif;font-size:24px;font-weight:700;color:#8B3A7F;line-height:1.2;margin-bottom:8px;">Your first 5 moments are free</div>
+                        <div id="qcTokenNoteTitle" style="font-family:'Crimson Pro',serif;font-size:24px;font-weight:700;color:#8B3A7F;line-height:1.2;margin-bottom:8px;">Your first 10 moments are free</div>
                         <div id="qcTokenTrack" style="display:none;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;"></div>
                         <div id="qcTokenNoteText" style="font-size:16px;color:#6b5560;line-height:1.5;margin-bottom:18px;font-family:sans-serif;">Each moment you send uses 1 token.</div>
                         <button onclick="buyTokens(1)" style="width:100%;background:#8B3A7F;color:#fff;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:700;font-family:sans-serif;cursor:pointer;">Buy 5 tokens · $5</button>
@@ -4134,7 +4134,7 @@
                     <div id="tokenBalanceValue" style="font-family:'Crimson Pro',serif;font-size:28px;font-weight:700;color:#8B3A7F;line-height:1;">—</div>
                     <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#9A8478;margin-top:3px;">Tokens</div>
                 </div>
-                <div style="flex:1;font-size:0.82rem;color:var(--text-secondary);line-height:1.45;">Your first 5 moments are free. After that, each moment you send costs 1 token — packs are 5 for $5.</div>
+                <div style="flex:1;font-size:0.82rem;color:var(--text-secondary);line-height:1.45;">Your first 10 moments are free. After that, each moment you send costs 1 token — packs are 5 for $5.</div>
             </div>
             <button class="user-action-btn user-action-btn-secondary" onclick="buyTokens(1)">Buy 5 tokens · $5</button>
         </div>
@@ -5311,19 +5311,20 @@
     // Show the "1 token per moment · N left" note inside the moment composer.
     // Only when tokens are on AND we're composing a moment (not scanning a card).
     // A 5-pip tracker of the free starter allotment: filled = remaining,
-    // hollow = spent. Above 5 (after a purchase) all fill + a "+N" chip.
+    // hollow = spent. Above 10 (after a purchase) all fill + a "+N" chip.
+    var FREE_SENDS = 10;
     function renderTokenTrack(n) {
         var track = document.getElementById('qcTokenTrack');
         if (!track) return;
         if (n == null) { track.style.display = 'none'; track.innerHTML = ''; return; }
-        var filled = Math.max(0, Math.min(5, n));
+        var filled = Math.max(0, Math.min(FREE_SENDS, n));
         var dots = '';
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < FREE_SENDS; i++) {
             var on = i < filled;
-            dots += '<span style="width:15px;height:15px;border-radius:50%;display:inline-block;background:' +
+            dots += '<span style="width:13px;height:13px;border-radius:50%;display:inline-block;background:' +
                     (on ? '#8B3A7F' : 'transparent') + ';border:2px solid ' + (on ? '#8B3A7F' : '#d9c3d6') + ';box-sizing:border-box;"></span>';
         }
-        if (n > 5) dots += '<span style="font-size:14px;color:#8B3A7F;font-weight:700;margin-left:4px;">+' + (n - 5) + '</span>';
+        if (n > FREE_SENDS) dots += '<span style="font-size:14px;color:#8B3A7F;font-weight:700;margin-left:4px;">+' + (n - FREE_SENDS) + '</span>';
         track.innerHTML = dots;
         track.style.display = 'flex';
     }
@@ -5337,18 +5338,18 @@
         var n = (tapTokenBalance == null) ? null : tapTokenBalance;
         renderTokenTrack(n);
         if (n == null) {
-            title.textContent = 'Your first 5 moments are free';
+            title.textContent = 'Your first 10 moments are free';
             txt.textContent   = 'Each moment you send uses 1 token.';
         } else if (n <= 0) {
             title.textContent = "You're out of tokens";
             txt.textContent   = 'Buy a 5-pack for $5 to keep sending moments.';
-        } else if (n <= 5) {
+        } else if (n <= FREE_SENDS) {
             // Still within the free starter allotment — call it out as free.
             title.textContent = n + (n === 1 ? ' free moment left' : ' free moments left');
-            txt.textContent   = 'Your first 5 moments are on us — each one after uses 1 token.';
+            txt.textContent   = 'Your first 10 moments are on us — each one after uses 1 token.';
         } else {
             title.textContent = n + ' tokens left';
-            txt.textContent   = 'Your first 5 moments are free — after that each one uses 1 token.';
+            txt.textContent   = 'Your first 10 moments are free — after that each one uses 1 token.';
         }
         note.style.display = 'block';
     }
@@ -7759,7 +7760,7 @@
             isAuthenticated = true;
             window._authNavigated = true;
             ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
-            if (TOKENS_ENABLED) loadTokenBalance(); // grant 5 free on first login + preload the number
+            if (TOKENS_ENABLED) loadTokenBalance(); // grant 10 free on first login + preload the number
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
@@ -7779,7 +7780,7 @@
             isAuthenticated = true;
             window._authNavigated = true;
             ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
-            if (TOKENS_ENABLED) loadTokenBalance(); // grant 5 free on first login + preload the number
+            if (TOKENS_ENABLED) loadTokenBalance(); // grant 10 free on first login + preload the number
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
