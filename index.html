@@ -5909,27 +5909,27 @@
         ];
         var iconsHtml = '';
         if (biz.website) {
-            iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
+            iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
         }
         socialDefs.forEach(function(s){
             var url = soc[s.key];
             if (!url) return;
-            iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
+            iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
         });
         if (biz.phone) {
-            iconsHtml += '<a href="tel:' + biz.phone + '" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
+            iconsHtml += '<a href="tel:' + biz.phone + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
         }
         if (biz.email) {
-            iconsHtml += '<a href="mailto:' + biz.email + '" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
+            iconsHtml += '<a href="mailto:' + biz.email + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
         }
         if (addr) {
-            iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
+            iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
         }
         if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
             window.__menuPhotos = biz.menuPhotos;
-            iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
+            iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
         }
-        var iconRowHtml = iconsHtml ? '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:11px;">' + iconsHtml + '</div>' : '';
+        var iconRowHtml = iconsHtml ? '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
 
         var html =
             // Close button
@@ -5938,13 +5938,13 @@
             '</div>' +
             // Header — persistent: 緣 DUYÊN logo left, origin text middle, icon row (socials + call + navigate) under
             '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #E0CFE0;">' +
-                '<div style="flex-shrink:0;text-align:center;width:72px;">' +
-                    '<span style="font-family:\'Crimson Pro\',serif;font-size:52px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
-                    '<span style="font-family:\'DM Sans\',sans-serif;font-size:10px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:2px;">DUYÊN</span>' +
+                '<div style="flex-shrink:0;text-align:center;width:92px;">' +
+                    '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
+                    '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>' +
                 '</div>' +
                 '<div style="flex:1;min-width:0;">' +
-                    '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
-                    '<div style="font-size:13px;color:#6B5751;line-height:1.4;margin-top:6px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
+                    '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
+                    '<div style="font-size:15px;color:#6B5751;line-height:1.45;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
                     iconRowHtml +
                 '</div>' +
             '</div>' +
@@ -5960,7 +5960,7 @@
                             (biz.description ? '<div style="font-family:\'Crimson Pro\',serif;font-size:18px;font-style:italic;color:#5D4E44;line-height:1.75;margin-bottom:14px;">\u201C' + biz.description + '\u201D</div>' : '') +
                             ((Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) ?
                                 '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;">' +
-                                biz.aboutPhotos.slice(0,3).map(function(u){ return '<div style="aspect-ratio:1;border-radius:10px;overflow:hidden;"><img src="' + u + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>'; }).join('') +
+                                biz.aboutPhotos.slice(0,3).map(function(u){ return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;"><img src="' + u + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>'; }).join('') +
                                 '</div>'
                             : '') +
                         '</div>' +
@@ -9019,15 +9019,15 @@
             var accToggle = "var d=this.parentNode.querySelector('.acc-body');var a=this.querySelector('.acc-arrow');if(d.style.display==='none'){d.style.display='block';a.style.transform='rotate(180deg)';}else{d.style.display='none';a.style.transform='rotate(0deg)';}";
             var accArrow = '<span class="acc-arrow" style="display:inline-flex;align-items:center;transition:transform 0.2s ease;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>';
             var aboutInner = '';
-            if (biz.description) aboutInner += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:0.95rem;color:#5D4E44;line-height:1.7;margin-bottom:10px;">\u201C'+biz.description+'\u201D</div>';
+            if (biz.description) aboutInner += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.12rem;color:#5D4E44;line-height:1.7;margin-bottom:12px;">\u201C'+biz.description+'\u201D</div>';
             if (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) {
                 aboutInner += '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;">' +
-                    biz.aboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
+                    biz.aboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
                 '</div>';
             }
             if (aboutInner) {
                 bizDetails += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
-                    '<div onclick="'+accToggle+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:600;color:#2E2A28;">About</span>'+accArrow+'</div>' +
+                    '<div onclick="'+accToggle+'" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:18px;font-weight:600;color:#2E2A28;">About</span>'+accArrow+'</div>' +
                     '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+aboutInner+'</div>' +
                 '</div>';
             }
@@ -9071,37 +9071,37 @@
             ];
             var iconsHtml = '';
             if (biz.website) {
-                iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
+                iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
             }
             socialDefs.forEach(function(s){
                 var url = soc[s.key];
                 if (!url) return;
-                iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
+                iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
             });
             if (biz.phone) {
-                iconsHtml += '<a href="tel:' + biz.phone + '" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
+                iconsHtml += '<a href="tel:' + biz.phone + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
             }
             if (biz.email) {
-                iconsHtml += '<a href="mailto:' + biz.email + '" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
+                iconsHtml += '<a href="mailto:' + biz.email + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
             }
             if (addr) {
-                iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
+                iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
             }
             if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
                 window.__menuPhotos = biz.menuPhotos;
-                iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:34px;height:34px;border-radius:9px;background:transparent;border:1.5px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
+                iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
             }
-            var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:11px;">' + iconsHtml + '</div>' : '';
+            var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
 
             originHtml = '<div style="background:#EFE5EF;">' +
                 '<div style="cursor:pointer;padding:13px 14px;display:flex;align-items:center;gap:13px;" onclick="var d=this.parentNode.querySelector(\'.origin-details\');var a=this.querySelector(\'.origin-arrow\');if(d.style.display===\'none\'){d.style.display=\'block\';a.style.transform=\'rotate(180deg)\';}else{d.style.display=\'none\';a.style.transform=\'rotate(0deg)\';}">' +
-                    '<div style="flex-shrink:0;text-align:center;width:72px;">' +
-                        '<span style="font-family:\'Crimson Pro\',serif;font-size:52px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
-                        '<span style="font-family:\'DM Sans\',sans-serif;font-size:10px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:2px;">DUYÊN</span>' +
+                    '<div style="flex-shrink:0;text-align:center;width:92px;">' +
+                        '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
+                        '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>' +
                     '</div>' +
                     '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
-                        '<div style="font-size:13px;color:#6B5751;line-height:1.4;margin-top:6px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
+                        '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
+                        '<div style="font-size:15px;color:#6B5751;line-height:1.45;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
                         iconRowHtml +
                     '</div>' +
                     '<span class="origin-arrow" style="width:32px;height:32px;border-radius:50%;background:rgba(139,58,127,0.12);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s ease;">' +
