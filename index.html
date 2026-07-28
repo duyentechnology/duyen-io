@@ -1140,6 +1140,15 @@
             cursor: pointer;
         }
         .notif-mark-read:hover { text-decoration: underline; }
+        .notif-clear-all {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .notif-clear-all:hover { text-decoration: underline; color: var(--text-secondary); }
         .notif-list {
             overflow-y: auto;
             max-height: 360px;
@@ -1166,6 +1175,23 @@
         }
         .notif-icon { font-size: 1.5rem; flex-shrink: 0; }
         .notif-content { flex: 1; min-width: 0; }
+        .notif-delete {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.05rem;
+            line-height: 1;
+            padding: 2px 4px;
+            border-radius: 6px;
+            opacity: 0.45;
+            transition: opacity 0.15s, background 0.15s, color 0.15s;
+            align-self: center;
+        }
+        .notif-item:hover .notif-delete { opacity: 0.75; }
+        .notif-delete:hover { opacity: 1; background: rgba(139,58,127,0.1); color: var(--brand-red); }
+        @media (hover: none) { .notif-delete { opacity: 0.6; } }
         .notif-title {
             font-weight: 600;
             font-size: 0.9rem;
@@ -3943,7 +3969,10 @@
     <div class="notif-panel" id="notifPanel">
         <div class="notif-panel-header">
             <h3>Notifications</h3>
-            <button class="notif-mark-read" id="notifMarkAllBtn" onclick="markAllNotificationsRead()">Mark all read</button>
+            <div style="display:flex;align-items:center;gap:0.85rem;">
+                <button class="notif-mark-read" id="notifMarkAllBtn" onclick="markAllNotificationsRead()">Mark all read</button>
+                <button class="notif-clear-all" id="notifClearAllBtn" onclick="clearAllNotifications()">Clear all</button>
+            </div>
         </div>
         <div class="notif-list" id="notifList">
             <div class="notif-empty">
@@ -8127,7 +8156,9 @@
                 + '<div class="notif-title">' + escapeHtml(n.title) + '</div>'
                 + '<div class="notif-msg">' + escapeHtml(n.message || '') + '</div>'
                 + '<div class="notif-time">' + timeAgo + '</div>'
-                + '</div></div>';
+                + '</div>'
+                + '<button class="notif-delete" title="Remove this notification" aria-label="Remove this notification" onclick="event.stopPropagation(); deleteNotification(\'' + n.id + '\')">✕</button>'
+                + '</div>';
         }).join('');
     }
 
@@ -8248,9 +8279,32 @@
         updateNotifBadge();
     }
 
+    // Remove a single notification (the per-row ✕ control).
+    async function deleteNotification(notifId) {
+        try {
+            await _supabase.from('notifications').delete().eq('id', notifId);
+        } catch(e) { console.warn('deleteNotification failed', e); }
+        notificationsData = notificationsData.filter(function(n){ return n.id !== notifId; });
+        renderNotifications();
+        updateNotifBadge();
+    }
+
+    // Clear every notification for the current user.
+    async function clearAllNotifications() {
+        if (!isAuthenticated || notificationsData.length === 0) return;
+        if (!confirm('Clear all notifications? This can\'t be undone.')) return;
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (user) await _supabase.from('notifications').delete().eq('user_id', user.id);
+        } catch(e) { console.warn('clearAllNotifications failed', e); }
+        notificationsData = [];
+        renderNotifications();
+        updateNotifBadge();
+    }
+
     async function markAllNotificationsRead() {
         if (!isAuthenticated || notificationsData.length === 0) return;
-        
+
         try {
             var user = (await _supabase.auth.getUser()).data.user;
             if (!user) return;
