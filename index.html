@@ -8223,10 +8223,14 @@
                     var { data: qrData } = await _supabase.from('qr_codes').select('*').eq('id', qrCodeId).limit(1);
                     if (qrData && qrData.length > 0) {
                         var qr = qrData[0];
-                        if (qr.giver_user_id === user.id || qr.receiver_user_id === user.id) {
+                        // Recognise giver, receiver, AND the QR owner/creator (qr.user_id).
+                        // Owner-branch thank-you notifications fire precisely when the owner
+                        // is NOT the giver, so without the user_id check the owner would fail
+                        // this test and get dumped into the fresh-scan "origin" claim page.
+                        if (qr.giver_user_id === user.id || qr.receiver_user_id === user.id || qr.user_id === user.id) {
                             // User already has a role — skip role selection, go straight to content
                             scannedQRData = qr;
-                            currentRole = (qr.giver_user_id === user.id) ? 'giver' : 'receiver';
+                            currentRole = (qr.receiver_user_id === user.id && qr.giver_user_id !== user.id) ? 'receiver' : 'giver';
                             navigate('qrContent');
                             populateQRContent();
                             return;
