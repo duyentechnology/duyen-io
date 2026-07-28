@@ -5159,8 +5159,12 @@
         } else if (n <= 0) {
             title.textContent = "You're out of tokens";
             txt.textContent   = 'Buy a 5-pack for $5 to keep sending moments.';
+        } else if (n <= 5) {
+            // Still within the free starter allotment — call it out as free.
+            title.textContent = n + (n === 1 ? ' free moment left' : ' free moments left');
+            txt.textContent   = 'Your first 5 moments are on us — each one after uses 1 token.';
         } else {
-            title.textContent = n + (n === 1 ? ' token left' : ' tokens left');
+            title.textContent = n + ' tokens left';
             txt.textContent   = 'Your first 5 moments are free — after that each one uses 1 token.';
         }
         note.style.display = 'block';
