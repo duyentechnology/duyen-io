@@ -51,33 +51,47 @@ Deno.serve(async (req) => {
   const user = await ures.json();
   if (!user?.id) return json({ error: "Not authenticated" }, 401);
 
-  // Which tier.
+  // Parse the request: which tier, and (for credit top-ups) how many credits.
   let tier = "generator";
-  try { const b = await req.json(); if (b?.tier) tier = String(b.tier); } catch { /* default */ }
-  const spec = TIERS[tier];
-  if (!spec) return json({ error: `Unknown tier: ${tier}` }, 400);
+  let qty = 1;
+  try {
+    const b = await req.json();
+    if (b?.tier) tier = String(b.tier);
+    if (b?.qty) qty = Math.max(1, Math.min(1000, parseInt(b.qty, 10) || 1));
+  } catch { /* defaults */ }
 
   // Build a Checkout session via the Stripe REST API (form-encoded, inline price).
   const p = new URLSearchParams();
-  p.set("mode", spec.mode);
-  p.set("line_items[0][price_data][currency]", "usd");
-  p.set("line_items[0][price_data][unit_amount]", String(spec.cents));
-  p.set("line_items[0][price_data][product_data][name]", spec.name);
-  if (spec.mode === "subscription") {
-    p.set("line_items[0][price_data][recurring][interval]", "month");
-  }
-  p.set("line_items[0][quantity]", "1");
   p.set("client_reference_id", user.id);
   if (user.email) p.set("customer_email", user.email);
   // Metadata the webhook reads to grant the right entitlement.
   p.set("metadata[kind]", "business");
   p.set("metadata[tier]", tier);
   p.set("metadata[user_id]", user.id);
-  // Also stamp the subscription's own metadata so lifecycle events carry it.
-  if (spec.mode === "subscription") {
-    p.set("subscription_data[metadata][kind]", "business");
-    p.set("subscription_data[metadata][tier]", tier);
-    p.set("subscription_data[metadata][user_id]", user.id);
+
+  if (tier === "credits") {
+    // Boutique mint-credit top-up: $0.10 per credit, one-time (qty credits).
+    p.set("mode", "payment");
+    p.set("line_items[0][price_data][currency]", "usd");
+    p.set("line_items[0][price_data][unit_amount]", "10"); // $0.10
+    p.set("line_items[0][price_data][product_data][name]", "Mint credits ($0.10 / QR)");
+    p.set("line_items[0][quantity]", String(qty));
+    p.set("metadata[credits]", String(qty));
+  } else {
+    const spec = TIERS[tier];
+    if (!spec) return json({ error: `Unknown tier: ${tier}` }, 400);
+    p.set("mode", spec.mode);
+    p.set("line_items[0][price_data][currency]", "usd");
+    p.set("line_items[0][price_data][unit_amount]", String(spec.cents));
+    p.set("line_items[0][price_data][product_data][name]", spec.name);
+    p.set("line_items[0][quantity]", "1");
+    if (spec.mode === "subscription") {
+      p.set("line_items[0][price_data][recurring][interval]", "month");
+      // Stamp the subscription's own metadata so lifecycle events carry it.
+      p.set("subscription_data[metadata][kind]", "business");
+      p.set("subscription_data[metadata][tier]", tier);
+      p.set("subscription_data[metadata][user_id]", user.id);
+    }
   }
   p.set("success_url", `${APP_URL}/?upgrade=success`);
   p.set("cancel_url", `${APP_URL}/?upgrade=cancel`);

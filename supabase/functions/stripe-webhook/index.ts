@@ -110,6 +110,10 @@ Deno.serve(async (req) => {
         if (!userId) break;
         if (tier === "generator") {
           ok = await rpc("business_grant_generator", { p_user: userId, p_customer: customer });
+        } else if (tier === "credits") {
+          // Boutique mint-credit top-up ($0.10/QR). Idempotent per session id.
+          const credits = parseInt(meta.credits || "0", 10);
+          if (credits > 0) ok = await rpc("business_add_mint_credits", { p_user: userId, p_qty: credits, p_ref: obj.id });
         } else if (tier === "insights" || tier === "boutique") {
           const subId = typeof obj.subscription === "string" ? obj.subscription : null;
           const sub = subId ? await fetchSubscription(subId) : null;
