@@ -5602,6 +5602,29 @@
     // ==========================================
     // AUTH
     // ==========================================
+
+    // The domain the account was created on. duyen.io and dayduyen.tech share
+    // one Supabase auth pool, so we stamp the host into user_metadata to tell
+    // signups apart. Strips a leading www. so duyen.io / www.duyen.io coalesce.
+    function signupDomain() {
+        try { return (window.location.hostname || '').replace(/^www\./, ''); }
+        catch (e) { return ''; }
+    }
+
+    // Set signup_domain if it isn't already recorded. Covers OAuth signups
+    // (which can't pass metadata at sign-in) and backfills existing users the
+    // next time they authenticate. Never overwrites an existing value.
+    async function ensureSignupDomain(user) {
+        try {
+            if (!user) return;
+            var meta = user.user_metadata || {};
+            if (meta.signup_domain) return;
+            var dom = signupDomain();
+            if (!dom) return;
+            await _supabase.auth.updateUser({ data: { signup_domain: dom } });
+        } catch (e) { console.warn('ensureSignupDomain failed', e); }
+    }
+
     async function handleGoogleAuth() {
         console.log('🔵 Google auth');
         const { error } = await _supabase.auth.signInWithOAuth({
@@ -7510,6 +7533,7 @@
             if (isAuthenticated) return; // already handled by getSession
             isAuthenticated = true;
             window._authNavigated = true;
+            ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
@@ -7528,6 +7552,7 @@
             // Set auth state but DON'T navigate if we're on a QR scan URL
             isAuthenticated = true;
             window._authNavigated = true;
+            ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
             const _meta = session.user.user_metadata || {};
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
@@ -7586,7 +7611,7 @@
         const btn = document.querySelector('#signupScreen .btn-primary');
         btn.disabled = true; btn.textContent = 'Creating account...';
         const { data, error } = await _supabase.auth.signUp({
-            email, password: pw, options: { data: { full_name: name } }
+            email, password: pw, options: { data: { full_name: name, signup_domain: signupDomain() } }
         });
         btn.disabled = false; btn.textContent = 'Create Account';
         if (error) { alert('Signup failed: ' + error.message); return; }
