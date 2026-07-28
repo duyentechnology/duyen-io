@@ -47,10 +47,10 @@ begin
   if v_uid is null then raise exception 'not authenticated'; end if;
   select balance into v_balance from wallets where user_id = v_uid;
   if not found then
-    insert into wallets(user_id, balance) values (v_uid, 2)          -- 2 free starter tokens
+    insert into wallets(user_id, balance) values (v_uid, 5)          -- 5 free starter tokens
       on conflict (user_id) do nothing;
     insert into token_ledger(user_id, delta, reason, ref)
-      values (v_uid, 2, 'signup_bonus', v_uid::text)
+      values (v_uid, 5, 'signup_bonus', v_uid::text)
       on conflict (reason, ref) do nothing;
     select balance into v_balance from wallets where user_id = v_uid;
   end if;
