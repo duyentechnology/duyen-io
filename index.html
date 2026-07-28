@@ -104,9 +104,37 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ── Tapestry screen uses light grey background ── */
-        #tapestryScreen { background: var(--surface); overflow-x: hidden; }
-        #tapestryScreen .container { background: var(--surface); }
+        /* ── Tapestry screen: soft light-lavender ground + by-type accent outlines ── */
+        #tapestryScreen {
+            --tap-ground:#F3EDFB;
+            background:
+                radial-gradient(120% 90% at 15% -5%, #EBE0FA 0%, transparent 55%),
+                radial-gradient(120% 90% at 90% 0%, #F0E6FB 0%, transparent 50%),
+                var(--tap-ground);
+            overflow-x: hidden;
+        }
+        #tapestryScreen .container { background: transparent; }
+
+        /* Polaroids & collage cards keep their white/cream face; the edge carries the type colour
+           — bold, solid, sharp outline in the pure type colour (no translucent halo) */
+        #tapestryScreen .tap-polaroid {
+            border:4px solid var(--edge,#C89BFF);
+            box-shadow:0 4px 12px rgba(60,40,80,0.14);
+        }
+        #tapestryScreen .tap-polaroid:hover {
+            box-shadow:0 8px 20px rgba(60,40,80,0.22);
+        }
+        #tapestryScreen .tap-col-card {
+            border:4px solid var(--edge,#C89BFF);
+            box-shadow:2px 5px 14px rgba(60,40,80,0.16);
+        }
+        #tapestryScreen .tap-col-card:hover {
+            box-shadow:4px 10px 24px rgba(60,40,80,0.24) !important;
+        }
+
+        /* Fade the month-strip edges into the lavender ground */
+        #tapestryScreen .tap-month-outer::before { background:linear-gradient(to right, var(--tap-ground), transparent); }
+        #tapestryScreen .tap-month-outer::after  { background:linear-gradient(to left,  var(--tap-ground), transparent); }
 
         /* =============================================
            SHARED COMPONENTS
@@ -8195,10 +8223,14 @@
                     var { data: qrData } = await _supabase.from('qr_codes').select('*').eq('id', qrCodeId).limit(1);
                     if (qrData && qrData.length > 0) {
                         var qr = qrData[0];
-                        if (qr.giver_user_id === user.id || qr.receiver_user_id === user.id) {
+                        // Recognise giver, receiver, AND the QR owner/creator (qr.user_id).
+                        // Owner-branch thank-you notifications fire precisely when the owner
+                        // is NOT the giver, so without the user_id check the owner would fail
+                        // this test and get dumped into the fresh-scan "origin" claim page.
+                        if (qr.giver_user_id === user.id || qr.receiver_user_id === user.id || qr.user_id === user.id) {
                             // User already has a role — skip role selection, go straight to content
                             scannedQRData = qr;
-                            currentRole = (qr.giver_user_id === user.id) ? 'giver' : 'receiver';
+                            currentRole = (qr.receiver_user_id === user.id && qr.giver_user_id !== user.id) ? 'receiver' : 'giver';
                             navigate('qrContent');
                             populateQRContent();
                             return;
@@ -8326,6 +8358,18 @@
         return thread.message ? thread.message.split(' ').slice(0,6).join(' ') : 'a moment saved';
     }
 
+    // Night Market palette — one accent per moment type, used as the outline
+    // colour on Polaroids / collage cards so the tapestry reads by type at a glance.
+    function tapTypeColor(role) {
+        switch (role) {
+            case 'giver':    return '#FFA33D'; // amber — gifts you gave
+            case 'receiver': return '#FF3E7F'; // rose  — gifts received
+            case 'business': return '#9B6BFF'; // violet — places visited
+            case 'external': return '#2FE0C6'; // teal  — external links
+            default:         return '#C89BFF'; // lilac — saved / other
+        }
+    }
+
     function buildTapCollage(month) {
         const scroll=document.getElementById('tapCollageScroll');
         scroll.classList.add('switching');
@@ -8359,7 +8403,7 @@
                 }
                 const div=document.createElement('div');
                 div.className='tap-col-card';
-                div.style.cssText=`z-index:${20-i};--ctilt:${tilts[i%tilts.length]}deg;--ctape:${tapes[i%tapes.length]}deg;`;
+                div.style.cssText=`z-index:${20-i};--ctilt:${tilts[i%tilts.length]}deg;--ctape:${tapes[i%tapes.length]}deg;--edge:${tapTypeColor(thread.role)};`;
                 div.onclick=()=>openTapSingle(thread.id);
                 div.innerHTML=`
                     ${isNew?'<div class="tap-col-new">new</div>':''}
@@ -8635,7 +8679,7 @@
                     ? `<div class="tap-polaroid-note" style="font-size:11px;color:#6B5751;line-height:1.35;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${extNote}</div>`
                     : '';
                 const caption = extDomainLabel ? extDomainLabel.replace(/</g,'&lt;') : tapPhotoCaption(t);
-                return `<div class="tap-polaroid" data-thread-id="${t.id}">
+                return `<div class="tap-polaroid" data-thread-id="${t.id}" style="--edge:${tapTypeColor(t.role)};">
                     <div class="tap-polaroid-img">${visual}</div>
                     <div class="tap-polaroid-caption">${caption}</div>
                     ${noteLine}
