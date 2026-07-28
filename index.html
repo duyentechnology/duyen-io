@@ -8187,11 +8187,22 @@
         // Navigate to the QR code if available
         if (qrCodeId) {
             toggleNotifPanel();
-            
+
             // Check if user is already giver or receiver on this QR
             try {
                 var user = (await _supabase.auth.getUser()).data.user;
                 if (user) {
+                    // If the user has removed this memory from their tapestry, the
+                    // notification is stale — don't open a locked/removed gift.
+                    // Show a message and clear the notification instead.
+                    var { data: tapRows } = await _supabase.from('tapestry')
+                        .select('id').eq('user_id', user.id).eq('qr_code_id', qrCodeId).limit(1);
+                    if (!tapRows || tapRows.length === 0) {
+                        await dismissStaleNotification(notifId, user.id, qrCodeId);
+                        showMomentToast('That memory was removed from your tapestry');
+                        return;
+                    }
+
                     var { data: qrData } = await _supabase.from('qr_codes').select('*').eq('id', qrCodeId).limit(1);
                     if (qrData && qrData.length > 0) {
                         var qr = qrData[0];
@@ -8207,17 +8218,34 @@
                             populateQRContent();
                             return;
                         }
+                    } else {
+                        // The QR itself no longer exists — clear the dangling notification.
+                        await dismissStaleNotification(notifId, user.id, qrCodeId);
+                        showMomentToast('That content is no longer available');
+                        return;
                     }
                 }
             } catch(e) {
                 console.error('Notification role check error:', e);
             }
-            
+
             // Fallback — normal flow
             window.scannedQRCode = qrCodeId;
             navigate('qrContent');
             loadScannedQR(qrCodeId);
         }
+    }
+
+    // Remove a stale notification (and any siblings for the same gift) once the
+    // underlying memory is gone or has been removed from the user's tapestry.
+    async function dismissStaleNotification(notifId, userId, qrCodeId) {
+        try {
+            await _supabase.from('notifications').delete()
+                .eq('user_id', userId).eq('qr_code_id', qrCodeId);
+        } catch(e) { console.warn('dismissStaleNotification failed', e); }
+        notificationsData = notificationsData.filter(function(n){ return n.qr_code_id !== qrCodeId; });
+        renderNotifications();
+        updateNotifBadge();
     }
 
     async function markAllNotificationsRead() {
@@ -9672,6 +9700,20 @@
         // The qr_codes record stays alive so other parties keep their memories
         // and the physical QR card keeps working.
         await _supabase.from('tapestry').delete().eq('id', threadId);
+
+        // Also clear THIS user's notifications tied to that gift, so removing a
+        // Polaroid doesn't leave behind notifications that point at a memory the
+        // user no longer keeps. Scoped to user_id, so other parties keep theirs.
+        try {
+            var _u = (await _supabase.auth.getUser()).data.user;
+            if (_u && thread.qr_code_id) {
+                await _supabase.from('notifications').delete()
+                    .eq('user_id', _u.id).eq('qr_code_id', thread.qr_code_id);
+                notificationsData = notificationsData.filter(function(n){ return n.qr_code_id !== thread.qr_code_id; });
+                renderNotifications();
+                updateNotifBadge();
+            }
+        } catch(e) { console.warn('Notification cleanup on delete failed', e); }
 
         // Remove from local cache and close panel
         userThreads = userThreads.filter(t => t.id !== threadId);
