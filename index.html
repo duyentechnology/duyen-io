@@ -6762,8 +6762,30 @@
         } catch (e) { console.warn('compressVideoFile fallback:', e); return file; }
     }
 
-    // Show an "Optimizing…" state, compress (best-effort), then preview the result.
-    async function _acceptVideo(file, previewId, setResult) {
+    // A video preview with a remove (✕) button, so a video can be deleted/swapped.
+    function _videoPreviewHTML(src, removeFn, extra) {
+        return '<div style="position:relative;">' +
+            '<video src="' + src + '" controls playsinline preload="metadata" style="max-width:100%;display:block;border-radius:12px;border:2px solid var(--border-light);"></video>' +
+            '<button type="button" onclick="' + removeFn + '()" title="Remove video" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.55);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+        '</div>' + (extra || '');
+    }
+    function removeGiverVideo() {
+        giverVideoFile = null;
+        if (giverVideoPreviewUrl) { try { URL.revokeObjectURL(giverVideoPreviewUrl); } catch(e) {} }
+        giverVideoPreviewUrl = null;
+        if (giverExisting) giverExisting.video = null;   // drop it from a resumed draft on save
+        var vp = document.getElementById('qcGiverVideoPreview'); if (vp) vp.innerHTML = '';
+        var inp = document.getElementById('qcGiverVideo'); if (inp) inp.value = '';
+    }
+    function removeReceiverVideo() {
+        receiverVideoFile = null;
+        if (receiverVideoPreviewUrl) { try { URL.revokeObjectURL(receiverVideoPreviewUrl); } catch(e) {} }
+        receiverVideoPreviewUrl = null;
+        var vp = document.getElementById('qcReceiverVideoPreview'); if (vp) vp.innerHTML = '';
+        var inp = document.getElementById('qcReceiverVideo'); if (inp) inp.value = '';
+    }
+    // Show an "Optimizing…" state, compress (best-effort), then preview the result (with remove ✕).
+    async function _acceptVideo(file, previewId, setResult, removeFn) {
         var preview = document.getElementById(previewId);
         if (preview) preview.innerHTML = '<div style="padding:14px 16px;border:2px solid var(--border-light);border-radius:12px;color:#6b5560;font-size:0.95rem;">Optimizing video… <span id="' + previewId + 'Prog">0%</span></div>';
         var origSize = file.size, out = file;
@@ -6771,7 +6793,7 @@
         var url = URL.createObjectURL(out);
         setResult(out, url);
         var note = (out !== file && out.size < origSize) ? '<div style="font-size:0.8rem;color:#3A8C7A;margin-top:6px;">Optimized ' + Math.round(origSize / 1048576) + 'MB → ' + Math.round(out.size / 1048576) + 'MB</div>' : '';
-        if (preview) preview.innerHTML = '<video src="' + url + '" controls playsinline preload="metadata" style="max-width:100%;border-radius:12px;border:2px solid var(--border-light);"></video>' + note;
+        if (preview) preview.innerHTML = _videoPreviewHTML(url, removeFn || 'removeGiverVideo', note);
     }
 
     function handleGiverVideo(input) {
@@ -6805,7 +6827,7 @@
                     giverVideoFile = out;
                     if (giverVideoPreviewUrl) { try { URL.revokeObjectURL(giverVideoPreviewUrl); } catch(e) {} }
                     giverVideoPreviewUrl = url;
-                });
+                }, 'removeGiverVideo');
             };
             videoEl.onerror = function() {
                 URL.revokeObjectURL(objUrl);
@@ -6864,7 +6886,7 @@
                     receiverVideoFile = out;
                     if (receiverVideoPreviewUrl) { try { URL.revokeObjectURL(receiverVideoPreviewUrl); } catch(e) {} }
                     receiverVideoPreviewUrl = url;
-                });
+                }, 'removeReceiverVideo');
             };
             videoEl.onerror = function() {
                 URL.revokeObjectURL(objUrl);
@@ -7472,12 +7494,7 @@
         // Photos are handled by renderGiverPhotoPreview() (giverPhotos); here we only restore video + voice.
         if (giverExisting.video) {
             var vp = document.getElementById('qcGiverVideoPreview');
-            if (vp) {
-                var v = document.createElement('video');
-                v.src = giverExisting.video; v.controls = true;
-                v.style.cssText = 'max-width:100%;border-radius:10px;margin-top:0.25rem;';
-                vp.appendChild(v);
-            }
+            if (vp) vp.innerHTML = _videoPreviewHTML(giverExisting.video, 'removeGiverVideo', '');
         }
         if (giverExisting.voice) {
             var vaud = document.getElementById('giverVoiceAudio');
