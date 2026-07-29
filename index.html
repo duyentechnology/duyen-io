@@ -3274,13 +3274,12 @@
                     </div>
                 </div>
                 <textarea id="qcGiverMessage" placeholder="Write your heartfelt message here..." style="width: 100%; min-height: 150px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1.1rem; line-height: 1.55; resize: vertical; box-sizing: border-box;"></textarea>
-                <div style="margin-top: 1.5rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 1.05rem;">Add Photos (up to 5)</label>
+                <div class="voice-memo-box" style="margin-top: 1.5rem;">
+                    <label style="display:flex;align-items:center;gap:7px;font-size:1.05rem;font-weight:600;margin-bottom:0.9rem;"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.8"/><path d="M21 16l-5-5-4 4-2-2-4 4"/></svg>Photos &amp; Video <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                    <div style="font-size:0.95rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem;">Photos (up to 5)</div>
                     <input type="file" id="qcGiverPhotos" accept="image/*" multiple onchange="handleGiverPhotos(this)" style="font-size: 1rem;">
                     <div id="qcGiverPhotoPreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem;"></div>
-                </div>
-                <div style="margin-top: 1.5rem;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 1.05rem;">Add Video (optional)</label>
+                    <div style="font-size:0.95rem;font-weight:600;color:var(--text-secondary);margin:1.1rem 0 0.4rem;">Video</div>
                     <input type="file" id="qcGiverVideo" accept="video/*" onchange="handleGiverVideo(this)" style="font-size: 1rem;">
                     <div id="qcGiverVideoPreview" style="margin-top: 0.75rem;"></div>
                 </div>
@@ -3474,13 +3473,12 @@
                     <h2 style="font-family: 'Crimson Pro', serif; font-size: 1.75rem; margin-bottom: 0.5rem;">Send a Thank You</h2>
                     <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.5; margin-bottom: 1.5rem;">Let the giver know how much this means to you.</p>
                     <textarea id="qcReceiverNote" placeholder="Write your thank you note..." style="width: 100%; min-height: 150px; border: 2px solid var(--border-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 1.1rem; line-height: 1.55; resize: vertical; box-sizing: border-box;"></textarea>
-                    <div style="margin-top: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 1.05rem;">Add Photos (up to 5)</label>
+                    <div class="voice-memo-box" style="margin-top: 1.5rem;">
+                        <label style="display:flex;align-items:center;gap:7px;font-size:1.05rem;font-weight:600;margin-bottom:0.9rem;"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.8"/><path d="M21 16l-5-5-4 4-2-2-4 4"/></svg>Photos &amp; Video <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                        <div style="font-size:0.95rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.4rem;">Photos (up to 5)</div>
                         <input type="file" id="qcReceiverPhoto" accept="image/*" multiple onchange="handleReceiverPhotos(this)" style="font-size: 1rem;">
                         <div id="qcReceiverPhotoPreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem;"></div>
-                    </div>
-                    <div style="margin-top: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 1.05rem;">Add Video (optional)</label>
+                        <div style="font-size:0.95rem;font-weight:600;color:var(--text-secondary);margin:1.1rem 0 0.4rem;">Video</div>
                         <input type="file" id="qcReceiverVideo" accept="video/*" onchange="handleReceiverVideo(this)" style="font-size: 1rem;">
                         <div id="qcReceiverVideoPreview" style="margin-top: 0.75rem;"></div>
                     </div>
