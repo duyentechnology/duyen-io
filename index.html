@@ -4873,6 +4873,10 @@
         const currentActive = document.querySelector('.screen.active');
         if (currentActive) previousScreen = currentActive.id;
 
+        // Pause any playing media before leaving — hidden screens keep videos/voice
+        // playing in the background otherwise (e.g. a composer video after closing a draft).
+        try { document.querySelectorAll('video, audio').forEach(function(m){ if (!m.paused) m.pause(); }); } catch(e) {}
+
         // Hide all screens
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
