@@ -7261,7 +7261,10 @@
                 }
             }
 
-            var videoUrl = giverVideoFile ? await uploadFileWithProgress(giverVideoFile, 'giver/' + qrId, function(p){ showSaveProgress(p, 'Uploading video…'); }) : ((giverExisting && giverExisting.video) || null);
+            var videoUrl = giverVideoFile
+                ? (await uploadFileWithProgress(giverVideoFile, 'giver/' + qrId, function(p){ showSaveProgress(p, 'Uploading video…'); })
+                    || await uploadToStorage(giverVideoFile, 'giver/' + qrId))   // fallback to the proven uploader
+                : ((giverExisting && giverExisting.video) || null);
             // If a video was selected but upload returned null, halt with a visible error
             if (giverVideoFile && !videoUrl) {
                 hideSaveProgress();
