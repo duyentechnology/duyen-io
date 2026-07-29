@@ -8826,6 +8826,32 @@
         return thread.message ? thread.message.split(' ').slice(0,6).join(' ') : 'a moment saved';
     }
 
+    // Reliable tap for cards inside horizontal scroll strips. A finger that
+    // drifts a few px gets treated as a scroll and the browser swallows the
+    // click — so taps "didn't register" and users had to try several times.
+    // Fire on touchend when the finger barely moved, and suppress the trailing
+    // synthetic click so it never double-opens. Desktop falls back to click.
+    function attachCardTap(el, fn) {
+        var sx = 0, sy = 0, moved = false, lastFire = 0;
+        function fire() {
+            var now = Date.now();
+            if (now - lastFire < 600) return;   // ignore the paired synthetic click / accidental double
+            lastFire = now;
+            fn();
+        }
+        el.addEventListener('touchstart', function(e) {
+            var t = e.touches[0]; sx = t.clientX; sy = t.clientY; moved = false;
+        }, { passive: true });
+        el.addEventListener('touchmove', function(e) {
+            var t = e.touches[0];
+            if (Math.abs(t.clientX - sx) > 12 || Math.abs(t.clientY - sy) > 12) moved = true;
+        }, { passive: true });
+        el.addEventListener('touchend', function(e) {
+            if (!moved) { e.preventDefault(); fire(); }
+        }, { passive: false });
+        el.addEventListener('click', function() { fire(); });
+    }
+
     function buildTapCollage(month) {
         const scroll=document.getElementById('tapCollageScroll');
         scroll.classList.add('switching');
@@ -8860,7 +8886,7 @@
                 const div=document.createElement('div');
                 div.className='tap-col-card';
                 div.style.cssText=`z-index:${20-i};--ctilt:${tilts[i%tilts.length]}deg;--ctape:${tapes[i%tapes.length]}deg;`;
-                div.onclick=()=>openTapSingle(thread.id);
+                attachCardTap(div, (function(id){ return function(){ openTapSingle(id); }; })(thread.id));
                 div.innerHTML=`
                     ${isNew?'<div class="tap-col-new">new</div>':''}
                     ${hasPhoto
@@ -9160,7 +9186,7 @@
             area.style.display = 'block';
             // Wire up click handlers
             area.querySelectorAll('.tap-polaroid').forEach(el => {
-                el.onclick = () => openTapSingle(el.dataset.threadId);
+                attachCardTap(el, function() { openTapSingle(el.dataset.threadId); });
             });
         }, 180);
     }
