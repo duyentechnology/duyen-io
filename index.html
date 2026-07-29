@@ -5372,34 +5372,43 @@
     function promptBuyTokens() {
         if (confirm("You're out of tokens. A 5-pack is $5 (1 token = 1 moment). Buy now?")) buyTokens(1);
     }
-    // Show the sender how the recipient will experience this moment (from the live draft).
-    function previewMoment() {
-        var val = function(id){ var el = document.getElementById(id); return el ? (el.value || '').trim() : ''; };
-        var to = val('qcGiverRecipientName'), from = val('qcGiverFromName');
-        var msg = val('qcGiverMessage'), secret = val('qcGiverSecretPhrase');
-        var photoWrap = document.getElementById('qcGiverPhotoPreview');
-        var imgs = photoWrap ? photoWrap.querySelectorAll('img') : [];
-        var voicePrev = document.getElementById('giverVoicePreview');
-        var audio = voicePrev ? voicePrev.querySelector('audio') : null;
-        var hasVoice = voicePrev && voicePrev.style.display !== 'none' && audio && audio.src;
-        if (!msg && !imgs.length && !hasVoice) { alert('Add a message, photo, or voice memo to preview.'); return; }
-
+    // ── Moment preview — renders the live draft as it is actually delivered ──
+    // Mirrors the real receiver view (populateQRContent, markup 3432–3458): "For you,"
+    // + big serif name, italic serif message, full-width stacked photos, and the green
+    // "Voice Note" player. No invented styling.
+    function _previewWaveform() {
+        var bars = '';
+        for (var i = 0; i < 26; i++) { var h = 6 + Math.round(Math.random() * 22); bars += '<div style="width:3px;border-radius:2px;background:#C8D5D2;flex:0 0 auto;height:' + h + 'px;"></div>'; }
+        return bars;
+    }
+    function _voiceDurStr(audio) {
+        var d = (audio && isFinite(audio.duration)) ? audio.duration : 0;
+        var m = Math.floor(d / 60), s = Math.floor(d % 60);
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+    function _showMomentPreview(o) {
         var photosHtml = '';
-        if (imgs.length) {
-            photosHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 2px;">';
-            for (var i = 0; i < imgs.length; i++) photosHtml += '<img src="' + imgs[i].src + '" style="width:76px;height:76px;object-fit:cover;border-radius:12px;">';
-            photosHtml += '</div>';
+        if (o.imgs && o.imgs.length) {
+            for (var i = 0; i < o.imgs.length; i++) photosHtml += '<img src="' + o.imgs[i].src + '" style="display:block;width:100%;border-radius:14px;margin-bottom:12px;border:1px solid var(--border-light);">';
         }
-        var voiceHtml = hasVoice ? '<div style="display:flex;align-items:center;gap:8px;margin-top:14px;color:#8B3A7F;font-size:14px;font-weight:600;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Voice memo attached</div>' : '';
-        var msgHtml = msg
-            ? '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;line-height:1.55;color:#2E2A28;white-space:pre-wrap;">' + _escLink(msg) + '</div>'
-            : '<div style="color:#9A8478;font-style:italic;">(No written message)</div>';
-        var toLine = to ? '<div style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#9A8478;margin-bottom:8px;">For ' + _escLink(to) + '</div>' : '';
-        var fromLine = from ? '<div style="font-family:\'Crimson Pro\',serif;font-style:italic;font-size:18px;color:#8B3A7F;margin-top:18px;">— ' + _escLink(from) + '</div>' : '';
-        var lockNote = secret
-            ? '<div style="display:flex;align-items:center;gap:8px;background:#faf4fa;border:1px solid #e3cfe0;border-radius:12px;padding:12px 14px;margin-top:18px;font-size:13.5px;color:#6b5560;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#8B3A7F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>They unlock it with your secret phrase first.</div>'
+        var voiceHtml = o.hasVoice
+            ? '<div style="margin-top:1.25rem;">' +
+                '<div style="font-family:\'Outfit\',sans-serif;font-size:0.68rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#5a4a56;margin-bottom:0.6rem;">Voice Note</div>' +
+                '<div style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 1px 8px rgba(0,0,0,0.07);">' +
+                  '<div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>' +
+                  '<div style="flex:1;display:flex;align-items:center;gap:2px;height:32px;overflow:hidden;">' + _previewWaveform() + '</div>' +
+                  '<div style="font-family:\'Outfit\',sans-serif;font-size:12px;color:#5a4a56;min-width:28px;text-align:right;">' + (o.voiceDur || '0:00') + '</div>' +
+                '</div>' +
+              '</div>'
             : '';
-
+        var header = '<div style="text-align:center; padding:0.5rem 0 1.25rem;">' +
+              '<div style="font-family:\'Crimson Pro\',\'Playfair Display\',serif;font-style:italic;font-weight:400;font-size:1.4rem;color:#6B5751;margin-bottom:0.4rem;letter-spacing:0.01em;">' + o.forLabel + '</div>' +
+              '<div style="font-family:\'Crimson Pro\',\'Playfair Display\',serif;font-weight:500;font-size:3.5rem;color:#2E2A28;line-height:1;letter-spacing:0.04em;word-break:break-word;">' + _escLink(o.forName || 'you') + '</div>' +
+            '</div>';
+        var msgHtml = o.msg ? '<div style="font-family:\'Crimson Pro\',\'Playfair Display\',serif;font-style:italic;font-size:1.2rem;line-height:1.7;color:#3D2E24;padding:0.5rem 0 1.25rem;white-space:pre-wrap;">' + _escLink(o.msg) + '</div>' : '';
+        var lockNote = o.secret
+            ? '<div style="display:flex;align-items:center;gap:8px;justify-content:center;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.35);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#fff;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>They enter your secret phrase first, then see this</div>'
+            : '';
         var modal = document.getElementById('momentPreviewModal');
         if (!modal) {
             modal = document.createElement('div');
@@ -5410,16 +5419,26 @@
         }
         modal.innerHTML =
             '<div style="max-width:400px;width:100%;">' +
-              '<div style="text-align:center;color:#fff;font-size:13px;margin-bottom:10px;opacity:0.9;">Preview · this is what ' + (to ? _escLink(to) : 'they') + ' will see</div>' +
-              '<div style="background:#fffdfb;border-radius:20px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
-                '<div style="text-align:center;color:#8B3A7F;margin-bottom:14px;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.6-7-9.8A3.7 3.7 0 0 1 12 8a3.7 3.7 0 0 1 7 2.2C19 15.4 12 20 12 20Z"/></svg></div>' +
-                toLine + msgHtml + photosHtml + voiceHtml + fromLine + lockNote +
+              '<div style="text-align:center;color:#fff;font-size:13px;margin-bottom:10px;opacity:0.9;">' + (o.subtitle || 'Preview') + '</div>' +
+              lockNote +
+              '<div style="background:#faf7f4;border-radius:20px;padding:14px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
+                header + msgHtml + photosHtml + voiceHtml +
               '</div>' +
               '<button onclick="document.getElementById(\'momentPreviewModal\').style.display=\'none\'" style="width:100%;background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.5);border-radius:12px;padding:13px;font-size:15px;font-weight:600;font-family:sans-serif;cursor:pointer;margin-top:14px;">Close preview</button>' +
             '</div>';
         modal.style.display = 'flex';
     }
-    // Preview a thank-you reply as the giver will see it (from the receiver composer).
+    function previewMoment() {
+        var val = function(id){ var el = document.getElementById(id); return el ? (el.value || '').trim() : ''; };
+        var to = val('qcGiverRecipientName'), msg = val('qcGiverMessage');
+        var photoWrap = document.getElementById('qcGiverPhotoPreview');
+        var imgs = photoWrap ? photoWrap.querySelectorAll('img') : [];
+        var voicePrev = document.getElementById('giverVoicePreview');
+        var audio = voicePrev ? voicePrev.querySelector('audio') : null;
+        var hasVoice = voicePrev && voicePrev.style.display !== 'none' && audio && audio.src;
+        if (!msg && !imgs.length && !hasVoice) { alert('Add a message, photo, or voice memo to preview.'); return; }
+        _showMomentPreview({ forLabel: 'For you,', forName: to, msg: msg, imgs: imgs, hasVoice: hasVoice, voiceDur: _voiceDurStr(audio), secret: val('qcGiverSecretPhrase'), subtitle: 'Preview · this is what ' + (to ? _escLink(to) : 'they') + ' will see' });
+    }
     function previewThankYou() {
         var noteEl = document.getElementById('qcReceiverNote');
         var msg = noteEl ? (noteEl.value || '').trim() : '';
@@ -5429,36 +5448,8 @@
         var audio = voicePrev ? voicePrev.querySelector('audio') : null;
         var hasVoice = voicePrev && voicePrev.style.display !== 'none' && audio && audio.src;
         if (!msg && !imgs.length && !hasVoice) { alert('Add a note, photo, or voice memo to preview.'); return; }
-
-        var photosHtml = '';
-        if (imgs.length) {
-            photosHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 2px;">';
-            for (var i = 0; i < imgs.length; i++) photosHtml += '<img src="' + imgs[i].src + '" style="width:76px;height:76px;object-fit:cover;border-radius:12px;">';
-            photosHtml += '</div>';
-        }
-        var voiceHtml = hasVoice ? '<div style="display:flex;align-items:center;gap:8px;margin-top:14px;color:#8B3A7F;font-size:14px;font-weight:600;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Voice memo attached</div>' : '';
-        var msgHtml = msg
-            ? '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;line-height:1.55;color:#2E2A28;white-space:pre-wrap;">' + _escLink(msg) + '</div>'
-            : '<div style="color:#9A8478;font-style:italic;">(No written note)</div>';
-
-        var modal = document.getElementById('momentPreviewModal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'momentPreviewModal';
-            modal.style.cssText = 'position:fixed;inset:0;z-index:11050;background:rgba(46,42,40,0.62);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;overflow:auto;';
-            modal.onclick = function(e){ if (e.target === modal) modal.style.display = 'none'; };
-            document.body.appendChild(modal);
-        }
-        modal.innerHTML =
-            '<div style="max-width:400px;width:100%;">' +
-              '<div style="text-align:center;color:#fff;font-size:13px;margin-bottom:10px;opacity:0.9;">Preview · your thank-you note</div>' +
-              '<div style="background:#fffdfb;border-radius:20px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
-                '<div style="text-align:center;color:#8B3A7F;margin-bottom:14px;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg></div>' +
-                msgHtml + photosHtml + voiceHtml +
-              '</div>' +
-              '<button onclick="document.getElementById(\'momentPreviewModal\').style.display=\'none\'" style="width:100%;background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.5);border-radius:12px;padding:13px;font-size:15px;font-weight:600;font-family:sans-serif;cursor:pointer;margin-top:14px;">Close preview</button>' +
-            '</div>';
-        modal.style.display = 'flex';
+        var me = (typeof currentUser === 'string' && currentUser) ? currentUser.split(' ')[0] : 'You';
+        _showMomentPreview({ forLabel: 'From', forName: me, msg: msg, imgs: imgs, hasVoice: hasVoice, voiceDur: _voiceDurStr(audio), secret: '', subtitle: 'Preview · your thank-you note' });
     }
     // Spend 1 token for a moment (idempotent per code). Returns new balance, or -1 if none.
     async function spendMomentToken(qrId) {
