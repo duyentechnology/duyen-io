@@ -5041,13 +5041,6 @@
     function onQRDetected(decodedText) {
         console.log('📸 Scanned:', decodedText);
 
-        // Scanning specifically to save into the Saved Links vault.
-        if (window._scanForVault) {
-            window._scanForVault = false;
-            onVaultScan(decodedText);
-            return;
-        }
-
         if (isDuyenURL(decodedText)) {
             // Duyên code — go to the existing flow
             console.log('🧵 Duyên code detected');
@@ -5118,7 +5111,7 @@
             '</div>';
         }).join('');
     }
-    // Core insert used by the form and by scan-to-save.
+    // Core insert used by the scan-landing "Just log the link" path.
     async function saveSavedLinkValue(url, title) {
         var u = _normLink(url);
         if (!u) { alert('Enter or scan a link first.'); return false; }
@@ -5131,12 +5124,6 @@
             await loadSavedLinks();
             return true;
         } catch (e) { console.warn('saveSavedLinkValue failed:', e); alert('Could not save the link. Please try again.'); return false; }
-    }
-    async function saveSavedLink() {
-        var urlEl = document.getElementById('savedLinkUrl');
-        var titleEl = document.getElementById('savedLinkTitle');
-        var ok = await saveSavedLinkValue(urlEl ? urlEl.value : '', titleEl ? titleEl.value : '');
-        if (ok) { if (urlEl) urlEl.value = ''; if (titleEl) titleEl.value = ''; }
     }
     async function deleteSavedLink(id) {
         if (!confirm('Remove this saved link?')) return;
@@ -5152,23 +5139,11 @@
         var url = card ? card.getAttribute('data-url') : '';
         if (url && navigator.clipboard) navigator.clipboard.writeText(url).then(function() { alert('Link copied.'); });
     }
-    // Open the camera to scan a QR straight into the vault.
-    function scanForSavedLink() {
-        window._scanForVault = true;
-        openScanner();
-    }
     // Quick-save the just-scanned external link into the vault (from the scan landing).
     async function quickSaveScannedLink() {
         if (!isAuthenticated) { navigate('auth'); return; }
         var ok = await saveSavedLinkValue(scannedExternalUrl, '');
         if (ok) navigate('savedLinks');
-    }
-    async function onVaultScan(decodedText) {
-        closeScanner && closeScanner();
-        if (!isAuthenticated) { navigate('auth'); return; }
-        var ok = await saveSavedLinkValue(decodedText, '');
-        navigate('savedLinks');
-        if (ok) setTimeout(function(){ alert('🔗 Link saved — you\'ll never lose it.'); }, 200);
     }
 
     function showExternalScanLanding(url) {
