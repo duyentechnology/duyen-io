@@ -5391,6 +5391,7 @@
         if (o.imgs && o.imgs.length) {
             for (var i = 0; i < o.imgs.length; i++) photosHtml += '<img src="' + o.imgs[i].src + '" style="display:block;width:100%;border-radius:14px;margin-bottom:12px;border:1px solid var(--border-light);">';
         }
+        var videoHtml = o.video ? '<video src="' + o.video + '" controls playsinline preload="metadata" style="display:block;width:100%;border-radius:14px;margin-bottom:12px;border:1px solid var(--border-light);"></video>' : '';
         var voiceHtml = o.hasVoice
             ? '<div style="margin-top:1.25rem;">' +
                 '<div style="font-family:\'Outfit\',sans-serif;font-size:0.68rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#5a4a56;margin-bottom:0.6rem;">Voice Note</div>' +
@@ -5425,7 +5426,7 @@
               '</div>' +
               lockNote +
               '<div style="flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#faf7f4;border-radius:20px;padding:14px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
-                header + msgHtml + photosHtml + voiceHtml +
+                header + msgHtml + photosHtml + videoHtml + voiceHtml +
               '</div>' +
             '</div>';
         modal.style.display = 'flex';
@@ -5438,8 +5439,10 @@
         var voicePrev = document.getElementById('giverVoicePreview');
         var audio = voicePrev ? voicePrev.querySelector('audio') : null;
         var hasVoice = voicePrev && voicePrev.style.display !== 'none' && audio && audio.src;
-        if (!msg && !imgs.length && !hasVoice) { alert('Add a message, photo, or voice memo to preview.'); return; }
-        _showMomentPreview({ forLabel: 'For you,', forName: to, msg: msg, imgs: imgs, hasVoice: hasVoice, voiceDur: _voiceDurStr(audio), secret: val('qcGiverSecretPhrase'), subtitle: 'Preview · this is what ' + (to ? _escLink(to) : 'they') + ' will see' });
+        var videoEl = document.querySelector('#qcGiverVideoPreview video');
+        var video = videoEl ? videoEl.src : '';
+        if (!msg && !imgs.length && !hasVoice && !video) { alert('Add a message, photo, video, or voice memo to preview.'); return; }
+        _showMomentPreview({ forLabel: 'For you,', forName: to, msg: msg, imgs: imgs, video: video, hasVoice: hasVoice, voiceDur: _voiceDurStr(audio), secret: val('qcGiverSecretPhrase'), subtitle: 'Preview · this is what ' + (to ? _escLink(to) : 'they') + ' will see' });
     }
     function previewThankYou() {
         var noteEl = document.getElementById('qcReceiverNote');
@@ -5449,9 +5452,11 @@
         var voicePrev = document.getElementById('receiverVoicePreview');
         var audio = voicePrev ? voicePrev.querySelector('audio') : null;
         var hasVoice = voicePrev && voicePrev.style.display !== 'none' && audio && audio.src;
-        if (!msg && !imgs.length && !hasVoice) { alert('Add a note, photo, or voice memo to preview.'); return; }
+        var videoEl = document.querySelector('#qcReceiverVideoPreview video');
+        var video = videoEl ? videoEl.src : '';
+        if (!msg && !imgs.length && !hasVoice && !video) { alert('Add a note, photo, video, or voice memo to preview.'); return; }
         var me = (typeof currentUser === 'string' && currentUser) ? currentUser.split(' ')[0] : 'You';
-        _showMomentPreview({ forLabel: 'From', forName: me, msg: msg, imgs: imgs, hasVoice: hasVoice, voiceDur: _voiceDurStr(audio), secret: '', subtitle: 'Preview · your thank-you note' });
+        _showMomentPreview({ forLabel: 'From', forName: me, msg: msg, imgs: imgs, video: video, hasVoice: hasVoice, voiceDur: _voiceDurStr(audio), secret: '', subtitle: 'Preview · your thank-you note' });
     }
     // Spend 1 token for a moment (idempotent per code). Returns new balance, or -1 if none.
     async function spendMomentToken(qrId) {
