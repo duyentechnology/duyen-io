@@ -6689,82 +6689,6 @@
 
 
 
-    // Best-effort client-side video compression. Produces ONLY MP4/H.264 so the
-    // result is universally playable (WebM would break iOS viewers). Downscales to
-    // ≤1280px and re-encodes at ~2.5 Mbps. Falls back to the ORIGINAL file on any
-    // unsupported browser, error, or non-improvement — it can never break the flow.
-    async function compressVideoFile(file, onProgress) {
-        try {
-            if (!file || file.size < 20 * 1024 * 1024) return file;                 // already small
-            if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream || !MediaRecorder.isTypeSupported) return file;
-            var AC = window.AudioContext || window.webkitAudioContext;
-            if (!AC) return file;
-            var mime = ['video/mp4;codecs=h264','video/mp4;codecs=avc1','video/mp4'].filter(function(m){ return MediaRecorder.isTypeSupported(m); })[0];
-            if (!mime) return file;                                                  // no MP4 output → don't risk WebM
-
-            var video = document.createElement('video');
-            video.playsInline = true; video.preload = 'auto';
-            var url = URL.createObjectURL(file);
-            video.src = url;
-            await new Promise(function(res, rej){ video.onloadedmetadata = function(){ res(); }; video.onerror = function(){ rej(new Error('load')); }; });
-            var vw = video.videoWidth, vh = video.videoHeight;
-            if (!vw || !vh) { URL.revokeObjectURL(url); return file; }
-
-            var scale = Math.min(1, 1280 / Math.max(vw, vh));
-            var tw = Math.max(2, Math.round(vw * scale / 2) * 2), th = Math.max(2, Math.round(vh * scale / 2) * 2);
-            var canvas = document.createElement('canvas'); canvas.width = tw; canvas.height = th;
-            var ctx = canvas.getContext('2d');
-            var cstream = canvas.captureStream(30);
-
-            var actx = new AC();
-            try { await actx.resume(); } catch(e) {}
-            try {
-                var srcNode = actx.createMediaElementSource(video);
-                var adest = actx.createMediaStreamDestination();
-                srcNode.connect(adest);
-                var at = (adest.stream.getAudioTracks() || [])[0];
-                if (at) cstream.addTrack(at);
-            } catch (e) { /* some clips have no audio track; proceed video-only */ }
-
-            var chunks = [];
-            var rec = new MediaRecorder(cstream, { mimeType: mime, videoBitsPerSecond: 2500000, audioBitsPerSecond: 128000 });
-            rec.ondataavailable = function(e){ if (e.data && e.data.size) chunks.push(e.data); };
-            var stopped = new Promise(function(res){ rec.onstop = function(){ res(); }; });
-            rec.start();
-            try { await video.play(); } catch (e) { try{rec.stop();}catch(_){} try{actx.close();}catch(_){} URL.revokeObjectURL(url); return file; }
-
-            var timedOut = false;
-            await Promise.race([
-                new Promise(function(res){
-                    var tick = function(){ if (video.ended) { res(); return; } try { ctx.drawImage(video, 0, 0, tw, th); } catch(e){} if (onProgress && video.duration) onProgress(Math.min(0.99, video.currentTime / video.duration)); requestAnimationFrame(tick); };
-                    video.onended = function(){ res(); };
-                    requestAnimationFrame(tick);
-                }),
-                new Promise(function(res){ setTimeout(function(){ timedOut = true; res(); }, (video.duration ? video.duration * 1800 : 60000) + 20000); })
-            ]);
-            try { rec.stop(); } catch(e){}
-            await stopped;
-            try { actx.close(); } catch(e){}
-            URL.revokeObjectURL(url);
-            if (onProgress) onProgress(1);
-            if (timedOut) return file;
-
-            var out = new File(chunks, (file.name || 'video').replace(/\.[^.]+$/, '') + '.mp4', { type: 'video/mp4' });
-            if (!out.size || out.size >= file.size) return file;                     // no gain
-
-            // Sanity-check the output is a valid, playable video before trusting it.
-            var ok = await new Promise(function(res){
-                var v = document.createElement('video'); var u = URL.createObjectURL(out);
-                var fin = function(val){ try{URL.revokeObjectURL(u);}catch(e){} res(val); };
-                v.onloadedmetadata = function(){ fin(isFinite(v.duration) && v.duration > 0); };
-                v.onerror = function(){ fin(false); };
-                v.preload = 'metadata'; v.src = u;
-                setTimeout(function(){ fin(false); }, 8000);
-            });
-            return ok ? out : file;
-        } catch (e) { console.warn('compressVideoFile fallback:', e); return file; }
-    }
-
     // A video preview with a remove (✕) button, so a video can be deleted/swapped.
     function _videoPreviewHTML(src, removeFn, extra) {
         return '<div style="position:relative;">' +
@@ -6787,16 +6711,13 @@
         var vp = document.getElementById('qcReceiverVideoPreview'); if (vp) vp.innerHTML = '';
         var inp = document.getElementById('qcReceiverVideo'); if (inp) inp.value = '';
     }
-    // Show an "Optimizing…" state, compress (best-effort), then preview the result (with remove ✕).
-    async function _acceptVideo(file, previewId, setResult, removeFn) {
+    // Preview the selected video (with a remove ✕). Client-side compression was
+    // removed — it hangs on iOS Safari and can't reliably produce iOS-playable MP4.
+    function _acceptVideo(file, previewId, setResult, removeFn) {
+        var url = URL.createObjectURL(file);
+        setResult(file, url);
         var preview = document.getElementById(previewId);
-        if (preview) preview.innerHTML = '<div style="padding:14px 16px;border:2px solid var(--border-light);border-radius:12px;color:#6b5560;font-size:0.95rem;">Optimizing video… <span id="' + previewId + 'Prog">0%</span></div>';
-        var origSize = file.size, out = file;
-        try { out = await compressVideoFile(file, function(p){ var e = document.getElementById(previewId + 'Prog'); if (e) e.textContent = Math.round(p * 100) + '%'; }); } catch(e) { out = file; }
-        var url = URL.createObjectURL(out);
-        setResult(out, url);
-        var note = (out !== file && out.size < origSize) ? '<div style="font-size:0.8rem;color:#3A8C7A;margin-top:6px;">Optimized ' + Math.round(origSize / 1048576) + 'MB → ' + Math.round(out.size / 1048576) + 'MB</div>' : '';
-        if (preview) preview.innerHTML = _videoPreviewHTML(url, removeFn || 'removeGiverVideo', note);
+        if (preview) preview.innerHTML = _videoPreviewHTML(url, removeFn || 'removeGiverVideo', '');
     }
 
     function handleGiverVideo(input) {
