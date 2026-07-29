@@ -7171,6 +7171,64 @@
         renderGiverPhotoPreview();
     }
 
+    // Upload a file to storage with real progress (XHR). Returns the public URL, or
+    // null on failure (sets window._lastUploadError). Used for the big video file.
+    async function uploadFileWithProgress(file, folder, onProgress) {
+        try {
+            var session = (await _supabase.auth.getSession()).data.session;
+            var token = session && session.access_token;
+            if (!token || !window.XMLHttpRequest) return null;
+            var ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFubGFhaWV5aXBlZ2xmdWVwbW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NjAxNjgsImV4cCI6MjA4NzAzNjE2OH0.jwAH8E93iPlBJyYuF-HfoB52jVxNLiR2LL64gfqppa8';
+            var safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.-]/g, '_') : 'file';
+            var path = folder + '/' + Date.now() + '_' + safeName;
+            var endpoint = 'https://qnlaaieyipeglfuepmor.supabase.co/storage/v1/object/qr-media/' + path;
+            return await new Promise(function(resolve){
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', endpoint, true);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                xhr.setRequestHeader('apikey', ANON);
+                xhr.setRequestHeader('x-upsert', 'false');
+                xhr.setRequestHeader('cache-control', 'max-age=31536000');
+                if (file.type) xhr.setRequestHeader('Content-Type', file.type);
+                xhr.upload.onprogress = function(e){ if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
+                xhr.onload = function(){
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try { resolve(_supabase.storage.from('qr-media').getPublicUrl(path).data.publicUrl); }
+                        catch(e){ resolve(null); }
+                    } else {
+                        try { window._lastUploadError = (JSON.parse(xhr.responseText).message) || xhr.statusText; } catch(e){ window._lastUploadError = 'HTTP ' + xhr.status; }
+                        resolve(null);
+                    }
+                };
+                xhr.onerror = function(){ window._lastUploadError = 'network error'; resolve(null); };
+                xhr.send(file);
+            });
+        } catch (e) { console.warn('uploadFileWithProgress error:', e); return null; }
+    }
+
+    // A full-screen saving overlay with a progress bar. pct null = indeterminate.
+    function showSaveProgress(pct, label) {
+        var o = document.getElementById('saveProgressOverlay');
+        if (!o) {
+            o = document.createElement('div');
+            o.id = 'saveProgressOverlay';
+            o.style.cssText = 'position:fixed;inset:0;z-index:11080;background:rgba(46,42,40,0.55);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;';
+            o.innerHTML = '<div style="background:#fff;border-radius:18px;padding:26px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">' +
+                '<div id="spTitle" style="font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;margin-bottom:16px;">Saving your moment…</div>' +
+                '<div style="height:10px;background:#eee2e0;border-radius:6px;overflow:hidden;"><div id="spBar" style="height:100%;width:0%;background:#8B3A7F;transition:width 0.2s;"></div></div>' +
+                '<div id="spPct" style="font-size:13px;color:#9A8478;margin-top:10px;">Uploading…</div>' +
+                '<div style="font-size:12px;color:#B0A29A;margin-top:4px;">Large videos can take a minute — keep this open.</div>' +
+                '</div>';
+            document.body.appendChild(o);
+        }
+        o.style.display = 'flex';
+        var bar = document.getElementById('spBar'), pctEl = document.getElementById('spPct'), t = document.getElementById('spTitle');
+        if (label && t) t.textContent = label;
+        if (pct == null) { if (bar) bar.style.width = '35%'; if (pctEl) pctEl.textContent = 'Uploading…'; }
+        else { var v = Math.round(pct * 100); if (bar) bar.style.width = v + '%'; if (pctEl) pctEl.textContent = v + '%'; }
+    }
+    function hideSaveProgress() { var o = document.getElementById('saveProgressOverlay'); if (o) o.style.display = 'none'; }
+
     async function saveGiverData(mode) {
         mode = mode || 'send';
         var isDraft = (mode === 'draft');
@@ -7190,7 +7248,8 @@
         
         try {
             var qrId = scannedQRData.id;
-            
+            showSaveProgress(null, 'Saving your moment…');
+
             // Upload photos in the user's chosen order; already-uploaded draft URLs are kept as-is.
             var photoUrls = [];
             for (var i = 0; i < giverPhotos.length; i++) {
@@ -7202,9 +7261,10 @@
                 }
             }
 
-            var videoUrl = giverVideoFile ? await uploadToStorage(giverVideoFile, 'giver/' + qrId) : ((giverExisting && giverExisting.video) || null);
+            var videoUrl = giverVideoFile ? await uploadFileWithProgress(giverVideoFile, 'giver/' + qrId, function(p){ showSaveProgress(p, 'Uploading video…'); }) : ((giverExisting && giverExisting.video) || null);
             // If a video was selected but upload returned null, halt with a visible error
             if (giverVideoFile && !videoUrl) {
+                hideSaveProgress();
                 alert('Video upload failed: ' + (window._lastUploadError || 'unknown error') + '\n\nTry a shorter or smaller video.');
                 var dot1err = document.getElementById('qcDot1');
                 if (dot1err) dot1err.style.opacity = '1';
@@ -7283,6 +7343,8 @@
             var dot1err = document.getElementById('qcDot1');
             if (dot1err) dot1err.style.opacity = '1';
             alert('Error saving. Please try again.');
+        } finally {
+            try { hideSaveProgress(); } catch(e) {}
         }
     }
 
