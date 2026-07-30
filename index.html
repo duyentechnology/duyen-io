@@ -2179,11 +2179,6 @@
 
         .tapestry-empty h2 { font-size: 2.1rem; line-height: 1.15; margin-bottom: 0.9rem; }
         .tapestry-empty p.te-lede { color: var(--text-secondary); font-size: 1.15rem; line-height: 1.6; margin: 0 auto 2.25rem; max-width: 430px; }
-        .te-features { max-width: 440px; margin: 0 auto 2.4rem; text-align: left; display: flex; flex-direction: column; gap: 22px; background: #fff; border: 2px solid var(--border-light); border-radius: 14px; padding: 1.6rem 1.5rem; }
-        .te-feature { display: flex; align-items: center; gap: 16px; }
-        .te-feature-ic { flex: 0 0 auto; width: 58px; height: 58px; border-radius: 16px; background: #F3E9F1; color: #8B3A7F; display: flex; align-items: center; justify-content: center; }
-        .te-feature-tt { font-weight: 700; font-size: 1.14rem; color: var(--text-primary); margin-bottom: 3px; }
-        .te-feature-ds { font-size: 1rem; color: var(--text-secondary); line-height: 1.5; }
         .te-ctas { display: flex; flex-direction: column; gap: 12px; max-width: 360px; margin: 0 auto; }
         .te-ctas .btn { font-size: 1.05rem; padding: 1rem 1.5rem; }
 
@@ -4063,19 +4058,27 @@
         <!-- Empty state -->
         <div class="tapestry-empty" id="tapestryEmpty" style="display: none;">
             <h2>Start your life tapestry</h2>
-            <p class="te-lede">A living collection of the moments that matter — the gifts you give and receive, the places you go, and the memories you want to keep.</p>
-            <div class="te-features">
-                <div class="te-feature">
-                    <span class="te-feature-ic"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg></span>
-                    <div><div class="te-feature-tt">Add a moment</div><div class="te-feature-ds">Photos, a video, or a voice note — dated to when it actually happened.</div></div>
+            <p class="te-lede">Duyên turns what matters — gifts, people, places, milestones — into a living tapestry you can revisit anytime. Add a memory in seconds, or receive one from someone you love.</p>
+            <div class="welcome-features">
+                <div class="wf-item">
+                    <div class="wf-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+                    <div><div class="wf-title">Add a moment</div><div class="wf-desc">A memory with photos, video, or a voice note — dated to when it actually happened.</div></div>
                 </div>
-                <div class="te-feature">
-                    <span class="te-feature-ic"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5V6A2 2 0 0 1 6 4h2.5"/><path d="M15.5 4H18a2 2 0 0 1 2 2v2.5"/><path d="M20 15.5V18a2 2 0 0 1-2 2h-2.5"/><path d="M8.5 20H6a2 2 0 0 1-2-2v-2.5"/><line x1="4.5" y1="12" x2="19.5" y2="12"/></svg></span>
-                    <div><div class="te-feature-tt">Scan a QR</div><div class="te-feature-ds">A Duyên note or any code — kept as a Polaroid memory or a saved link.</div></div>
+                <div class="wf-item">
+                    <div class="wf-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="8.8" width="17" height="11.7" rx="1.5"/><line x1="3.5" y1="12.8" x2="20.5" y2="12.8"/><line x1="12" y1="8.8" x2="12" y2="20.5"/><path d="M12 8.8C12 8.8 10.2 3.9 7.8 5.2C6 6.2 8.4 8.8 12 8.8Z"/><path d="M12 8.8C12 8.8 13.8 3.9 16.2 5.2C18 6.2 15.6 8.8 12 8.8Z"/></svg></div>
+                    <div><div class="wf-title">Receive a gift</div><div class="wf-desc">Scan a Duyên QR note and it becomes a lasting thread in your story.</div></div>
                 </div>
-                <div class="te-feature">
-                    <span class="te-feature-ic"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6a5 5 0 0 0-8.8-3.2A5 5 0 0 0 3.2 8.6c0 3.6 4.2 6.9 8.8 10.4 4.6-3.5 8.8-6.8 8.8-10.4Z"/></svg></span>
-                    <div><div class="te-feature-tt">Send a moment</div><div class="te-feature-ds">A heartfelt note someone can open instantly — and keep forever.</div></div>
+                <div class="wf-item">
+                    <div class="wf-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-6.8-4.4-6.8-9.2A3.4 3.4 0 0 1 12 8.2a3.4 3.4 0 0 1 6.8 2.6C18.8 15.6 12 20 12 20Z"/></svg></div>
+                    <div><div class="wf-title">Give a moment</div><div class="wf-desc">Leave a memory — with a personal message — for someone special.</div></div>
+                </div>
+                <div class="wf-item">
+                    <div class="wf-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.2" width="16" height="14.8" rx="2"/><line x1="4" y1="9.4" x2="20" y2="9.4"/><line x1="8.8" y1="3.2" x2="8.8" y2="6.4"/><line x1="15.2" y1="3.2" x2="15.2" y2="6.4"/><circle cx="8.5" cy="13" r=".9"/><circle cx="12" cy="13" r=".9"/><circle cx="15.5" cy="13" r=".9"/></svg></div>
+                    <div><div class="wf-title">See it woven</div><div class="wf-desc">Your life organized by the days it happened, month by month.</div></div>
+                </div>
+                <div class="wf-item">
+                    <div class="wf-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg></div>
+                    <div><div class="wf-title">Never lose a link</div><div class="wf-desc">Scan any external QR code or paste a link — saved to your vault, always there.</div></div>
                 </div>
             </div>
             <div class="te-ctas">
