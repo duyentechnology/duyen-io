@@ -1545,11 +1545,10 @@
             display:flex; flex-direction:row;
             align-items:flex-end;
             overflow-x:auto; overflow-y:visible;
-            -webkit-overflow-scrolling:touch;
             scrollbar-width:none;
             padding:50px 72px 36px 72px;
             transition:opacity 0.25s ease;
-            scroll-snap-type: x mandatory;
+            scroll-snap-type: x proximity;
         }
         .tap-collage-scroll::-webkit-scrollbar { display:none; }
         .tap-collage-scroll.switching { opacity:0; }
@@ -1564,7 +1563,6 @@
             transition:transform 0.28s ease, box-shadow 0.28s ease, opacity 0.28s ease;
             transform:rotate(var(--ctilt,0deg));
             scroll-snap-align: center;
-            scroll-snap-stop: always;
         }
         .tap-col-card:first-child { margin-left:0; }
         /* Only mouse gets hover-lift — on touch it sticks and jumps mid-swipe. */
@@ -8893,24 +8891,34 @@
 
     // Highlight the collage card nearest the strip's center — the "featured"
     // Polaroid — and update it as the user swipes. rAF-throttled so scroll stays smooth.
-    var _collageFeatRaf = null;
-    function updateCollageFeatured() {
+    // Featured Polaroid = the one nearest the strip's centre. To keep the swipe
+    // smooth we DON'T rescale cards mid-swipe (that caused a rippling wobble as
+    // each card in turn popped). Instead we apply it ~90ms after the swipe
+    // settles, and read card positions from a cache so scrolling never triggers
+    // a layout read.
+    var _collageCards = null, _collageCenters = null, _collageSettleTimer = null;
+    function cacheCollageMetrics() {
         var scroll = document.getElementById('tapCollageScroll');
-        if (!scroll) return;
-        var cards = scroll.querySelectorAll('.tap-col-card');
-        if (!cards.length) return;
+        if (!scroll) { _collageCards = null; _collageCenters = null; return; }
+        _collageCards = [].slice.call(scroll.querySelectorAll('.tap-col-card'));
+        _collageCenters = _collageCards.map(function(c) { return c.offsetLeft + c.offsetWidth / 2; });
+    }
+    function applyCollageFeatured() {
+        var scroll = document.getElementById('tapCollageScroll');
+        if (!scroll || !_collageCards || !_collageCards.length) return;
         var mid = scroll.scrollLeft + scroll.clientWidth / 2;
-        var best = null, bestDist = Infinity;
-        cards.forEach(function(c) {
-            var center = c.offsetLeft + c.offsetWidth / 2;
-            var d = Math.abs(center - mid);
-            if (d < bestDist) { bestDist = d; best = c; }
-        });
-        cards.forEach(function(c) { c.classList.toggle('tap-col-featured', c === best); });
+        var best = 0, bestDist = Infinity;
+        for (var i = 0; i < _collageCenters.length; i++) {
+            var d = Math.abs(_collageCenters[i] - mid);
+            if (d < bestDist) { bestDist = d; best = i; }
+        }
+        for (var j = 0; j < _collageCards.length; j++) {
+            _collageCards[j].classList.toggle('tap-col-featured', j === best);
+        }
     }
     function onCollageScroll() {
-        if (_collageFeatRaf) return;
-        _collageFeatRaf = requestAnimationFrame(function() { _collageFeatRaf = null; updateCollageFeatured(); });
+        if (_collageSettleTimer) clearTimeout(_collageSettleTimer);
+        _collageSettleTimer = setTimeout(applyCollageFeatured, 90);
     }
 
     function buildTapCollage(month) {
@@ -8966,9 +8974,10 @@
                 scroll.appendChild(div);
             });
             scroll.classList.remove('switching');
-            // Featured-on-swipe: dedup-safe (same handler ref), highlight the centered card now.
+            // Featured-on-settle: cache positions, then highlight the centered card.
+            // addEventListener dedups the same handler ref, so rebuilds don't stack.
             scroll.addEventListener('scroll', onCollageScroll, { passive: true });
-            requestAnimationFrame(updateCollageFeatured);
+            requestAnimationFrame(function() { cacheCollageMetrics(); applyCollageFeatured(); });
         },180);
     }
 
