@@ -1549,6 +1549,10 @@
             padding:50px 72px 36px 72px;
             transition:opacity 0.25s ease;
             scroll-snap-type: x proximity;
+            /* Claim horizontal drags so a swipe scrolls the strip only — not the
+               whole page — and taps register without gesture-disambiguation lag. */
+            touch-action: pan-x;
+            overscroll-behavior-x: contain;
         }
         .tap-collage-scroll::-webkit-scrollbar { display:none; }
         .tap-collage-scroll.switching { opacity:0; }
@@ -9840,18 +9844,22 @@
         const wrap=document.createElement('div'); wrap.className='tap-detail-cards';
         wrap.appendChild(buildTapFullCard(thread)); container.appendChild(wrap);
         try { renderEditPhotoGrid(thread.id, thread); } catch(e) {}
-        // iOS fix: media elements with inline src often won't load; re-assign src via JS
-        container.querySelectorAll('audio.tap-fc-audio-el').forEach(function(a){
-            var s=a.getAttribute('src'); if(s){ a.src=s; try{a.load();}catch(e){} }
-            if(typeof initVoicePlayer==='function'){ initVoicePlayer(a.id.replace('aud_','')); }
-        });
         // Hide ✏️ edit toggle for gift QRs (no edits allowed; delete is always visible on the card)
         const editBtn = document.getElementById('tapEditBtn');
         if (editBtn) editBtn.style.display = (thread.role === 'external') ? '' : 'none';
         document.getElementById('tapDetailScreen').classList.add('open');
         document.getElementById('tapestryContainer').classList.add('tap-tapestryScreen-push','pushed');
         document.getElementById('tapDetailScreen').scrollTop=0;
-        setTimeout(() => seekVideoThumbnails(container), 100);
+        // Defer media init (audio load + video thumbnail seeking) until the slide-in
+        // has finished — doing this media decoding mid-animation made opening
+        // janky and slow. The card's markup/images are already in place.
+        setTimeout(function(){
+            container.querySelectorAll('audio.tap-fc-audio-el').forEach(function(a){
+                var s=a.getAttribute('src'); if(s){ a.src=s; try{a.load();}catch(e){} }
+                if(typeof initVoicePlayer==='function'){ initVoicePlayer(a.id.replace('aud_','')); }
+            });
+            seekVideoThumbnails(container);
+        }, 420);
     }
 
     function closeTapDetail() {
