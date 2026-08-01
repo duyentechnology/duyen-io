@@ -24,9 +24,11 @@ self.addEventListener('activate', e => {
 });
 
 // A Supabase Storage image request (immutable URL → safe to cache-first).
+// Covers both the raw object endpoint and the render/transform (thumbnail)
+// endpoint, so downscaled tapestry thumbnails are cached cache-first too.
 function isStorageImage(req) {
   return req.method === 'GET'
-    && req.url.includes('/storage/v1/object/')
+    && (req.url.includes('/storage/v1/object/') || req.url.includes('/storage/v1/render/image/'))
     && (req.destination === 'image' || /\.(png|jpe?g|webp|gif|avif|svg)(?:$|[?#])/i.test(req.url));
 }
 

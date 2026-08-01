@@ -8963,7 +8963,7 @@
                 div.innerHTML=`
                     ${isNew?'<div class="tap-col-new">new</div>':''}
                     ${hasPhoto
-                        ? `<div class="tap-col-photo"><img src="${thread.photos[0]}" alt="${caption}" loading="lazy"></div>`
+                        ? `<div class="tap-col-photo"><img src="${thumbUrl(thread.photos[0], 480)}" alt="${caption}" loading="lazy"></div>`
                         : hasLinkImage
                             ? `<div class="tap-col-photo"><img src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
                             : isExternalNote
@@ -9223,7 +9223,7 @@
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
                 const visual = hasPhoto
-                    ? `<img src="${t.photos[0]}" alt="${safeTitle}" loading="lazy">`
+                    ? `<img src="${thumbUrl(t.photos[0], 340)}" alt="${safeTitle}" loading="lazy">`
                     : hasLinkImage
                         ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
                         : isExternalNote
@@ -9284,6 +9284,16 @@
 
     // Helper: append #t=0.1 so iOS Safari renders first frame as poster instead of black box
     function posterUrl(u) { return u ? (u + '#t=0.1') : u; }
+    // Downscaled Supabase Storage image via the render/transform endpoint.
+    // Full phone photos are ~6x larger than we need at thumbnail size, which
+    // made the tapestry slow to load and the collage janky to swipe. Only
+    // rewrites public storage-object URLs; links/data-URIs pass through.
+    function thumbUrl(u, width) {
+        if (!u || typeof u !== 'string') return u;
+        if (u.indexOf('/storage/v1/object/public/') === -1) return u;
+        return u.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
+            + (u.indexOf('?') === -1 ? '?' : '&') + 'width=' + width + '&quality=70';
+    }
 
     // Link-preview image that degrades gracefully. og:image URLs are often dead, expired, or
     // hotlink-protected (e.g. Marriott/Luma), so a raw CSS background-image leaves a blank box on
