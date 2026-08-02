@@ -1692,24 +1692,25 @@
         .tap-role-count { font-family:'Caveat',cursive; font-size:0.85rem; color:var(--text-muted); }
 
         /* ── POLAROID CARDS ── */
-        /* Uniform grid of Polaroids — same shape as the collage. */
+        /* Masonry: each Polaroid takes its own photo's shape, so the WHOLE photo
+           shows (like the opened detail view) — nothing cropped. 2 columns keeps
+           each photo large. Frames end up different heights by design. */
         .tap-polaroid-scroll {
-            display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:4px 0 8px;
+            columns:2; column-gap:10px; padding:4px 0 8px;
         }
         .tap-polaroid {
             background:white; padding:5px 5px 16px;
             box-shadow:0 4px 14px rgba(0,0,0,0.13);
             cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease;
+            break-inside:avoid; -webkit-column-break-inside:avoid; margin-bottom:10px;
             min-width:0;
         }
         .tap-polaroid:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.18); }
-        /* Taller 2:3 frame + cover: portrait photos show much more of their
-           height (fuller view); wide photos still fill-and-crop. Uniform grid. */
         .tap-polaroid-img {
-            width:100%; aspect-ratio:2/3; overflow:hidden; background:#f0ebe6;
-            display:flex; align-items:center; justify-content:center;
+            width:100%; overflow:hidden; background:#f0ebe6; display:block;
         }
-        .tap-polaroid-img img { width:100%; height:100%; object-fit:cover; object-position:center 40%; display:block; }
+        /* Whole photo at its natural shape — no crop. */
+        .tap-polaroid-img img { width:100%; height:auto; display:block; }
         .tap-polaroid-emoji { font-size:2rem; }
         .tap-polaroid-caption {
             font-family:'Caveat',cursive; font-size:12px; color:#2a1a2e;
@@ -9227,7 +9228,7 @@
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
                 const visual = hasPhoto
-                    ? `<img src="${thumbUrl(t.photos[0], 340)}" alt="${safeTitle}" loading="lazy">`
+                    ? `<img src="${thumbUrl(t.photos[0], 520)}" alt="${safeTitle}" loading="lazy">`
                     : hasLinkImage
                         ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
                         : isExternalNote
@@ -9243,7 +9244,7 @@
                     : '';
                 const caption = extDomainLabel ? extDomainLabel.replace(/</g,'&lt;') : tapPhotoCaption(t);
                 return `<div class="tap-polaroid" data-thread-id="${t.id}">
-                    <div class="tap-polaroid-img">${visual}</div>
+                    <div class="tap-polaroid-img"${hasPhoto ? '' : ' style="aspect-ratio:3/4;"'}>${visual}</div>
                     <div class="tap-polaroid-caption">${caption}</div>
                     ${noteLine}
                     <div class="tap-polaroid-date">${date}</div>
