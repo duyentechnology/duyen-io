@@ -1702,11 +1702,12 @@
         }
         .tap-polaroid:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.18); }
         .tap-polaroid-img {
-            width:100%; aspect-ratio:3/4; overflow:hidden; background:#fff;
+            width:100%; aspect-ratio:3/4; overflow:hidden; background:#f0ebe6;
             display:flex; align-items:center; justify-content:center;
         }
-        /* contain (not cover) so the whole photo shows in the month grid — no crop. */
-        .tap-polaroid-img img { width:100%; height:100%; object-fit:contain; display:block; }
+        /* cover on a tall 3:4 frame: fills the Polaroid (no white bars) while
+           showing much more of a portrait photo than the old square did. */
+        .tap-polaroid-img img { width:100%; height:100%; object-fit:cover; display:block; }
         .tap-polaroid-emoji { font-size:2rem; }
         .tap-polaroid-caption {
             font-family:'Caveat',cursive; font-size:12px; color:#2a1a2e;
