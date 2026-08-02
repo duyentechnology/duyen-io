@@ -1593,21 +1593,12 @@
             border-radius:2px; z-index:5;
         }
         .tap-col-photo {
-            width:100%; aspect-ratio:4/5; overflow:hidden;
-            background:#f0ebe6; position:relative;
+            width:100%; aspect-ratio:1; overflow:hidden;
+            display:flex; align-items:center; justify-content:center;
+            font-size:3.5rem; background:#f0ebe6; position:relative;
         }
-        /* Uniform frame + whole photo: the photo is shown in full (contain) over
-           a soft blurred copy of itself — no crop, no white bars, every Polaroid
-           the same shape. */
-        .tap-col-photo-blur {
-            position:absolute; inset:0; width:100%; height:100%;
-            object-fit:cover; filter:blur(16px) brightness(0.97);
-            transform:scale(1.2); z-index:0;
-        }
-        .tap-col-photo-main {
-            position:relative; z-index:1;
-            width:100%; height:100%; object-fit:contain; display:block;
-        }
+        /* cover = photo fills the frame (maximum view); uniform square Polaroids. */
+        .tap-col-photo img { width:100%; height:100%; object-fit:cover; }
         .tap-col-nophoto {
             width:100%; aspect-ratio:1;
             display:flex; align-items:center; justify-content:center;
@@ -1712,21 +1703,12 @@
             min-width:0;
         }
         .tap-polaroid:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.18); }
-        /* Uniform 4:5 frame + whole photo over a blurred fill — matches the collage:
-           consistent frames, nothing cropped, no white bars. */
+        /* cover on a tall 3:4 frame — fills the Polaroid (maximum view), uniform grid. */
         .tap-polaroid-img {
-            width:100%; aspect-ratio:4/5; overflow:hidden; background:#f0ebe6;
-            position:relative; display:block;
+            width:100%; aspect-ratio:3/4; overflow:hidden; background:#f0ebe6;
+            display:flex; align-items:center; justify-content:center;
         }
-        .tap-polaroid-blur {
-            position:absolute; inset:0; width:100%; height:100%;
-            object-fit:cover; filter:blur(14px) brightness(0.97);
-            transform:scale(1.2); z-index:0;
-        }
-        .tap-polaroid-main {
-            position:relative; z-index:1;
-            width:100%; height:100%; object-fit:contain; display:block;
-        }
+        .tap-polaroid-img img { width:100%; height:100%; object-fit:cover; display:block; }
         .tap-polaroid-emoji { font-size:2rem; }
         .tap-polaroid-caption {
             font-family:'Caveat',cursive; font-size:12px; color:#2a1a2e;
@@ -8984,9 +8966,9 @@
                 div.innerHTML=`
                     ${isNew?'<div class="tap-col-new">new</div>':''}
                     ${hasPhoto
-                        ? `<div class="tap-col-photo"><img class="tap-col-photo-blur" src="${thumbUrl(thread.photos[0], 240)}" alt="" aria-hidden="true"><img class="tap-col-photo-main" src="${thumbUrl(thread.photos[0], 480)}" alt="${caption}" loading="lazy"></div>`
+                        ? `<div class="tap-col-photo"><img src="${thumbUrl(thread.photos[0], 480)}" alt="${caption}" loading="lazy"></div>`
                         : hasLinkImage
-                            ? `<div class="tap-col-photo"><img class="tap-col-photo-blur" src="${linkImage}" alt="" aria-hidden="true"><img class="tap-col-photo-main" src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
+                            ? `<div class="tap-col-photo"><img src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
                             : isExternalNote
                                 ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                                 : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
@@ -9244,7 +9226,7 @@
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
                 const visual = hasPhoto
-                    ? `<img class="tap-polaroid-blur" src="${thumbUrl(t.photos[0], 160)}" alt="" aria-hidden="true"><img class="tap-polaroid-main" src="${thumbUrl(t.photos[0], 340)}" alt="${safeTitle}" loading="lazy">`
+                    ? `<img src="${thumbUrl(t.photos[0], 340)}" alt="${safeTitle}" loading="lazy">`
                     : hasLinkImage
                         ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
                         : isExternalNote
