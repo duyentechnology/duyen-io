@@ -7,11 +7,26 @@
 // cache (now long-lived via the upload cacheControl). Any cache error falls
 // back to a normal network fetch, so this can never break a request.
 
-const APP_CACHE = 'duyen-app-v3';
+const APP_CACHE = 'duyen-app-v4';
 const MEDIA_CACHE = 'duyen-media-v1';
 const MEDIA_MAX_ENTRIES = 150; // rough cap; browser also evicts under pressure
 
-self.addEventListener('install', e => { self.skipWaiting(); });
+// Same-origin JS libraries (Supabase client, QR scanner). Version-stamped
+// filenames, so a lib upgrade is a new URL — cache-first can never serve a
+// stale version, and the app keeps working on a flaky network.
+const VENDOR_ASSETS = [
+  '/vendor-supabase-2.111.0.js',
+  '/vendor-html5-qrcode-2.3.8.js',
+];
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(APP_CACHE)
+      .then(c => c.addAll(VENDOR_ASSETS))
+      .catch(() => {}) // precache is best-effort; fetch handler covers misses
+      .then(() => self.skipWaiting())
+  );
+});
 
 self.addEventListener('activate', e => {
   e.waitUntil(
@@ -79,7 +94,22 @@ self.addEventListener('fetch', e => {
     e.respondWith(cacheFirstImage(req));
     return;
   }
-  if (req.url.includes('supabase')) return;
+  if (req.url.includes('supabase.co')) return;
+
+  // Vendored libraries: cache-first (immutable versioned filenames).
+  const path = new URL(req.url).pathname;
+  if (req.method === 'GET' && VENDOR_ASSETS.includes(path)) {
+    e.respondWith(
+      caches.open(APP_CACHE).then(async cache => {
+        const hit = await cache.match(req);
+        if (hit) return hit;
+        const res = await fetch(req);
+        if (res && res.status === 200) { try { await cache.put(req, res.clone()); } catch (err) {} }
+        return res;
+      }).catch(() => fetch(req))
+    );
+    return;
+  }
 
   // App shell (the page / HTML): always pull the freshest copy from the network,
   // BYPASSING the browser's HTTP cache, so a new deploy shows up on the next
