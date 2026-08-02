@@ -1593,14 +1593,11 @@
             border-radius:2px; z-index:5;
         }
         .tap-col-photo {
-            width:100%; aspect-ratio:4/5; overflow:hidden;
+            width:100%; aspect-ratio:1; overflow:hidden;
             display:flex; align-items:center; justify-content:center;
-            background:#fff; position:relative;
+            font-size:3.5rem; background:#f0ebe6; position:relative;
         }
-        /* Shrink the whole photo to fit the same-size frame (no crop). Leftover
-           space is WHITE so it blends into the Polaroid — a matted photo look,
-           not a colored border. */
-        .tap-col-photo img { width:100%; height:100%; object-fit:contain; display:block; }
+        .tap-col-photo img { width:100%; height:100%; object-fit:cover; }
         .tap-col-nophoto {
             width:100%; aspect-ratio:1;
             display:flex; align-items:center; justify-content:center;
@@ -1694,11 +1691,6 @@
         .tap-role-count { font-family:'Caveat',cursive; font-size:0.85rem; color:var(--text-muted); }
 
         /* ── POLAROID CARDS ── */
-        /* Uniform 3-column grid, all Polaroids the SAME size. Tall 2:3 frames +
-           cover so portrait/people photos show fuller (head-to-waist); the crop
-           is biased toward the top so faces stay in frame. */
-        /* Same-size Polaroids (uniform 3-col grid, 4:5 frame). The whole photo
-           is SHRUNK to fit (contain) — never cropped; leftover space is cream. */
         .tap-polaroid-scroll {
             display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:4px 0 8px;
         }
@@ -1706,15 +1698,14 @@
             background:white; padding:5px 5px 16px;
             box-shadow:0 4px 14px rgba(0,0,0,0.13);
             cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease;
-            min-width:0;
+            min-width:0; /* let 1fr tracks shrink below content width so long captions truncate instead of widening the grid */
         }
         .tap-polaroid:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.18); }
         .tap-polaroid-img {
-            width:100%; aspect-ratio:4/5; overflow:hidden; background:#fff;
+            width:100%; aspect-ratio:1; overflow:hidden; background:#f0ebe6;
             display:flex; align-items:center; justify-content:center;
         }
-        /* Shrink whole photo to fit (no crop); leftover space white to blend into the Polaroid. */
-        .tap-polaroid-img img { width:100%; height:100%; object-fit:contain; display:block; }
+        .tap-polaroid-img img { width:100%; height:100%; object-fit:cover; display:block; }
         .tap-polaroid-emoji { font-size:2rem; }
         .tap-polaroid-caption {
             font-family:'Caveat',cursive; font-size:12px; color:#2a1a2e;
@@ -9232,7 +9223,7 @@
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
                 const visual = hasPhoto
-                    ? `<img src="${thumbUrl(t.photos[0], 520)}" alt="${safeTitle}" loading="lazy">`
+                    ? `<img src="${thumbUrl(t.photos[0], 340)}" alt="${safeTitle}" loading="lazy">`
                     : hasLinkImage
                         ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
                         : isExternalNote
