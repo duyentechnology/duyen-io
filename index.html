@@ -1206,9 +1206,10 @@
             padding:50px 72px 36px 72px;
             transition:opacity 0.25s ease;
             scroll-snap-type: x proximity;
-            /* Claim horizontal drags so a swipe scrolls the strip only — not the
-               whole page — and taps register without gesture-disambiguation lag. */
-            touch-action: pan-x;
+            /* pan-x lets horizontal drags scroll the strip; pan-y keeps vertical
+               swipes scrolling the page — pan-x alone froze page scroll for any
+               touch that started on the strip. */
+            touch-action: pan-x pan-y;
             overscroll-behavior-x: contain;
         }
         .tap-collage-scroll::-webkit-scrollbar { display:none; }
