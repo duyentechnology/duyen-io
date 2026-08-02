@@ -1543,7 +1543,7 @@
         .tap-collage-outer::after  { right:0; background:linear-gradient(to left,  var(--surface), transparent); }
         .tap-collage-scroll {
             display:flex; flex-direction:row;
-            align-items:flex-end;
+            align-items:flex-start;
             overflow-x:auto; overflow-y:visible;
             scrollbar-width:none;
             padding:50px 72px 36px 72px;
@@ -1593,12 +1593,11 @@
             border-radius:2px; z-index:5;
         }
         .tap-col-photo {
-            width:100%; aspect-ratio:1/1; overflow:hidden;
-            display:flex; align-items:center; justify-content:center;
-            font-size:3.5rem; background:#f0ebe6; position:relative;
+            width:100%; overflow:hidden;
+            background:#f0ebe6; position:relative;
         }
-        /* Square (the version liked in IMG_5644); crop biased to the top for faces. */
-        .tap-col-photo img { width:100%; height:100%; object-fit:cover; object-position:center 40%; }
+        /* No crop — whole photo at its natural shape. */
+        .tap-col-photo img { width:100%; height:auto; display:block; }
         .tap-col-nophoto {
             width:100%; aspect-ratio:1;
             display:flex; align-items:center; justify-content:center;
@@ -1695,23 +1694,24 @@
         /* Uniform 3-column grid, all Polaroids the SAME size. Tall 2:3 frames +
            cover so portrait/people photos show fuller (head-to-waist); the crop
            is biased toward the top so faces stay in frame. */
+        /* No crop: each Polaroid takes its own photo's shape (like the detail
+           view). 2 columns keeps photos large; heights vary by design — the
+           only way to show every photo whole. */
         .tap-polaroid-scroll {
-            display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:4px 0 8px;
+            columns:2; column-gap:10px; padding:4px 0 8px;
         }
         .tap-polaroid {
             background:white; padding:5px 5px 16px;
             box-shadow:0 4px 14px rgba(0,0,0,0.13);
             cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease;
+            break-inside:avoid; -webkit-column-break-inside:avoid; margin-bottom:10px;
             min-width:0;
         }
         .tap-polaroid:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.18); }
         .tap-polaroid-img {
-            width:100%; aspect-ratio:1/1; overflow:hidden; background:#f0ebe6;
-            display:flex; align-items:center; justify-content:center;
+            width:100%; overflow:hidden; background:#f0ebe6; display:block;
         }
-        /* Square crops the least across a mix of portrait + landscape photos;
-           center 40% keeps faces (usually upper) in frame. */
-        .tap-polaroid-img img { width:100%; height:100%; object-fit:cover; object-position:center 40%; display:block; }
+        .tap-polaroid-img img { width:100%; height:auto; display:block; }
         .tap-polaroid-emoji { font-size:2rem; }
         .tap-polaroid-caption {
             font-family:'Caveat',cursive; font-size:12px; color:#2a1a2e;
@@ -9229,7 +9229,7 @@
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
                 const visual = hasPhoto
-                    ? `<img src="${thumbUrl(t.photos[0], 360)}" alt="${safeTitle}" loading="lazy">`
+                    ? `<img src="${thumbUrl(t.photos[0], 520)}" alt="${safeTitle}" loading="lazy">`
                     : hasLinkImage
                         ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
                         : isExternalNote
@@ -9245,7 +9245,7 @@
                     : '';
                 const caption = extDomainLabel ? extDomainLabel.replace(/</g,'&lt;') : tapPhotoCaption(t);
                 return `<div class="tap-polaroid" data-thread-id="${t.id}">
-                    <div class="tap-polaroid-img">${visual}</div>
+                    <div class="tap-polaroid-img"${hasPhoto ? '' : ' style="aspect-ratio:3/4;"'}>${visual}</div>
                     <div class="tap-polaroid-caption">${caption}</div>
                     ${noteLine}
                     <div class="tap-polaroid-date">${date}</div>
