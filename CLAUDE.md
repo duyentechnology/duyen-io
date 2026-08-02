@@ -34,3 +34,19 @@ Guidance for Claude Code when working in this repo.
 
 The service worker caches the app shell, so after a deploy the user must fully
 close/reopen the PWA (or hard-reload duyen.io) to pick up the new `index.html`.
+
+## Media pipeline — verify data, not just CSS
+
+- **Supabase image transforms distort with width-only params.** The render
+  endpoint (`/storage/v1/render/image/public/...`) with only `?width=` squeezes
+  width but keeps original height (1200x1800 → 340x1800). Always pass
+  `width`+`height`+`resize=contain` (see `thumbUrl()` in `index.html`).
+- **Any change to image/media URLs must be verified against a real photo**:
+  fetch the actual URL the app will request (curl through the proxy with the
+  public anon key from `index.html`) and check the returned dimensions with
+  `file`, then render it in the real CSS frame (Playwright headless) before
+  merging. Layout smoothness alone is not a test.
+- **When a visual regression appears, bisect by layer, not by guessing CSS**:
+  first confirm what bytes the server returns, then the CSS. If a screenshot
+  of a "known good" state exists, diff the code of that exact commit
+  (`git show <commit>:index.html`) instead of iterating on new layouts.
