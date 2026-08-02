@@ -1543,7 +1543,7 @@
         .tap-collage-outer::after  { right:0; background:linear-gradient(to left,  var(--surface), transparent); }
         .tap-collage-scroll {
             display:flex; flex-direction:row;
-            align-items:flex-start;
+            align-items:flex-end;
             overflow-x:auto; overflow-y:visible;
             scrollbar-width:none;
             padding:50px 72px 36px 72px;
@@ -1593,11 +1593,21 @@
             border-radius:2px; z-index:5;
         }
         .tap-col-photo {
-            width:100%; overflow:hidden;
+            width:100%; aspect-ratio:4/5; overflow:hidden;
             background:#f0ebe6; position:relative;
         }
-        /* Natural aspect ratio — the floating Polaroid shows the whole photo, no crop. */
-        .tap-col-photo img { width:100%; height:auto; display:block; }
+        /* Uniform frame + whole photo: the photo is shown in full (contain) over
+           a soft blurred copy of itself — no crop, no white bars, every Polaroid
+           the same shape. */
+        .tap-col-photo-blur {
+            position:absolute; inset:0; width:100%; height:100%;
+            object-fit:cover; filter:blur(16px) brightness(0.97);
+            transform:scale(1.2); z-index:0;
+        }
+        .tap-col-photo-main {
+            position:relative; z-index:1;
+            width:100%; height:100%; object-fit:contain; display:block;
+        }
         .tap-col-nophoto {
             width:100%; aspect-ratio:1;
             display:flex; align-items:center; justify-content:center;
@@ -8966,9 +8976,9 @@
                 div.innerHTML=`
                     ${isNew?'<div class="tap-col-new">new</div>':''}
                     ${hasPhoto
-                        ? `<div class="tap-col-photo"><img src="${thumbUrl(thread.photos[0], 480)}" alt="${caption}" loading="lazy"></div>`
+                        ? `<div class="tap-col-photo"><img class="tap-col-photo-blur" src="${thumbUrl(thread.photos[0], 240)}" alt="" aria-hidden="true"><img class="tap-col-photo-main" src="${thumbUrl(thread.photos[0], 480)}" alt="${caption}" loading="lazy"></div>`
                         : hasLinkImage
-                            ? `<div class="tap-col-photo"><img src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
+                            ? `<div class="tap-col-photo"><img class="tap-col-photo-blur" src="${linkImage}" alt="" aria-hidden="true"><img class="tap-col-photo-main" src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
                             : isExternalNote
                                 ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                                 : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
