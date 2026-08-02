@@ -1593,10 +1593,11 @@
             border-radius:2px; z-index:5;
         }
         .tap-col-photo {
-            width:100%; overflow:hidden;
-            background:#f0ebe6; position:relative;
+            width:100%; aspect-ratio:1; overflow:hidden;
+            display:flex; align-items:center; justify-content:center;
+            font-size:3.5rem; background:#f0ebe6; position:relative;
         }
-        .tap-col-photo img { width:100%; height:auto; display:block; }
+        .tap-col-photo img { width:100%; height:100%; object-fit:cover; }
         .tap-col-nophoto {
             width:100%; aspect-ratio:1;
             display:flex; align-items:center; justify-content:center;
@@ -1701,9 +1702,10 @@
         }
         .tap-polaroid:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.18); }
         .tap-polaroid-img {
-            width:100%; overflow:hidden; background:#f0ebe6;
+            width:100%; aspect-ratio:1; overflow:hidden; background:#f0ebe6;
+            display:flex; align-items:center; justify-content:center;
         }
-        .tap-polaroid-img img { width:100%; height:auto; display:block; }
+        .tap-polaroid-img img { width:100%; height:100%; object-fit:cover; display:block; }
         .tap-polaroid-emoji { font-size:2rem; }
         .tap-polaroid-caption {
             font-family:'Caveat',cursive; font-size:12px; color:#2a1a2e;
@@ -8961,7 +8963,7 @@
                 div.innerHTML=`
                     ${isNew?'<div class="tap-col-new">new</div>':''}
                     ${hasPhoto
-                        ? `<div class="tap-col-photo"><img src="${thumbUrl(thread.photos[0], 480)}" alt="${caption}" loading="lazy"></div>`
+                        ? `<div class="tap-col-photo"><img src="${thumbUrl(thread.photos[0], 720)}" alt="${caption}" loading="lazy"></div>`
                         : hasLinkImage
                             ? `<div class="tap-col-photo"><img src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
                             : isExternalNote
@@ -9221,7 +9223,7 @@
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
                 const visual = hasPhoto
-                    ? `<img src="${thumbUrl(t.photos[0], 340)}" alt="${safeTitle}" loading="lazy">`
+                    ? `<img src="${thumbUrl(t.photos[0], 520)}" alt="${safeTitle}" loading="lazy">`
                     : hasLinkImage
                         ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
                         : isExternalNote
@@ -9286,11 +9288,14 @@
     // Full phone photos are ~6x larger than we need at thumbnail size, which
     // made the tapestry slow to load and the collage janky to swipe. Only
     // rewrites public storage-object URLs; links/data-URIs pass through.
+    // width-only requests distort: the endpoint squeezes width but keeps the
+    // original height (e.g. 1200x1800 -> 340x1800). Passing a square box with
+    // resize=contain scales the whole photo down preserving its aspect ratio.
     function thumbUrl(u, width) {
         if (!u || typeof u !== 'string') return u;
         if (u.indexOf('/storage/v1/object/public/') === -1) return u;
         return u.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
-            + (u.indexOf('?') === -1 ? '?' : '&') + 'width=' + width + '&quality=70';
+            + (u.indexOf('?') === -1 ? '?' : '&') + 'width=' + width + '&height=' + width + '&resize=contain&quality=70';
     }
 
     // Link-preview image that degrades gracefully. og:image URLs are often dead, expired, or
