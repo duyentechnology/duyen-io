@@ -5931,8 +5931,10 @@
                     if (receiverTitle) receiverTitle.textContent = "I'm Receiving This Gift";
                 }
             } else if (!data.giver_data && !data.giver_user_id && !data.receiver_data && !data.receiver_user_id) {
-                // Truly blank — show all 3 options including Business
-                bizOption.style.display = 'block';
+                // Truly blank note — giver / receiver only. Businesses claim via
+                // dedicated business-profile QRs (source='business'), which skip
+                // this screen entirely, so notes never offer a business role.
+                bizOption.style.display = 'none';
                 document.getElementById('roleGiverCard').style.display = 'block';
                 if (subtitle) subtitle.textContent = "Someone wove a connection into this code. What's your role in this story?";
                 if (giverTitle) giverTitle.textContent = "I'm Giving a Gift";
