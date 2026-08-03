@@ -5909,6 +5909,13 @@
                 return;
             }
 
+            // Business-profile QR (admin flyer run) — no role selection.
+            // Unclaimed: go straight to the business claim on dayduyen.tech.
+            if (data.source === 'business') {
+                window.location.href = 'https://dayduyen.tech/#claim/' + data.id;
+                return;
+            }
+
             if (hasBusinessData) {
                 // Business already claimed — hide business option
                 bizOption.style.display = 'none';
