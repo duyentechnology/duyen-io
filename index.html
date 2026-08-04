@@ -10326,17 +10326,21 @@
     })();
 
     function shareBusinessLink(url, name) {
-        // ?v=share marks a no-physical-card open (gift roles hidden).
-        // One combined text string (no separate url field), and the link must
-        // NOT be the last thing in the message — iMessage splits a trailing
-        // URL into its own preview bubble. Text after the link keeps it one.
-        var shareUrl = url + (url.indexOf('?') === -1 ? '?' : '&') + 'v=share';
-        var msg = 'Check out ' + name + ' on Duyên — ' + shareUrl + ' 💜';
+        // Share the /s/<code> link ALONE: a lone link renders as ONE rich
+        // preview card in iMessage. /s/* is proxied (see _redirects) to the
+        // share-preview edge function, which serves the business's own name,
+        // logo and description as the card's tags, then forwards visitors to
+        // /q/<code>?v=share (no-physical-card open — gift roles hidden).
+        var m = String(url).match(/\/q\/([A-Za-z0-9-]+)/);
+        var shareUrl = m ? 'https://duyen.io/s/' + m[1]
+            : url + (url.indexOf('?') === -1 ? '?' : '&') + 'v=share';
+        // URL only — adding any text alongside would split into a second
+        // bubble and lose the card.
         if (navigator.share) {
-            navigator.share({ text: msg }).catch(function(){});
+            navigator.share({ url: shareUrl }).catch(function(){});
         } else {
-            try { navigator.clipboard.writeText(msg); alert('Copied: ' + msg); }
-            catch(e) { prompt('Copy this:', msg); }
+            try { navigator.clipboard.writeText(shareUrl); alert('Copied: ' + shareUrl); }
+            catch(e) { prompt('Copy this:', shareUrl); }
         }
     }
 
