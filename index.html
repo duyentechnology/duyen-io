@@ -7433,7 +7433,10 @@
 
     async function saveToTapestryDirect() {
         if (!isAuthenticated) {
-            window.postAuthDestination = 'qrContent';
+            // Resume the SAVE after login — not the gift composer.
+            window.postAuthDestination = 'directSave';
+            sessionStorage.setItem('postAuthDestination', 'directSave');
+            if (scannedQRData && scannedQRData.id) sessionStorage.setItem('pendingQRCode', scannedQRData.id);
             navigate('auth');
             return;
         }
@@ -7461,7 +7464,8 @@
                 console.error('Direct save error:', error);
                 return;
             }
-            document.getElementById('bizProfileDisplay').style.display = 'none';
+            var _bpd = document.getElementById('bizProfileDisplay');
+            if (_bpd) _bpd.style.display = 'none';
             document.getElementById('successMsg').textContent = 'Saved to your life tapestry!';
             navigate('success');
         } catch(e) {
@@ -7810,6 +7814,24 @@
             }
             sessionStorage.removeItem('pendingExternalUrl');
             openExternalQrPage(scannedExternalUrl);
+            return;
+        }
+
+        // "Just save this" chosen before login — finish the save, skip the composer.
+        if (window.postAuthDestination === 'directSave') {
+            window.postAuthDestination = null;
+            var pq = sessionStorage.getItem('pendingQRCode');
+            sessionStorage.removeItem('pendingQRCode');
+            if (scannedQRData) {
+                saveToTapestryDirect();
+            } else if (pq) {
+                _supabase.from('qr_codes').select('*').eq('id', pq).limit(1).then(function(r) {
+                    if (r.data && r.data[0]) { scannedQRData = r.data[0]; saveToTapestryDirect(); }
+                    else navigate('tapestry');
+                });
+            } else {
+                navigate('tapestry');
+            }
             return;
         }
 
