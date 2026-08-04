@@ -5782,16 +5782,28 @@
         }
         var iconRowHtml = iconsHtml ? '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
 
+        // Their own logo replaces the 緣 mark in the header when uploaded.
+        var bizLogo = (typeof biz.logo === 'string' && /^https?:\/\//.test(biz.logo))
+            ? biz.logo.replace(/"/g, '&quot;') : '';
+
         var html =
             // Close button
             '<div style="padding:12px 20px;display:flex;align-items:center;background:#EFE5EF;">' +
                 '<button onclick="document.getElementById(\'bizProfileDisplay\').style.display=\'none\'; navigate(\'tapestry\');" style="background:none;border:none;font-size:15px;font-weight:500;color:#8B3A7F;cursor:pointer;font-family:\'DM Sans\',sans-serif;padding:4px 0;">← Back</button>' +
             '</div>' +
-            // Header — persistent: 緣 DUYÊN logo left, origin text middle, icon row (socials + call + navigate) under
+            // Header — business logo left when they've uploaded one (this is
+            // their page), otherwise the 緣 DUYÊN mark. Origin text middle,
+            // icon row (socials + call + navigate) under.
             '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #E0CFE0;">' +
                 '<div style="flex-shrink:0;text-align:center;width:92px;">' +
-                    '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
-                    '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>' +
+                    (bizLogo ?
+                        // contain, not cover: uploaded logos are any shape
+                        // (wordmarks, wide banners) and must never be cropped.
+                        '<img src="' + bizLogo + '" alt="' + String(biz.name || '').replace(/"/g,'&quot;') + '" style="width:92px;height:92px;border-radius:14px;object-fit:contain;background:#fff;border:1px solid #E0CFE0;padding:5px;box-sizing:border-box;display:block;margin:0 auto;">'
+                    :
+                        '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
+                        '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>'
+                    ) +
                 '</div>' +
                 '<div style="flex:1;min-width:0;">' +
                     '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
@@ -5806,11 +5818,11 @@
                 ((biz.description || (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length)) ?
                     '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
                         '<div onclick="toggleScanSection(\'about\')" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
-                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:18px;font-weight:600;color:#2E2A28;">About</span>' +
+                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;">About</span>' +
                             '<svg id="scanChev-about" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);"><path d="M6 9l6 6 6-6"/></svg>' +
                         '</div>' +
                         '<div id="scanBody-about" style="display:block;padding:0 16px 16px;">' +
-                            (biz.description ? '<div style="font-family:\'Crimson Pro\',serif;font-size:18px;font-style:italic;color:#5D4E44;line-height:1.75;margin-bottom:14px;">\u201C' + biz.description + '\u201D</div>' : '') +
+                            (biz.description ? '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;font-style:italic;color:#5D4E44;line-height:1.7;margin-bottom:14px;">\u201C' + biz.description + '\u201D</div>' : '') +
                             ((Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) ?
                                 '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;">' +
                                 biz.aboutPhotos.slice(0,3).map(function(u){ return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;"><img src="' + u + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>'; }).join('') +
@@ -5822,12 +5834,12 @@
                 ((data.promotion && data.promotion.text) ?
                     '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
                         '<div onclick="toggleScanSection(\'promo\')" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
-                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:18px;font-weight:600;color:#2E2A28;">What\'s new</span>' +
+                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;">What\'s new</span>' +
                             '<span style="background:#8B3A7F;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;">1</span>' +
                             '<svg id="scanChev-promo" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);"><path d="M6 9l6 6 6-6"/></svg>' +
                         '</div>' +
                         '<div id="scanBody-promo" style="display:block;padding:0 16px 16px;">' +
-                            '<div style="font-family:\'Crimson Pro\',serif;font-size:18px;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + data.promotion.text + '\u201D</div>' +
+                            '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + data.promotion.text + '\u201D</div>' +
                             ((data.promotion.photos && data.promotion.photos.length) ?
                                 '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">' +
                                 data.promotion.photos.slice(0,5).map(function(url){ var s=String(url).replace(/"/g,'&quot;'); return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:auto;display:block;"></div>'; }).join('') +
