@@ -5786,34 +5786,37 @@
         var bizLogo = (typeof biz.logo === 'string' && /^https?:\/\//.test(biz.logo))
             ? biz.logo.replace(/"/g, '&quot;') : '';
 
+        // Shared by both header layouts (logo on top vs 緣 beside).
+        var _bizHeadText =
+            '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#3D2E24;line-height:1.15;text-align:center;">Every thing has an origin</div>' +
+            '<div style="font-size:13.5px;color:#6B5751;line-height:1.45;margin-top:6px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
+            (biz.name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;text-align:center;margin-top:8px;">' + biz.name + '</div>' : '') +
+            iconRowHtml;
+
         var html =
             // Close button
             '<div style="padding:12px 20px;display:flex;align-items:center;background:#EFE5EF;">' +
                 '<button onclick="document.getElementById(\'bizProfileDisplay\').style.display=\'none\'; navigate(\'tapestry\');" style="background:none;border:none;font-size:15px;font-weight:500;color:#8B3A7F;cursor:pointer;font-family:\'DM Sans\',sans-serif;padding:4px 0;">← Back</button>' +
             '</div>' +
-            // Header — business logo left when they've uploaded one (this is
-            // their page), otherwise the 緣 DUYÊN mark. Origin text middle,
-            // icon row (socials + call + navigate) under.
-            '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #E0CFE0;">' +
-                '<div style="flex-shrink:0;text-align:center;width:' + (bizLogo ? '140' : '92') + 'px;">' +
-                    (bizLogo ?
-                        // contain, not cover: uploaded logos are any shape
-                        // (wordmarks, wide banners) and must never be cropped.
-                        // 112px is as wide as this column goes before the
-                        // origin text starts wrapping badly on a 390px phone.
-                        '<img src="' + bizLogo + '" alt="' + String(biz.name || '').replace(/"/g,'&quot;') + '" style="width:140px;height:140px;border-radius:16px;object-fit:contain;background:#fff;border:1px solid #E0CFE0;padding:4px;box-sizing:border-box;display:block;margin:0 auto;">'
-                    :
+            // Header — when they've uploaded a logo it sits on top, full
+            // width, with the origin text beneath it; contain + no frame so
+            // any logo shape shows whole (uploaded logos are wordmarks and
+            // banners, not square icons). Without a logo, the 緣 DUYÊN mark
+            // keeps its original spot beside the text.
+            (bizLogo ?
+                '<div style="background:#EFE5EF;padding:16px 14px 13px;border-bottom:1px solid #E0CFE0;">' +
+                    '<img src="' + bizLogo + '" alt="' + String(biz.name || '').replace(/"/g,'&quot;') + '" style="display:block;margin:0 auto 10px;max-width:78%;max-height:185px;object-fit:contain;border-radius:14px;">' +
+                    _bizHeadText +
+                '</div>'
+            :
+                '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #E0CFE0;">' +
+                    '<div style="flex-shrink:0;text-align:center;width:92px;">' +
                         '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
-                        '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>'
-                    ) +
-                '</div>' +
-                '<div style="flex:1;min-width:0;">' +
-                    '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#3D2E24;line-height:1.15;text-align:center;">Every thing has an origin</div>' +
-                    '<div style="font-size:13.5px;color:#6B5751;line-height:1.45;margin-top:6px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
-                    (biz.name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;text-align:center;margin-top:8px;">' + biz.name + '</div>' : '') +
-                    iconRowHtml +
-                '</div>' +
-            '</div>' +
+                        '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>' +
+                    '</div>' +
+                    '<div style="flex:1;min-width:0;">' + _bizHeadText + '</div>' +
+                '</div>'
+            ) +
             // Sections: About + What's new — open by default (full experience),
             // still collapsible via their headers.
             '<div style="padding:22px 16px 4px;background:#F0EFED;">' +
