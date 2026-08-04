@@ -4440,7 +4440,22 @@
                 loggedInOpt.style.display = 'none';
             }
             
-            if (currentRole === 'business') {
+            var authH1 = document.querySelector('#authScreen h1');
+            if (authH1) authH1.textContent = 'Welcome to Duyên'; // reset; nudge below overrides
+
+            if (window.postAuthDestination === 'directSave') {
+                // Arrived from "Just save this" — name the thing they're keeping.
+                var _bn = null;
+                try {
+                    var _bd = scannedQRData && scannedQRData.business_data;
+                    if (typeof _bd === 'string') _bd = JSON.parse(_bd);
+                    _bn = _bd && _bd.name;
+                } catch(e) {}
+                if (authH1) authH1.textContent = _bn ? 'Keep ' + _bn : 'Keep this in your tapestry';
+                subtitle.textContent = 'Create a free account and this business lives in your tapestry — with every gift, place, and moments that matter.';
+                guestOpt.style.display = 'none';
+                bizReq.style.display = 'none';
+            } else if (currentRole === 'business') {
                 guestOpt.style.display = 'none';
                 bizReq.style.display = 'block';
                 subtitle.textContent = 'Sign in to add your business info';
