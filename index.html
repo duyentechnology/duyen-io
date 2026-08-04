@@ -7460,7 +7460,8 @@
                 })
                 .select();
             if (error && error.code !== '23505') {
-                alert('Error saving. Please try again.');
+                // Surface the real reason — a generic message hides root causes.
+                alert('Error saving: ' + (error.message || error.code || 'unknown') + '. Please try again.');
                 console.error('Direct save error:', error);
                 return;
             }
