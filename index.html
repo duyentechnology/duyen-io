@@ -4041,7 +4041,7 @@
     window.addEventListener('DOMContentLoaded', function() {
         var path = window.location.pathname;
         var hash = window.location.hash;
-        var isQRScan = path.startsWith('/q/') || hash.startsWith('#/q/');
+        var isQRScan = path.startsWith('/q/') || path.startsWith('/s/') || hash.startsWith('#/q/');
         var isPasswordRecovery = hash.includes('type=recovery');
 
         if (isPasswordRecovery) {
@@ -7524,7 +7524,7 @@
             tapTitle.textContent = displayName + '\'s Life Tapestry';
             const path = window.location.pathname;
             const hash = window.location.hash;
-            if (!path.startsWith('/q/') && !hash.startsWith('#/q/')) {
+            if (!path.startsWith('/q/') && !path.startsWith('/s/') && !hash.startsWith('#/q/')) {
                 proceedAfterAuth();
             }
         }
@@ -7548,7 +7548,7 @@
             // Only auto-navigate to tapestry if NOT on a QR scan URL
             const path = window.location.pathname;
             const hash = window.location.hash;
-            if (!path.startsWith('/q/') && !hash.startsWith('#/q/')) {
+            if (!path.startsWith('/q/') && !path.startsWith('/s/') && !hash.startsWith('#/q/')) {
                 proceedAfterAuth();
             }
         }
@@ -10372,11 +10372,14 @@
         const hash = window.location.hash || '#/';
         const path = window.location.pathname;
 
-        // Check path-based QR URL first (from scanning: duyen.io/q/CODE)
-        if (path.startsWith('/q/')) {
-            const code = path.replace('/q/', '');
+        // Check path-based QR URL first (from scanning: duyen.io/q/CODE).
+        // /s/CODE is the share-link form: normally answered by the
+        // share-preview Netlify function, but _redirects also serves the app
+        // there as a fallback — treat it as a shared open of the same code.
+        if (path.startsWith('/q/') || path.startsWith('/s/')) {
+            const code = path.replace(/^\/[qs]\//, '');
             // Shared links carry ?v=share — no physical card, so gift roles hide.
-            window._sharedOpen = /[?&]v=share/.test(window.location.search);
+            window._sharedOpen = path.startsWith('/s/') || /[?&]v=share/.test(window.location.search);
             console.log('📱 QR scan for code:', code, window._sharedOpen ? '(shared link)' : '');
             window.scannedQRCode = code;
             navigate('qr');
