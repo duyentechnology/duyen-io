@@ -10308,14 +10308,16 @@
     })();
 
     function shareBusinessLink(url, name) {
-        // ?v=share marks a no-physical-card open (gift roles hidden). URL only —
-        // adding text makes iMessage send two bubbles instead of one.
+        // ?v=share marks a no-physical-card open (gift roles hidden).
+        // One combined text string (no separate url field) → iMessage keeps
+        // message and link together in a single bubble.
         var shareUrl = url + (url.indexOf('?') === -1 ? '?' : '&') + 'v=share';
+        var msg = 'Check out ' + name + ' on Duyên — ' + shareUrl;
         if (navigator.share) {
-            navigator.share({ title: name, url: shareUrl }).catch(function(){});
+            navigator.share({ text: msg }).catch(function(){});
         } else {
-            try { navigator.clipboard.writeText(shareUrl); alert('Link copied: ' + shareUrl); }
-            catch(e) { prompt('Copy this link:', shareUrl); }
+            try { navigator.clipboard.writeText(msg); alert('Copied: ' + msg); }
+            catch(e) { prompt('Copy this:', msg); }
         }
     }
 
