@@ -7160,9 +7160,10 @@
         var msgEl = document.getElementById('qcShareMessage');
         var msg = msgEl && msgEl.value.trim() ? msgEl.value.trim() : 'I left a moment for you 💜';
         // One combined string — separate text+url fields split into two
-        // iMessage bubbles; combined they stay in one.
+        // iMessage bubbles; and the link must not be last, or iMessage pulls
+        // it into its own preview bubble. Text after the link keeps it one.
         if (navigator.share) {
-            navigator.share({ text: msg + ' — ' + url }).catch(function(){});
+            navigator.share({ text: msg + ' — ' + url + ' 💜' }).catch(function(){});
         }
     }
     function copyGiverLink() { copyQcLink(); }
@@ -10326,10 +10327,11 @@
 
     function shareBusinessLink(url, name) {
         // ?v=share marks a no-physical-card open (gift roles hidden).
-        // One combined text string (no separate url field) → iMessage keeps
-        // message and link together in a single bubble.
+        // One combined text string (no separate url field), and the link must
+        // NOT be the last thing in the message — iMessage splits a trailing
+        // URL into its own preview bubble. Text after the link keeps it one.
         var shareUrl = url + (url.indexOf('?') === -1 ? '?' : '&') + 'v=share';
-        var msg = 'Check out ' + name + ' on Duyên — ' + shareUrl;
+        var msg = 'Check out ' + name + ' on Duyên — ' + shareUrl + ' 💜';
         if (navigator.share) {
             navigator.share({ text: msg }).catch(function(){});
         } else {
