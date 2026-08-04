@@ -9172,6 +9172,35 @@
             }
             var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
 
+            if (thread.role === 'business') {
+                // Saved business — Polaroid keepsake: the grid tile as the hero,
+                // their words and contacts on a card below. No gift language.
+                var bAbout = '';
+                if (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) {
+                    bAbout = '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;margin-top:14px;">' +
+                        biz.aboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
+                    '</div>';
+                }
+                var bPromo = (thread.promotion && thread.promotion.text)
+                    ? '<div style="background:#faf4fa;border:1.5px dashed #C9A0C4;border-radius:11px;padding:10px 12px;font-size:0.92rem;color:#5D4E44;margin-top:14px;line-height:1.5;">📣 ' + thread.promotion.text + '</div>'
+                    : '';
+                originHtml =
+                    '<div style="background:#F0EFED;padding:20px 18px 4px;">' +
+                        '<div style="background:#fff;padding:10px 10px 14px;box-shadow:0 6px 18px rgba(0,0,0,0.14);transform:rotate(-1.2deg);max-width:290px;margin:0 auto;">' +
+                            '<div style="aspect-ratio:1;overflow:hidden;">' + bizTileHtml(biz.name) + '</div>' +
+                            '<div style="font-family:\'Caveat\',cursive;font-size:1.4rem;text-align:center;margin-top:8px;color:#2a1a2e;">' + (biz.name || 'Business') + '</div>' +
+                            '<div style="font-family:\'Courier New\',Courier,monospace;font-size:0.7rem;text-align:center;color:#6B5751;letter-spacing:.14em;">' + tapDateFull(thread.date, thread.occurred) + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="background:#F0EFED;padding:16px 16px 2px;">' +
+                        '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:18px 16px 16px;">' +
+                            (biz.description ? '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.18rem;color:#3D2E24;line-height:1.7;text-align:center;">“' + biz.description + '”</div>' : '') +
+                            bAbout +
+                            iconRowHtml +
+                            bPromo +
+                        '</div>' +
+                    '</div>';
+            } else
             originHtml = '<div style="background:#EFE5EF;">' +
                 '<div style="cursor:pointer;padding:13px 14px;display:flex;align-items:center;gap:13px;" onclick="var d=this.parentNode.querySelector(\'.origin-details\');var a=this.querySelector(\'.origin-arrow\');if(d.style.display===\'none\'){d.style.display=\'block\';a.style.transform=\'rotate(180deg)\';}else{d.style.display=\'none\';a.style.transform=\'rotate(0deg)\';}">' +
                     '<div style="flex-shrink:0;text-align:center;width:92px;">' +
