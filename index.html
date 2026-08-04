@@ -8528,7 +8528,7 @@
                             : isExternalNote
                                 ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                                 : thread.role === 'business'
-                                    ? `<div class="tap-col-nophoto">${bizTileHtml(thread.from)}</div>`
+                                    ? `<div class="tap-col-nophoto" style="padding:0;">${bizTileHtml(thread.from, thread.businessInfo && thread.businessInfo.logo)}</div>`
                                     : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
                     }
                     <div class="tap-col-body">
@@ -8790,7 +8790,7 @@
                         : isExternalNote
                             ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
                             : t.role === 'business'
-                                ? `<div style="width:100%;height:100%;">${bizTileHtml(t.from)}</div>`
+                                ? `<div style="width:100%;height:100%;">${bizTileHtml(t.from, t.businessInfo && t.businessInfo.logo)}</div>`
                                 : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
                 // External cards: label with the destination URL/domain, then the user's notes at a glance.
                 const extDomainLabel = externalDisplayLabel(t);
@@ -8848,15 +8848,19 @@
     // Helper: append #t=0.1 so iOS Safari renders first frame as poster instead of black box
     function posterUrl(u) { return u ? (u + '#t=0.1') : u; }
     // Downscaled Supabase Storage image via the render/transform endpoint.
-    // Branded tile for saved businesses with no photos — plum initials mark on
-    // the lilac field instead of a generic emoji.
-    function bizTileHtml(name) {
+    // Branded tile for saved businesses. Their logo fills the frame edge to
+    // edge; without one, full-bleed initials (SVG so they scale to any tile).
+    function bizTileHtml(name, logo) {
+        if (logo) {
+            var safe = String(logo).replace(/"/g, '&quot;');
+            return '<img src="' + safe + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">';
+        }
         var n = String(name || 'Business');
         var initials = n.split(/\s+/).map(function(w){ return w[0] || ''; }).join('').substring(0, 2).toUpperCase() || 'B';
-        return '<div style="width:100%;height:100%;background:#EFE5EF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;">' +
-            '<div style="width:42%;aspect-ratio:1;border-radius:50%;background:#8B3A7F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:\'DM Sans\',sans-serif;font-weight:700;font-size:1.35rem;">' + initials + '</div>' +
-            '<div style="font-family:\'DM Sans\',sans-serif;font-size:0.58rem;letter-spacing:.14em;color:#8B3A7F;font-weight:700;">BUSINESS</div>' +
-        '</div>';
+        return '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;">' +
+            '<rect width="100" height="100" fill="#EFE5EF"/>' +
+            '<text x="50" y="54" text-anchor="middle" dominant-baseline="middle" font-family="Crimson Pro,Georgia,serif" font-weight="600" font-size="46" fill="#8B3A7F">' + initials + '</text>' +
+        '</svg>';
     }
 
     // Full phone photos are ~6x larger than we need at thumbnail size, which
@@ -9187,7 +9191,7 @@
                 originHtml =
                     '<div style="background:#F0EFED;padding:20px 18px 4px;">' +
                         '<div style="background:#fff;padding:10px 10px 14px;box-shadow:0 6px 18px rgba(0,0,0,0.14);transform:rotate(-1.2deg);max-width:290px;margin:0 auto;">' +
-                            '<div style="aspect-ratio:1;overflow:hidden;">' + bizTileHtml(biz.name) + '</div>' +
+                            '<div style="aspect-ratio:1;overflow:hidden;">' + bizTileHtml(biz.name, biz.logo) + '</div>' +
                             '<div style="font-family:\'Caveat\',cursive;font-size:1.4rem;text-align:center;margin-top:8px;color:#2a1a2e;">' + (biz.name || 'Business') + '</div>' +
                             '<div style="font-family:\'Courier New\',Courier,monospace;font-size:0.7rem;text-align:center;color:#6B5751;letter-spacing:.14em;">' + tapDateFull(thread.date, thread.occurred) + '</div>' +
                         '</div>' +
