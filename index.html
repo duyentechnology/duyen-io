@@ -5944,19 +5944,12 @@
                     if (receiverTitle) receiverTitle.textContent = "I'm Receiving This Gift";
                 }
             } else if (!data.giver_data && !data.giver_user_id && !data.receiver_data && !data.receiver_user_id) {
-                // Truly blank note — giver / receiver only. Businesses claim via
-                // dedicated business-profile QRs (source='business'), which skip
-                // this screen entirely, so notes never offer a business role.
-                // A quiet owner's link below the cards covers attach-after for a
-                // business that generated blank codes.
-                bizOption.style.display = 'none';
+                // Truly blank note — all three roles. The business card routes to
+                // dayduyen.tech to sign up, attach a profile (about, promotions)
+                // and manage the code. Dedicated business-profile QRs
+                // (source='business') still skip this screen entirely.
+                bizOption.style.display = 'block';
                 document.getElementById('roleGiverCard').style.display = 'block';
-                var attachLink = document.getElementById('roleAttachLink');
-                if (attachLink) {
-                    attachLink.style.display = 'block';
-                    var a = document.getElementById('roleAttachLinkA');
-                    if (a) a.onclick = function(ev) { ev.preventDefault(); window.location.href = 'https://dayduyen.tech/#claim/' + data.id; };
-                }
                 if (subtitle) subtitle.textContent = "Someone wove a connection into this code. What's your role in this story?";
                 if (giverTitle) giverTitle.textContent = "I'm Giving a Gift";
                 if (receiverTitle) receiverTitle.textContent = "I Received This";
