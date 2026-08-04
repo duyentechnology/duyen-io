@@ -4314,6 +4314,7 @@
                     note: entry.note,
                     role: entry.role,
                     externalUrl: (entry.role === 'external') ? (entry.note || qr.url || null) : null,
+                    qrUrl: qr.url || null,
                     media: (qr.media && qr.media.length > 0) ? qr.media : null,
                     linkMeta: qr.link_meta || null,
                     promotion: qr.promotion || null,
@@ -5756,6 +5757,13 @@
         if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
             window.__menuPhotos = biz.menuPhotos;
             iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
+        }
+        // Share this business — canonical link is its QR URL, so shared opens
+        // count in the same scan stats.
+        if (data.url) {
+            var _shu = String(data.url).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            var _shn = String(biz.name || 'this business').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            iconsHtml += '<a href="#" onclick="event.stopPropagation();shareBusinessLink(\'' + _shu + '\',\'' + _shn + '\');return false;" aria-label="Share" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6"/><path d="M8.2 13.2l7.6 4.6"/></svg></a>';
         }
         var iconRowHtml = iconsHtml ? '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
 
@@ -9174,6 +9182,11 @@
                 window.__menuPhotos = biz.menuPhotos;
                 iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
             }
+            if (thread.qrUrl) {
+                var _shu2 = String(thread.qrUrl).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                var _shn2 = String(biz.name || 'this business').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                iconsHtml += '<a href="#" onclick="event.stopPropagation();shareBusinessLink(\'' + _shu2 + '\',\'' + _shn2 + '\');return false;" aria-label="Share" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6"/><path d="M8.2 13.2l7.6 4.6"/></svg></a>';
+            }
             var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
 
             if (thread.role === 'business') {
@@ -10290,6 +10303,15 @@
             if (Math.abs(diff) > 50) lightboxNav(diff > 0 ? 1 : -1);
         }, { passive: true });
     })();
+
+    function shareBusinessLink(url, name) {
+        if (navigator.share) {
+            navigator.share({ title: name, text: 'Check out ' + name + ' on Duyên', url: url }).catch(function(){});
+        } else {
+            try { navigator.clipboard.writeText(url); alert('Link copied: ' + url); }
+            catch(e) { prompt('Copy this link:', url); }
+        }
+    }
 
     function shareExternalLink(url, title) {
         if (navigator.share) {
