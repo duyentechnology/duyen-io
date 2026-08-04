@@ -8527,7 +8527,9 @@
                             ? `<div class="tap-col-photo"><img src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
                             : isExternalNote
                                 ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
-                                : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
+                                : thread.role === 'business'
+                                    ? `<div class="tap-col-nophoto">${bizTileHtml(thread.from)}</div>`
+                                    : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
                     }
                     <div class="tap-col-body">
                         <div class="tap-col-caption">${extDomainLabel ? extDomainLabel.replace(/</g,'&lt;') : (isExternalNote && !hasLinkImage && extDomain ? extDomain : caption)}</div>
@@ -8787,7 +8789,9 @@
                         ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
                         : isExternalNote
                             ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
-                            : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
+                            : t.role === 'business'
+                                ? `<div style="width:100%;height:100%;">${bizTileHtml(t.from)}</div>`
+                                : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
                 // External cards: label with the destination URL/domain, then the user's notes at a glance.
                 const extDomainLabel = externalDisplayLabel(t);
                 const extNote = (t.role === 'external' && t.message && t.message !== 'A meaningful moment')
@@ -8844,6 +8848,17 @@
     // Helper: append #t=0.1 so iOS Safari renders first frame as poster instead of black box
     function posterUrl(u) { return u ? (u + '#t=0.1') : u; }
     // Downscaled Supabase Storage image via the render/transform endpoint.
+    // Branded tile for saved businesses with no photos — plum initials mark on
+    // the lilac field instead of a generic emoji.
+    function bizTileHtml(name) {
+        var n = String(name || 'Business');
+        var initials = n.split(/\s+/).map(function(w){ return w[0] || ''; }).join('').substring(0, 2).toUpperCase() || 'B';
+        return '<div style="width:100%;height:100%;background:#EFE5EF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;">' +
+            '<div style="width:42%;aspect-ratio:1;border-radius:50%;background:#8B3A7F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:\'DM Sans\',sans-serif;font-weight:700;font-size:1.35rem;">' + initials + '</div>' +
+            '<div style="font-family:\'DM Sans\',sans-serif;font-size:0.58rem;letter-spacing:.14em;color:#8B3A7F;font-weight:700;">BUSINESS</div>' +
+        '</div>';
+    }
+
     // Full phone photos are ~6x larger than we need at thumbnail size, which
     // made the tapestry slow to load and the collage janky to swipe. Only
     // rewrites public storage-object URLs; links/data-URIs pass through.
@@ -9168,29 +9183,35 @@
                         '<div style="font-size:15px;color:#6B5751;line-height:1.45;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
                         iconRowHtml +
                     '</div>' +
-                    '<span class="origin-arrow" style="width:32px;height:32px;border-radius:50%;background:rgba(139,58,127,0.12);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s ease;">' +
+                    '<span class="origin-arrow" style="width:32px;height:32px;border-radius:50%;background:rgba(139,58,127,0.12);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s ease;' + (thread.role === 'business' ? 'transform:rotate(180deg);' : '') + '">' +
                         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
                     '</span>' +
                 '</div>' +
-                '<div class="origin-details" style="display:none;padding:0 1.4rem 14px;border-top:1px solid #E0CFE0;">' +
+                // Saved businesses: the business info IS the card — start open.
+                // Gift entries keep it tucked behind the tap.
+                '<div class="origin-details" style="display:' + (thread.role === 'business' ? 'block' : 'none') + ';padding:0 1.4rem 14px;border-top:1px solid #E0CFE0;">' +
                     '<div style="padding-top:12px;">'+bizDetails+'</div>' +
                 '</div>' +
             '</div>';
         }
 
         const recipientName = thread.recipientName || (thread.role === 'receiver' ? 'you' : 'you');
+        // The gift presentation (For [name], message, byline) belongs to actual
+        // gifts. A saved business has no gift message — its story and contact
+        // live in the origin panel above, so the gift block is skipped.
+        const isGiftEntry = thread.role !== 'external' && thread.role !== 'business';
         card.innerHTML=`${originHtml}
         <div class="tap-fc-body">
             ${thread.isFavorite ? '<div class="tap-fc-role">⭐</div>' : ''}
 
-            <!-- For [recipient] header — matched to live scan view (hidden for external scans) -->
-            ${thread.role === 'external' ? '' : `<div style="text-align: center; padding: 1.5rem 0 1.25rem;">
+            <!-- For [recipient] header — gifts only -->
+            ${!isGiftEntry ? '' : `<div style="text-align: center; padding: 1.5rem 0 1.25rem;">
                 <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.4rem; color: #6B5751; margin-bottom: 0.4rem; letter-spacing: 0.01em;">For</div>
                 <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3.5rem; color: #2E2A28; line-height: 1; letter-spacing: 0.04em;">${recipientName}</div>
             </div>`}
 
-            <!-- Original message — italic serif, no sandy box -->
-            <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.giverMessage || thread.message || ''}</div>
+            <!-- Original message — italic serif, no sandy box (gifts only) -->
+            ${!isGiftEntry && thread.role === 'business' ? '' : `<div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.giverMessage || thread.message || ''}</div>`}
 
             <!-- Photos / videos / voice -->
             ${photoHtml}
@@ -9198,8 +9219,8 @@
             ${voiceHtml}
 
             <!-- "from" attribution (small, below media). Gift pathway only —
-                 woven moments (role 'external') carry no giver, so no byline. -->
-            ${thread.role === 'external' ? '' : `<div style="text-align: center; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; color: #6B5751;">${fromPrefixes[thread.role]||'from'} <span style="color:#8B3A7F;font-weight:500;">${thread.from}</span></div>`}
+                 woven moments and saved businesses carry no giver byline. -->
+            ${!isGiftEntry ? '' : `<div style="text-align: center; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; color: #6B5751;">${fromPrefixes[thread.role]||'from'} <span style="color:#8B3A7F;font-weight:500;">${thread.from}</span></div>`}
 
             ${(thread.externalUrl && !(thread.linkMeta && thread.linkMeta.image)) ? editField('url','Link',thread.externalUrl,'url') : ''}
             ${linkHtml}
