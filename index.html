@@ -5795,11 +5795,13 @@
             // their page), otherwise the 緣 DUYÊN mark. Origin text middle,
             // icon row (socials + call + navigate) under.
             '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #E0CFE0;">' +
-                '<div style="flex-shrink:0;text-align:center;width:92px;">' +
+                '<div style="flex-shrink:0;text-align:center;width:' + (bizLogo ? '112' : '92') + 'px;">' +
                     (bizLogo ?
                         // contain, not cover: uploaded logos are any shape
                         // (wordmarks, wide banners) and must never be cropped.
-                        '<img src="' + bizLogo + '" alt="' + String(biz.name || '').replace(/"/g,'&quot;') + '" style="width:92px;height:92px;border-radius:14px;object-fit:contain;background:#fff;border:1px solid #E0CFE0;padding:5px;box-sizing:border-box;display:block;margin:0 auto;">'
+                        // 112px is as wide as this column goes before the
+                        // origin text starts wrapping badly on a 390px phone.
+                        '<img src="' + bizLogo + '" alt="' + String(biz.name || '').replace(/"/g,'&quot;') + '" style="width:112px;height:112px;border-radius:16px;object-fit:contain;background:#fff;border:1px solid #E0CFE0;padding:4px;box-sizing:border-box;display:block;margin:0 auto;">'
                     :
                         '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
                         '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>'
