@@ -2730,6 +2730,11 @@
                 <div class="identity-desc">Claim this code and set up your profile on dayduyen.tech</div>
             </div>
             </div><!-- end qrRoleCards -->
+            <!-- Owner's door: attach-after for blank codes a business generated
+                 without a profile. Quiet link, not a third role card. -->
+            <div id="roleAttachLink" style="display:none;text-align:center;margin-top:1.1rem;">
+                <a href="#" id="roleAttachLinkA" style="font-size:0.85rem;color:var(--text-muted);text-decoration:underline;">Your business's code? Attach your profile →</a>
+            </div>
         </div>
         <div id="qrNotFound" style="display: none;">
             <div class="card" style="text-align: center; padding: 2rem 0;">
@@ -5896,6 +5901,9 @@
                                    data.photo;
             
             var hasBusinessData = data.business_data || data.business_user_id || hasGeneratedData;
+            // Owner attach link is only for truly blank notes — reset each scan.
+            var _ral = document.getElementById('roleAttachLink');
+            if (_ral) _ral.style.display = 'none';
             var subtitle = document.getElementById('qrRoleSubtitle');
             var giverTitle = document.getElementById('roleGiverTitle');
             var receiverTitle = document.getElementById('roleReceiverTitle');
@@ -5934,8 +5942,16 @@
                 // Truly blank note — giver / receiver only. Businesses claim via
                 // dedicated business-profile QRs (source='business'), which skip
                 // this screen entirely, so notes never offer a business role.
+                // A quiet owner's link below the cards covers attach-after for a
+                // business that generated blank codes.
                 bizOption.style.display = 'none';
                 document.getElementById('roleGiverCard').style.display = 'block';
+                var attachLink = document.getElementById('roleAttachLink');
+                if (attachLink) {
+                    attachLink.style.display = 'block';
+                    var a = document.getElementById('roleAttachLinkA');
+                    if (a) a.onclick = function(ev) { ev.preventDefault(); window.location.href = 'https://dayduyen.tech/#claim/' + data.id; };
+                }
                 if (subtitle) subtitle.textContent = "Someone wove a connection into this code. What's your role in this story?";
                 if (giverTitle) giverTitle.textContent = "I'm Giving a Gift";
                 if (receiverTitle) receiverTitle.textContent = "I Received This";
