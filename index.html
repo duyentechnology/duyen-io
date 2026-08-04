@@ -7455,7 +7455,7 @@
                 .insert({
                     user_id: user.id,
                     qr_code_id: scannedQRData.id,
-                    role: 'saved',
+                    role: 'business', // tapestry_role_check: giver|receiver|business|external
                     title: title
                 })
                 .select();
