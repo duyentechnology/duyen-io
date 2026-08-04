@@ -7144,8 +7144,10 @@
         var url = document.getElementById('qcShareUrl').textContent;
         var msgEl = document.getElementById('qcShareMessage');
         var msg = msgEl && msgEl.value.trim() ? msgEl.value.trim() : 'I left a moment for you 💜';
+        // One combined string — separate text+url fields split into two
+        // iMessage bubbles; combined they stay in one.
         if (navigator.share) {
-            navigator.share({ title: 'A gift message from DUYÊN', text: msg, url: url }).catch(function(){});
+            navigator.share({ text: msg + ' — ' + url }).catch(function(){});
         }
     }
     function copyGiverLink() { copyQcLink(); }
