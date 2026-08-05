@@ -4313,6 +4313,13 @@
                     isFavorite: entry.is_favorite,
                     note: entry.note,
                     role: entry.role,
+                    // Private memory layer. These live on the TAPESTRY row, which is
+                    // one per person per code and RLS'd to its owner — never on
+                    // qr_codes, which a business shares with every other saver.
+                    memoryEnabled: !!qr.memory_enabled,
+                    memoryMedia: Array.isArray(entry.media) ? entry.media : [],
+                    memoryVoice: entry.voice || null,
+                    memoryNote: entry.memory_note || '',
                     externalUrl: (entry.role === 'external') ? (entry.note || qr.url || null) : null,
                     qrUrl: qr.url || null,
                     media: (qr.media && qr.media.length > 0) ? qr.media : null,
@@ -9336,6 +9343,7 @@
             <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')"><svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v5M14 11v5"/></svg>Delete Memory</button>
             `}
         </div>
+        ${isMemoryThread(thread) ? memoryBlockHtml(thread, tid) : ''}
         ${(thread.role === 'giver' || thread.role === 'receiver') && thread.receiverResponse && thread.receiverResponse.message ? buildReceiverResponseHtml(thread) : ''}
         ${isGiftQR ? `<button class="tap-fc-delete-btn" style="display:block;" onclick="confirmDeleteThread('${tid}')"><svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v5M14 11v5"/></svg>Remove from Tapestry</button>` : ''}`;
         // Wire up audio after insert
@@ -10028,7 +10036,8 @@
         if (slot) { slot.blob = null; slot.chunks = []; }
         document.getElementById('edit-voice-preview-' + threadId).style.display = 'none';
         const thread = userThreads.find(t => t.id === threadId);
-        document.getElementById('edit-voice-btn-' + threadId).innerHTML = thread && thread.hasVoice ? '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record' : '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo';
+        var _hv = thread && (isMemoryThread(thread) ? !!thread.memoryVoice : thread.hasVoice);
+        document.getElementById('edit-voice-btn-' + threadId).innerHTML = _hv ? '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Re-record' : '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>Record Voice Memo';
         document.getElementById('edit-voice-btn-' + threadId).classList.remove('recording');
     }
 
@@ -10046,18 +10055,26 @@
             var thread = userThreads.find(t => t.id === threadId);
             if (!thread) return;
 
-            var voiceUrl = await uploadBlobToStorage(slot.blob, 'edit/' + user.id, 'voice');
+            var voiceUrl = await uploadBlobToStorage(slot.blob, (isMemoryThread(thread) ? 'memory/' : 'edit/') + user.id, 'voice');
             if (!voiceUrl) { alert('Could not upload voice memo.'); return; }
 
-            var { error } = await _supabase
-                .from('qr_codes').update({ voice: voiceUrl }).eq('id', thread.qr_code_id);
+            var { error } = await persistMemory(thread, { voice: voiceUrl });
             if (error) { alert('Could not save voice: ' + error.message); return; }
 
             // Update local thread
-            thread.hasVoice = true;
-            thread.voiceUrl = voiceUrl;
+            if (isMemoryThread(thread)) {
+                thread.memoryVoice = voiceUrl;
+            } else {
+                thread.hasVoice = true;
+                thread.voiceUrl = voiceUrl;
+            }
 
             // Update UI — replace preview with saved player
+            var memSlot = document.getElementById('memory-voice-player-' + threadId);
+            if (memSlot && isMemoryThread(thread)) {
+                memSlot.style.display = '';
+                memSlot.innerHTML = '<audio controls src="' + voiceUrl + '" style="width:100%;"></audio>';
+            }
             var editSection = document.getElementById('voice-edit-' + threadId);
             if (editSection) {
                 var playerDiv = editSection.querySelector('.tap-fc-voice-edit-player');
@@ -10083,7 +10100,66 @@
     }
 
     // Edit-mode media list (images + videos) as [{type,url}], from thread.media or legacy photos.
+    // A saved business carries a memory layer when the business paid for its
+    // code. Everything written here goes to the saver's own tapestry row.
+    // "Your memories" — the saver's own layer on a saved business. Always
+    // visible (not behind the ✏️ toggle) because it is the point of saving,
+    // and it reuses the same handlers/ids as the external edit block.
+    function memoryBlockHtml(thread, tid) {
+        var hasVoice = !!thread.memoryVoice;
+        var noteVal = String(thread.memoryNote || '').replace(/"/g, '&quot;');
+        return '' +
+        '<div style="margin:18px 0 0;padding:16px 14px 14px;background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;">' +
+            '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.25rem;font-weight:700;color:#2E2A28;text-align:center;">Your memories</div>' +
+            '<div style="font-size:0.82rem;color:#9A8478;text-align:center;margin:3px 0 13px;line-height:1.45;">Only you can see these.</div>' +
+            '<div id="photo-grid-' + tid + '" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;"></div>' +
+            '<div id="photo-count-' + tid + '" style="font-size:0.75rem;color:#9A8478;text-align:center;margin-top:6px;"></div>' +
+            '<input type="file" id="photo-input-' + tid + '" accept="image/*,video/*" multiple style="display:none;" onchange="handleEditPhotos(\'' + tid + '\', this)">' +
+            '<button onclick="document.getElementById(\'photo-input-' + tid + '\').click()" style="width:100%;margin-top:11px;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.92rem;font-weight:600;cursor:pointer;">' +
+                '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos' +
+            '</button>' +
+            '<div id="memory-voice-player-' + tid + '" style="margin-top:11px;' + (hasVoice ? '' : 'display:none;') + '">' + (hasVoice ? '<audio controls src="' + thread.memoryVoice + '" style="width:100%;"></audio>' : '') + '</div>' +
+            '<button id="edit-voice-btn-' + tid + '" onclick="toggleEditRecording(\'' + tid + '\')" style="width:100%;margin-top:9px;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.92rem;font-weight:600;cursor:pointer;">' +
+                '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>' + (hasVoice ? 'Re-record' : 'Record a voice note') +
+            '</button>' +
+            '<div id="edit-voice-timer-' + tid + '" style="display:none;font-size:0.85rem;color:#9A8478;text-align:center;margin-top:6px;"><span id="edit-timer-text-' + tid + '">0:00</span></div>' +
+            '<div id="edit-voice-preview-' + tid + '" style="display:none;align-items:center;gap:8px;margin-top:9px;">' +
+                '<audio id="edit-voice-audio-' + tid + '" controls style="flex:1;min-width:0;"></audio>' +
+                '<button onclick="cancelEditRecording(\'' + tid + '\')" style="background:none;border:none;cursor:pointer;color:#9A8478;font-size:1.1rem;">✕</button>' +
+                '<button onclick="saveEditVoice(\'' + tid + '\')" style="background:#8B3A7F;color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;">✓ Save</button>' +
+            '</div>' +
+            '<textarea id="memory-note-' + tid + '" rows="2" placeholder="What do you want to remember about this?" onblur="saveMemoryNote(\'' + tid + '\', this.value)" style="width:100%;margin-top:11px;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.95rem;color:#3D2E24;resize:vertical;">' + noteVal + '</textarea>' +
+        '</div>';
+    }
+
+    async function saveMemoryNote(threadId, value) {
+        var thread = userThreads.find(function (t) { return t.id === threadId; });
+        if (!thread || !isMemoryThread(thread)) return;
+        var v = String(value || '').slice(0, 2000);
+        if (v === (thread.memoryNote || '')) return;
+        thread.memoryNote = v;
+        try {
+            await _supabase.from('tapestry').update({ memory_note: v }).eq('id', thread.id);
+        } catch (e) { console.error('Memory note save failed:', e); }
+    }
+
+    function isMemoryThread(thread) {
+        return !!(thread && thread.role === 'business' && thread.memoryEnabled);
+    }
+    // Where this thread's media/voice is persisted. Business saves write to
+    // their own tapestry row; everything else keeps its existing home.
+    function memoryTarget(thread) {
+        return isMemoryThread(thread)
+            ? { table: 'tapestry', id: thread.id }
+            : { table: 'qr_codes', id: thread.qr_code_id };
+    }
+    async function persistMemory(thread, patch) {
+        var t = memoryTarget(thread);
+        return await _supabase.from(t.table).update(patch).eq('id', t.id);
+    }
+
     function editMediaList(thread) {
+        if (isMemoryThread(thread)) return (thread.memoryMedia || []).slice();
         return (thread.media && thread.media.length)
             ? thread.media.slice()
             : (thread.photos || []).map(function (u) { return { type: 'image', url: u }; });
@@ -10121,11 +10197,14 @@
     }
 
     async function commitEditMediaOrder(threadId, thread, next) {
-        thread.media = next;
-        thread.photos = next.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
+        if (isMemoryThread(thread)) thread.memoryMedia = next;
+        else {
+            thread.media = next;
+            thread.photos = next.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
+        }
         renderEditPhotoGrid(threadId, thread);          // reflect new order immediately (optimistic)
         try {
-            await _supabase.from('qr_codes').update({ media: next }).eq('id', thread.qr_code_id);
+            await persistMemory(thread, { media: next });
         } catch (e) { console.error('Reorder persist failed:', e); }
     }
 
@@ -10135,11 +10214,14 @@
         if (!confirm('Remove this from the moment?')) return;
         var media = editMediaList(thread);
         media.splice(idx, 1);
-        thread.media = media;
-        thread.photos = media.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
+        if (isMemoryThread(thread)) thread.memoryMedia = media;
+        else {
+            thread.media = media;
+            thread.photos = media.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
+        }
         renderEditPhotoGrid(threadId, thread);
         try {
-            await _supabase.from('qr_codes').update({ media: media }).eq('id', thread.qr_code_id);
+            await persistMemory(thread, { media: media });
         } catch (e) { console.error('Remove persist failed:', e); }
     }
 
@@ -10194,23 +10276,27 @@
 
             const newUrls = [];
             for (const file of validatedFiles) {
-                const url = await uploadToStorage(file, 'edit/' + user.id);
+                const url = await uploadToStorage(file, (isMemoryThread(thread) ? 'memory/' : 'edit/') + user.id);
                 if (url) newUrls.push({ type: file.type.startsWith('video/') ? 'video' : 'image', url });
             }
             if (!newUrls.length) return;
 
-            const { data: qrData } = await _supabase
-                .from('qr_codes').select('media').eq('id', thread.qr_code_id).single();
-            const existingMedia = qrData?.media || [];
+            const tgt = memoryTarget(thread);
+            const { data: cur } = await _supabase
+                .from(tgt.table).select('media').eq('id', tgt.id).single();
+            const existingMedia = cur?.media || [];
             const updatedMedia = [...existingMedia, ...newUrls];
 
-            const { error } = await _supabase
-                .from('qr_codes').update({ media: updatedMedia }).eq('id', thread.qr_code_id);
+            const { error } = await persistMemory(thread, { media: updatedMedia });
             if (error) { alert('Could not save: ' + error.message); return; }
 
-            const prevMedia = (thread.media || (thread.photos||[]).map(u => ({ type: 'image', url: u })));
-            thread.media = [...prevMedia, ...newUrls];
-            thread.photos = thread.media.filter(m => m.type !== 'video').map(m => m.url);
+            if (isMemoryThread(thread)) {
+                thread.memoryMedia = updatedMedia;
+            } else {
+                const prevMedia = (thread.media || (thread.photos||[]).map(u => ({ type: 'image', url: u })));
+                thread.media = [...prevMedia, ...newUrls];
+                thread.photos = thread.media.filter(m => m.type !== 'video').map(m => m.url);
+            }
 
             // Re-render the whole edit grid (draggable + removable) in the new order.
             renderEditPhotoGrid(threadId, thread);
