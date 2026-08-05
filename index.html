@@ -10342,6 +10342,24 @@
         }, { passive: true });
     })();
 
+    // Businesses are shown three numbers — scans, saves, shares. Scans and
+    // saves are counted where they happen; this counts the third. Fire and
+    // forget: a failed count must never block the share sheet.
+    function countShare(qrUrl) {
+        try {
+            if (!qrUrl || typeof _supabase === 'undefined') return;
+            _supabase.from('qr_codes').select('id,share_count').eq('url', qrUrl).limit(1)
+                .then(function(r) {
+                    var row = r && r.data && r.data[0];
+                    if (!row) return;
+                    _supabase.from('qr_codes')
+                        .update({ share_count: (row.share_count || 0) + 1 })
+                        .eq('id', row.id)
+                        .then(function() {}, function() {});
+                }, function() {});
+        } catch (e) { /* never block sharing */ }
+    }
+
     function shareBusinessLink(url, name) {
         // Share the /s/<code> link ALONE: a lone link renders as ONE rich
         // preview card in iMessage. /s/* is proxied (see _redirects) to the
@@ -10351,6 +10369,7 @@
         var m = String(url).match(/\/q\/([A-Za-z0-9-]+)/);
         var shareUrl = m ? 'https://duyen.io/s/' + m[1]
             : url + (url.indexOf('?') === -1 ? '?' : '&') + 'v=share';
+        countShare(url);
         // URL only — adding any text alongside would split into a second
         // bubble and lose the card.
         if (navigator.share) {
