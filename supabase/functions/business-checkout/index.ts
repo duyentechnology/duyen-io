@@ -52,12 +52,16 @@ Deno.serve(async (req) => {
   if (!user?.id) return json({ error: "Not authenticated" }, 401);
 
   // Parse the request: which tier, and (for credit top-ups) how many credits.
+  // profileId matters for the generator tier — the $20 unlocks ONE profile,
+  // so the webhook needs to know which one it paid for.
   let tier = "generator";
   let qty = 1;
+  let profileId = "";
   try {
     const b = await req.json();
     if (b?.tier) tier = String(b.tier);
     if (b?.qty) qty = Math.max(1, Math.min(1000, parseInt(b.qty, 10) || 1));
+    if (b?.profileId) profileId = String(b.profileId).slice(0, 128);
   } catch { /* defaults */ }
 
   // Build a Checkout session via the Stripe REST API (form-encoded, inline price).
@@ -68,6 +72,7 @@ Deno.serve(async (req) => {
   p.set("metadata[kind]", "business");
   p.set("metadata[tier]", tier);
   p.set("metadata[user_id]", user.id);
+  if (profileId) p.set("metadata[profile_id]", profileId);
 
   if (tier === "credits") {
     // Boutique mint-credit top-up: $0.10 per credit, one-time (qty credits).
