@@ -1474,6 +1474,7 @@
             display: none; flex-wrap: wrap; gap: 8px; margin-top: 8px;
         }
         .tap-edit-mode .tap-fc-photo-edit-grid { display: flex; }
+        .tap-edit-mode .mem-remove { display: block !important; }
         .tap-fc-photo-count-label {
             font-size: 0.75rem; color: #888; margin-top: 4px;
         }
@@ -9535,7 +9536,7 @@
         try { renderEditPhotoGrid(thread.id, thread); } catch(e) {}
         // Hide ✏️ edit toggle for gift QRs (no edits allowed; delete is always visible on the card)
         const editBtn = document.getElementById('tapEditBtn');
-        if (editBtn) editBtn.style.display = (thread.role === 'external') ? '' : 'none';
+        if (editBtn) editBtn.style.display = (thread.role === 'external' || isMemoryThread(thread)) ? '' : 'none';
         document.getElementById('tapDetailScreen').classList.add('open');
         document.getElementById('tapestryContainer').classList.add('tap-tapestryScreen-push','pushed');
         document.getElementById('tapDetailScreen').scrollTop=0;
@@ -10111,35 +10112,104 @@
     // Edit-mode media list (images + videos) as [{type,url}], from thread.media or legacy photos.
     // A saved business carries a memory layer when the business paid for its
     // code. Everything written here goes to the saver's own tapestry row.
-    // "Your memories" — the saver's own layer on a saved business. Always
-    // visible (not behind the ✏️ toggle) because it is the point of saving,
-    // and it reuses the same handlers/ids as the external edit block.
+    // "Your memories" — the saver's own layer on a saved business.
+    // Shows as CONTENT, the way a note shows its photos and words: the images
+    // are just images, the note is just text. Adding stays one tap away, but
+    // the destructive controls (✕ on a photo) only appear in edit mode, and
+    // the note has a real Save button rather than saving invisibly on blur.
     function memoryBlockHtml(thread, tid) {
+        var media = Array.isArray(thread.memoryMedia) ? thread.memoryMedia : [];
         var hasVoice = !!thread.memoryVoice;
-        var noteVal = String(thread.memoryNote || '').replace(/"/g, '&quot;');
+        var note = String(thread.memoryNote || '');
+        var noteEsc = note.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var isEmpty = !media.length && !hasVoice && !note.trim();
+
+        var photos = media.length
+            ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(media.length, 3) + ',1fr);gap:8px;margin-bottom:14px;">' +
+              media.map(function (m, i) {
+                  var u = String(m.url || m).replace(/"/g, '&quot;');
+                  var inner = (m.type === 'video')
+                      ? '<video src="' + u + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video>'
+                      : '<img src="' + u + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">';
+                  return '<div style="position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#f5f0eb;">' + inner +
+                         '<button class="mem-remove" onclick="removeEditPhoto(\'' + tid + '\',' + i + ')" aria-label="Remove" ' +
+                         'style="display:none;position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(61,46,36,0.85);color:#fff;font-size:12px;line-height:22px;padding:0;cursor:pointer;">✕</button>' +
+                         '</div>';
+              }).join('') + '</div>'
+            : '';
+
+        var voice = hasVoice
+            ? '<div id="memory-voice-player-' + tid + '" style="margin-bottom:14px;"><audio controls src="' + String(thread.memoryVoice).replace(/"/g,'&quot;') + '" style="width:100%;"></audio></div>'
+            : '<div id="memory-voice-player-' + tid + '" style="display:none;margin-bottom:14px;"></div>';
+
+        var noteBlock =
+            '<div id="memory-note-view-' + tid + '" style="' + (note.trim() ? '' : 'display:none;') + 'position:relative;">' +
+                '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.12rem;font-style:italic;color:#3D2E24;line-height:1.65;text-align:center;padding:0 6px 4px;">' + noteEsc + '</div>' +
+                '<button onclick="editMemoryNote(\'' + tid + '\')" style="display:block;margin:6px auto 0;background:none;border:none;color:#8B3A7F;font-family:\'DM Sans\',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">Edit note</button>' +
+            '</div>' +
+            '<div id="memory-note-edit-' + tid + '" style="' + (note.trim() ? 'display:none;' : '') + '">' +
+                '<textarea id="memory-note-' + tid + '" rows="3" placeholder="What do you want to remember about this?" style="width:100%;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.95rem;color:#3D2E24;resize:vertical;">' + noteEsc + '</textarea>' +
+                '<button id="memory-note-save-' + tid + '" onclick="saveMemoryNote(\'' + tid + '\')" style="width:100%;margin-top:8px;background:#8B3A7F;color:#fff;border:none;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.92rem;font-weight:600;cursor:pointer;">Save note</button>' +
+            '</div>';
+
         return '' +
         '<div style="margin:18px 0 0;padding:16px 14px 14px;background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;">' +
             '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.25rem;font-weight:700;color:#2E2A28;text-align:center;">Your memories</div>' +
-            '<div style="font-size:0.82rem;color:#9A8478;text-align:center;margin:3px 0 13px;line-height:1.45;">Only you can see these.</div>' +
-            '<div id="photo-grid-' + tid + '" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;"></div>' +
-            '<div id="photo-count-' + tid + '" style="font-size:0.75rem;color:#9A8478;text-align:center;margin-top:6px;"></div>' +
+            '<div style="font-size:0.82rem;color:#9A8478;text-align:center;margin:3px 0 13px;line-height:1.45;">' +
+                (isEmpty ? 'Add a photo, a voice note or a few words. Only you can see them.' : 'Only you can see these.') +
+            '</div>' +
+            photos +
+            '<div id="photo-grid-' + tid + '" style="display:none;"></div>' +
+            '<div id="photo-count-' + tid + '" style="display:none;"></div>' +
+            voice +
+            noteBlock +
             '<input type="file" id="photo-input-' + tid + '" accept="image/*,video/*" multiple style="display:none;" onchange="handleEditPhotos(\'' + tid + '\', this)">' +
-            '<button onclick="document.getElementById(\'photo-input-' + tid + '\').click()" style="width:100%;margin-top:11px;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.92rem;font-weight:600;cursor:pointer;">' +
-                '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos' +
-            '</button>' +
-            '<div id="memory-voice-player-' + tid + '" style="margin-top:11px;' + (hasVoice ? '' : 'display:none;') + '">' + (hasVoice ? '<audio controls src="' + thread.memoryVoice + '" style="width:100%;"></audio>' : '') + '</div>' +
-            '<button id="edit-voice-btn-' + tid + '" onclick="toggleEditRecording(\'' + tid + '\')" style="width:100%;margin-top:9px;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.92rem;font-weight:600;cursor:pointer;">' +
-                '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>' + (hasVoice ? 'Re-record' : 'Record a voice note') +
-            '</button>' +
+            '<div style="display:flex;gap:8px;margin-top:12px;">' +
+                '<button onclick="document.getElementById(\'photo-input-' + tid + '\').click()" style="flex:1;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:10px 6px;font-family:\'DM Sans\',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer;">＋ Photo</button>' +
+                '<button id="edit-voice-btn-' + tid + '" onclick="toggleEditRecording(\'' + tid + '\')" style="flex:1;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:10px 6px;font-family:\'DM Sans\',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer;">' + (hasVoice ? 'Re-record' : '＋ Voice') + '</button>' +
+                (note.trim() ? '' : '<button onclick="editMemoryNote(\'' + tid + '\')" style="flex:1;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:10px 6px;font-family:\'DM Sans\',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer;">＋ Note</button>') +
+            '</div>' +
             '<div id="edit-voice-timer-' + tid + '" style="display:none;font-size:0.85rem;color:#9A8478;text-align:center;margin-top:6px;"><span id="edit-timer-text-' + tid + '">0:00</span></div>' +
             '<div id="edit-voice-preview-' + tid + '" style="display:none;align-items:center;gap:8px;margin-top:9px;">' +
                 '<audio id="edit-voice-audio-' + tid + '" controls style="flex:1;min-width:0;"></audio>' +
                 '<button onclick="cancelEditRecording(\'' + tid + '\')" style="background:none;border:none;cursor:pointer;color:#9A8478;font-size:1.1rem;">✕</button>' +
                 '<button onclick="saveEditVoice(\'' + tid + '\')" style="background:#8B3A7F;color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;">✓ Save</button>' +
             '</div>' +
-            '<textarea id="memory-note-' + tid + '" rows="2" placeholder="What do you want to remember about this?" onblur="saveMemoryNote(\'' + tid + '\', this.value)" style="width:100%;margin-top:11px;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.95rem;color:#3D2E24;resize:vertical;">' + noteVal + '</textarea>' +
         '</div>';
     }
+
+    function editMemoryNote(threadId) {
+        var v = document.getElementById('memory-note-view-' + threadId);
+        var e = document.getElementById('memory-note-edit-' + threadId);
+        if (v) v.style.display = 'none';
+        if (e) { e.style.display = 'block'; var t = document.getElementById('memory-note-' + threadId); if (t) t.focus(); }
+    }
+
+    async function saveMemoryNote(threadId) {
+        var thread = userThreads.find(function (t) { return t.id === threadId; });
+        if (!thread || !isMemoryThread(thread)) return;
+        var ta = document.getElementById('memory-note-' + threadId);
+        if (!ta) return;
+        var v = String(ta.value || '').slice(0, 2000);
+        var btn = document.getElementById('memory-note-save-' + threadId);
+        if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+        try {
+            var res = await _supabase.from('tapestry').update({ memory_note: v }).eq('id', thread.id);
+            if (res && res.error) throw res.error;
+            thread.memoryNote = v;
+            if (btn) btn.textContent = '✓ Saved';
+            // swap back to the reading view
+            setTimeout(function () {
+                var card = document.getElementById('tapDetailCards');
+                if (card) openTapSingle(threadId);
+            }, 500);
+        } catch (e) {
+            console.error('Memory note save failed:', e);
+            if (btn) { btn.disabled = false; btn.textContent = 'Save note'; }
+            alert('Could not save your note. Please try again.');
+        }
+    }
+
 
     async function saveMemoryNote(threadId, value) {
         var thread = userThreads.find(function (t) { return t.id === threadId; });
@@ -10150,6 +10220,20 @@
         try {
             await _supabase.from('tapestry').update({ memory_note: v }).eq('id', thread.id);
         } catch (e) { console.error('Memory note save failed:', e); }
+    }
+
+    // The memory photos are rendered as content in the card, not in the hidden
+    // edit grid, so a change has to redraw the card to show up.
+    function refreshMemoryCard(threadId) {
+        var open = document.getElementById('tapDetailScreen');
+        if (open && open.classList.contains('open')) {
+            var wasEditing = document.getElementById('tapDetailCards').classList.contains('tap-edit-mode');
+            openTapSingle(threadId);
+            if (wasEditing) {
+                var cards = document.getElementById('tapDetailCards');
+                if (cards) cards.classList.add('tap-edit-mode');
+            }
+        }
     }
 
     function isMemoryThread(thread) {
@@ -10211,7 +10295,7 @@
             thread.media = next;
             thread.photos = next.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
         }
-        renderEditPhotoGrid(threadId, thread);          // reflect new order immediately (optimistic)
+        if (isMemoryThread(thread)) refreshMemoryCard(threadId); else renderEditPhotoGrid(threadId, thread);
         try {
             await persistMemory(thread, { media: next });
         } catch (e) { console.error('Reorder persist failed:', e); }
@@ -10228,7 +10312,7 @@
             thread.media = media;
             thread.photos = media.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
         }
-        renderEditPhotoGrid(threadId, thread);
+        if (isMemoryThread(thread)) refreshMemoryCard(threadId); else renderEditPhotoGrid(threadId, thread);
         try {
             await persistMemory(thread, { media: media });
         } catch (e) { console.error('Remove persist failed:', e); }
@@ -10307,8 +10391,10 @@
                 thread.photos = thread.media.filter(m => m.type !== 'video').map(m => m.url);
             }
 
-            // Re-render the whole edit grid (draggable + removable) in the new order.
-            renderEditPhotoGrid(threadId, thread);
+            // Re-render: memories are shown as content in the card, the edit
+            // grid only exists for external saves.
+            if (isMemoryThread(thread)) refreshMemoryCard(threadId);
+            else renderEditPhotoGrid(threadId, thread);
 
         } catch(e) {
             console.error('Edit media error:', e);
