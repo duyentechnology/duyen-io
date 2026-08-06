@@ -1834,7 +1834,10 @@
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            z-index: 50;
+            /* Above the Polaroid strip (cards go to 60 when featured) and the
+               month rail, so the prompts are never half-hidden behind a photo.
+               Still below the sticky header (100) and every modal. */
+            z-index: 90;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
@@ -1878,13 +1881,15 @@
             cursor: pointer;
         }
         .fab-action-label {
-            background: var(--surface, #FAF7F2);
+            /* Solid white, not --surface: the page background IS --surface, so
+               the pill used to vanish into it. It has to read over a photo. */
+            background: #fff;
             color: var(--text-primary, #1C1410);
             font-size: 0.85rem;
             font-weight: 600;
             padding: 7px 13px;
             border-radius: 20px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.14);
+            box-shadow: 0 3px 16px rgba(61,46,36,0.26);
             white-space: nowrap;
         }
         .fab-action-btn {
