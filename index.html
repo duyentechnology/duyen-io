@@ -9375,6 +9375,9 @@
         if(thread.receiverResponse && thread.receiverResponse.voice){
             setTimeout(()=>initVoicePlayer('rvp_'+thread.id),100);
         }
+        if(isMemoryThread(thread) && thread.memoryVoice){
+            setTimeout(()=>initVoicePlayer('mvp_'+thread.id),100);
+        }
         return card;
     }
 
@@ -10136,23 +10139,46 @@
         var noteEsc = note.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var isEmpty = !media.length && !hasVoice && !note.trim();
 
+        // Photos and videos exactly as a gift shows them: full width, stacked one
+        // per row, tap to open the lightbox. A memory should not look like a
+        // different kind of thing just because it arrived by scanning a QR.
         var photos = media.length
-            ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(media.length, 3) + ',1fr);gap:8px;margin-bottom:14px;">' +
+            ? '<div style="display:flex;flex-direction:column;gap:8px;margin:0 0 0.75rem;">' +
               media.map(function (m, i) {
                   var u = String(m.url || m).replace(/"/g, '&quot;');
                   var inner = (m.type === 'video')
-                      ? '<video src="' + u + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video>'
-                      : '<img src="' + u + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">';
-                  return '<div style="position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#f5f0eb;">' + inner +
-                         '<button class="mem-remove" onclick="removeEditPhoto(\'' + tid + '\',' + i + ')" aria-label="Remove" ' +
-                         'style="display:none;position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(61,46,36,0.85);color:#fff;font-size:12px;line-height:22px;padding:0;cursor:pointer;">✕</button>' +
+                      ? '<video src="' + posterUrl(u) + '" playsinline preload="metadata" onloadeddata="this.parentElement.classList.add(\'loaded\')" onerror="tapMediaRetry(this)"></video>' +
+                        '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;pointer-events:none;z-index:2;">▶</div>'
+                      : '<img src="' + u + '" alt="" loading="eager" decoding="async" onload="this.parentElement.classList.add(\'loaded\')" onerror="tapMediaRetry(this)">';
+                  return '<div class="tap-photo-wrap" onclick="openLightbox(\'' + tid + '\',' + i + ',\'memory\')">' + inner +
+                         '<button class="mem-remove" onclick="event.stopPropagation();removeEditPhoto(\'' + tid + '\',' + i + ')" aria-label="Remove" ' +
+                         'style="display:none;position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(61,46,36,0.85);color:#fff;font-size:13px;line-height:26px;padding:0;cursor:pointer;z-index:3;">✕</button>' +
                          '</div>';
               }).join('') + '</div>'
             : '';
 
-        var voice = hasVoice
-            ? '<div id="memory-voice-player-' + tid + '" style="margin-bottom:14px;"><audio controls src="' + String(thread.memoryVoice).replace(/"/g,'&quot;') + '" style="width:100%;"></audio></div>'
-            : '<div id="memory-voice-player-' + tid + '" style="display:none;margin-bottom:14px;"></div>';
+        // Same waveform player a gift's voice note uses, not a bare browser
+        // audio bar.
+        var voice;
+        if (hasVoice) {
+            var muid = 'mvp_' + tid;
+            var mbars = '';
+            for (var vb = 0; vb < 28; vb++) {
+                mbars += '<div class="tap-fc-waveform-bar" style="height:' + Math.round(20 + Math.sin(vb * 0.7) * 10 + Math.random() * 18) + 'px;"></div>';
+            }
+            voice = '<div id="memory-voice-player-' + tid + '" style="margin-bottom:14px;">' +
+                '<div class="tap-fc-voice" style="background:transparent;padding:0;">' +
+                    '<div class="tap-fc-voice-label">Voice Note</div>' +
+                    '<div class="tap-fc-voice-player">' +
+                        '<button class="tap-fc-play-btn" id="btn_' + muid + '" onclick="toggleVoicePlay(\'' + muid + '\')">▶</button>' +
+                        '<div class="tap-fc-waveform" id="wave_' + muid + '">' + mbars + '</div>' +
+                        '<div class="tap-fc-duration" id="dur_' + muid + '">—</div>' +
+                    '</div>' +
+                    '<audio class="tap-fc-audio-el" id="aud_' + muid + '" src="' + String(thread.memoryVoice).replace(/"/g,'&quot;') + '" preload="metadata"></audio>' +
+                '</div></div>';
+        } else {
+            voice = '<div id="memory-voice-player-' + tid + '" style="display:none;margin-bottom:14px;"></div>';
+        }
 
         // Reading by default; the ✏️ toggle reveals the controls.
         var noteBlock =
@@ -10466,13 +10492,17 @@
     var lightboxIdx = 0;
     var lightboxThreadId = null;
 
-    function openLightbox(threadId, idx) {
+    // source === 'memory' opens the saver's own private media (their tapestry
+    // row) rather than the media on the shared entry.
+    function openLightbox(threadId, idx, source) {
         const thread = userThreads.find(t => t.id === threadId);
         if (!thread) return;
         // Build media exactly the way buildTapFullCard does, so the tapped index
         // matches the item shown in the card strip
         let media;
-        if (thread.role === 'giver' || thread.role === 'receiver' || thread.role === 'business') {
+        if (source === 'memory') {
+            media = Array.isArray(thread.memoryMedia) ? thread.memoryMedia : [];
+        } else if (thread.role === 'giver' || thread.role === 'receiver' || thread.role === 'business') {
             const cleanPhotos = (thread.giverPhotos && thread.giverPhotos.length) ? thread.giverPhotos : [];
             media = cleanPhotos.map(url => ({type:'image', url}));
             if (thread.giverVideo && !media.some(m => (m.url||m) === thread.giverVideo)) {
