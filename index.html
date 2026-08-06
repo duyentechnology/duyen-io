@@ -1475,6 +1475,7 @@
         }
         .tap-edit-mode .tap-fc-photo-edit-grid { display: flex; }
         .tap-edit-mode .mem-remove { display: block !important; }
+        .tap-edit-mode .tap-fc-note-edit { display: block !important; }
         .tap-fc-photo-count-label {
             font-size: 0.75rem; color: #888; margin-top: 4px;
         }
@@ -9307,8 +9308,10 @@
             </div>`}
 
             <!-- Original message — italic serif, no sandy box (gifts only) -->
-            ${!isGiftEntry && thread.role === 'business' ? '' : `<div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.giverMessage || thread.message || ''}</div>`}
-
+            ${!isGiftEntry && thread.role === 'business' ? '' : `<div id="field-${tid}-message" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.giverMessage || thread.message || ''}</div>`}
+            ${thread.role !== 'external' ? '' : `<div class="tap-fc-note-edit" style="display:none;text-align:center;margin:-4px 0 12px;">
+                <button onclick="startInlineEdit('${tid}','message','${String(thread.message === 'A meaningful moment' ? '' : (thread.message || '')).replace(/'/g,"\\'").replace(/"/g,'&quot;')}')" style="background:none;border:none;color:#8B3A7F;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">${thread.message && thread.message !== 'A meaningful moment' ? 'Edit note' : 'Add a note'}</button>
+            </div>`}
             <!-- Photos / videos / voice -->
             ${photoHtml}
             ${linkCardHtml}
