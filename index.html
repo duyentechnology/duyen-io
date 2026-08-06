@@ -5531,10 +5531,10 @@
         window.history.replaceState({}, '', window.location.origin);
     }
 
-    const _supabase = window.supabase.createClient(
-        'https://qnlaaieyipeglfuepmor.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFubGFhaWV5aXBlZ2xmdWVwbW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NjAxNjgsImV4cCI6MjA4NzAzNjE2OH0.jwAH8E93iPlBJyYuF-HfoB52jVxNLiR2LL64gfqppa8'
-    );
+    const SB_URL  = 'https://qnlaaieyipeglfuepmor.supabase.co';
+    const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFubGFhaWV5aXBlZ2xmdWVwbW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NjAxNjgsImV4cCI6MjA4NzAzNjE2OH0.jwAH8E93iPlBJyYuF-HfoB52jVxNLiR2LL64gfqppa8';
+
+    const _supabase = window.supabase.createClient(SB_URL, SB_ANON);
 
     // ==========================================
     // USER PROFILE SCREEN
@@ -6098,23 +6098,35 @@
         });
     }
     
-    // Upload file to Supabase Storage, returns public URL
-    async function uploadToStorage(file, folder) {
+    // Upload file to Supabase Storage, returns public URL.
+    // Pass onProgress (called with a 0..1 fraction) to route through the XHR
+    // uploader that reports progress — the same one the giver video already
+    // uses. Without it the SDK path runs exactly as before, so every existing
+    // caller is unaffected.
+    async function uploadToStorage(file, folder, onProgress) {
         if (!file) return null;
-        
+
         // Compress images before upload
         if (file.type && file.type.startsWith('image/')) {
             file = await compressImage(file, 1200, 0.8);
         }
-        
+
         var timestamp = Date.now();
         var safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.-]/g, '_') : 'file';
         var path = folder + '/' + timestamp + '_' + safeName;
-        
+
+        if (onProgress) {
+            // Only take the progress path when there is a token to send with it;
+            // otherwise fall through to the SDK, which handles auth itself.
+            var hasToken = false;
+            try { hasToken = !!((await _supabase.auth.getSession()).data.session || {}).access_token; } catch (e) {}
+            if (hasToken) return await uploadFileWithProgress(file, folder, onProgress);
+        }
+
         var { data, error } = await _supabase.storage
             .from('qr-media')
             .upload(path, file, { cacheControl: '31536000', upsert: false });
-        
+
         if (error) {
             console.error('Upload error:', error);
             window._lastUploadError = error.message || error.error || 'unknown';
@@ -10155,6 +10167,11 @@
                       ? '<video src="' + posterUrl(u) + '" playsinline preload="metadata" onloadeddata="this.parentElement.classList.add(\'loaded\')" onerror="tapMediaRetry(this)"></video>' +
                         '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;pointer-events:none;z-index:2;">▶</div>'
                       : '<img src="' + u + '" alt="" loading="eager" decoding="async" onload="this.parentElement.classList.add(\'loaded\')" onerror="tapMediaRetry(this)">';
+                  // Still uploading: no lightbox, no remove — just the picture
+                  // it will become, behind a percentage.
+                  if (m.pending) {
+                      return '<div class="tap-photo-wrap loaded">' + inner + pendingOverlayHtml(tid, m) + '</div>';
+                  }
                   return '<div class="tap-photo-wrap" onclick="openLightbox(\'' + tid + '\',' + i + ',\'memory\')">' + inner +
                          '<button class="mem-remove" onclick="event.stopPropagation();removeEditPhoto(\'' + tid + '\',' + i + ')" aria-label="Remove" ' +
                          'style="display:none;position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(61,46,36,0.85);color:#fff;font-size:13px;line-height:26px;padding:0;cursor:pointer;z-index:3;">✕</button>' +
@@ -10339,6 +10356,49 @@
             : (thread.photos || []).map(function (u) { return { type: 'image', url: u }; });
     }
 
+    // Placeholder entries shown while their files upload. They live only in the
+    // in-memory thread — every persist path re-reads media from the database
+    // first, so a blob: URL can never be written to a row.
+    function setPendingMedia(thread, pending) {
+        if (isMemoryThread(thread)) {
+            thread.memoryMedia = (thread.memoryMedia || []).concat(pending);
+        } else {
+            thread.media = editMediaList(thread).concat(pending);
+        }
+    }
+
+    // Never persist a placeholder: its url is a blob: handle to a file on this
+    // phone, meaningless to the database and to every other device.
+    function withoutPending(list) {
+        return (list || []).filter(function (m) { return !m || !m.pending; });
+    }
+
+    function clearPendingMedia(thread, pending) {
+        var drop = function (list) {
+            return (list || []).filter(function (m) { return pending.indexOf(m) === -1; });
+        };
+        if (isMemoryThread(thread)) thread.memoryMedia = drop(thread.memoryMedia);
+        else thread.media = drop(thread.media);
+        pending.forEach(function (p) { try { URL.revokeObjectURL(p.url); } catch (e) {} });
+    }
+
+    // A memory shows its media as card content; an external save shows it in the
+    // edit grid. Refresh whichever this thread uses.
+    function refreshEditViews(threadId, thread) {
+        if (isMemoryThread(thread)) refreshMemoryCard(threadId);
+        else renderEditPhotoGrid(threadId, thread);
+    }
+
+    // Translucent cover with a live percentage, drawn over a still-uploading item.
+    // m.pi is the item's index within its upload batch, which is what the
+    // progress callback writes to.
+    function pendingOverlayHtml(threadId, m) {
+        return '<div style="position:absolute;inset:0;background:rgba(46,42,40,0.55);display:flex;' +
+               'align-items:center;justify-content:center;color:#fff;font-family:\'DM Sans\',sans-serif;' +
+               'font-size:0.95rem;font-weight:600;letter-spacing:0.02em;z-index:4;pointer-events:none;">' +
+               '<span data-up="' + threadId + '-' + m.pi + '">' + (m.pct || 0) + '%</span></div>';
+    }
+
     // Render the edit-mode photo/video grid: draggable to reorder, ✕ to remove. Order persists to DB.
     function renderEditPhotoGrid(threadId, thread) {
         var grid = document.getElementById('photo-grid-' + threadId);
@@ -10356,7 +10416,10 @@
                 ? '<video src="' + url + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></video>'
                   + '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.65rem;pointer-events:none;">▶</div>'
                 : '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;pointer-events:none;">')
-                + '<button class="remove-photo" onclick="removeEditPhoto(\'' + threadId + '\',' + idx + ')" aria-label="Remove" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(61,46,36,0.85);color:#fff;font-size:11px;line-height:20px;text-align:center;padding:0;cursor:pointer;">✕</button>';
+                + (m.pending
+                    ? pendingOverlayHtml(threadId, m)
+                    : '<button class="remove-photo" onclick="removeEditPhoto(\'' + threadId + '\',' + idx + ')" aria-label="Remove" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(61,46,36,0.85);color:#fff;font-size:11px;line-height:20px;text-align:center;padding:0;cursor:pointer;">✕</button>');
+            if (m.pending) div.style.cursor = 'default';
             grid.appendChild(div);
         });
         var countEl = document.getElementById('photo-count-' + threadId);
@@ -10378,7 +10441,7 @@
         }
         if (isMemoryThread(thread)) refreshMemoryCard(threadId); else renderEditPhotoGrid(threadId, thread);
         try {
-            await persistMemory(thread, { media: next });
+            await persistMemory(thread, { media: withoutPending(next) });
         } catch (e) { console.error('Reorder persist failed:', e); }
     }
 
@@ -10395,7 +10458,7 @@
         }
         if (isMemoryThread(thread)) refreshMemoryCard(threadId); else renderEditPhotoGrid(threadId, thread);
         try {
-            await persistMemory(thread, { media: media });
+            await persistMemory(thread, { media: withoutPending(media) });
         } catch (e) { console.error('Remove persist failed:', e); }
     }
 
@@ -10410,8 +10473,14 @@
         const allFiles = Array.from(input.files).slice(0, remaining);
         if (!allFiles.length) return;
 
-        const btn = document.querySelector(`[onclick="document.getElementById('photo-input-${threadId}').click()"]`);
-        if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
+        // Both add buttons are held while a batch is in flight. Their labels are
+        // left alone — the percentage lives on the tiles now, and rewriting the
+        // label used to leave a "Photo" button reading "Add Photos & Videos".
+        const btns = [
+            document.querySelector(`[onclick="document.getElementById('photo-input-${threadId}').click()"]`),
+            document.querySelector(`[onclick="document.getElementById('video-input-${threadId}').click()"]`)
+        ].filter(Boolean);
+        btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
         const MAX_VIDEO_SECONDS = 120;
         const validatedFiles = [];
@@ -10439,21 +10508,49 @@
         }
 
         if (!validatedFiles.length) {
-            if (btn) { btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos'; btn.disabled = false; }
+            btns.forEach(b => { b.disabled = false; b.style.opacity = ''; });
             input.value = '';
             return;
         }
 
+        // Show the picked media straight away, played from the phone's own copy,
+        // and upload behind it. A 190MB video takes minutes to leave the device;
+        // there is no reason to stare at a disabled button for that.
+        const pending = validatedFiles.map(function (f, i) {
+            return { type: f.type.startsWith('video/') ? 'video' : 'image',
+                     url: URL.createObjectURL(f), pending: true, pct: 0, pi: i };
+        });
+        setPendingMedia(thread, pending);
+        refreshEditViews(threadId, thread);
+
         try {
             const user = (await _supabase.auth.getUser()).data.user;
-            if (!user) return;
+            if (!user) { clearPendingMedia(thread, pending); refreshEditViews(threadId, thread); return; }
 
-            const newUrls = [];
-            for (const file of validatedFiles) {
-                const url = await uploadToStorage(file, (isMemoryThread(thread) ? 'memory/' : 'edit/') + user.id);
-                if (url) newUrls.push({ type: file.type.startsWith('video/') ? 'video' : 'image', url });
+            // Upload together, not one after another: three clips take as long as
+            // the slowest, instead of the sum of all three.
+            const folder = (isMemoryThread(thread) ? 'memory/' : 'edit/') + user.id;
+            const results = await Promise.all(validatedFiles.map(function (file, i) {
+                return uploadToStorage(file, folder, function (frac) {
+                    var pct = Math.round((frac || 0) * 100);
+                    pending[i].pct = pct;
+                    // querySelectorAll, not getElementById: the same item can be
+                    // drawn in both the card and the hidden edit grid.
+                    document.querySelectorAll('[data-up="' + threadId + '-' + i + '"]')
+                        .forEach(function (el) { el.textContent = pct + '%'; });
+                }).then(function (url) {
+                    return url ? { type: pending[i].type, url: url } : null;
+                });
+            }));
+
+            const newUrls = results.filter(Boolean);
+            clearPendingMedia(thread, pending);
+            if (newUrls.length < pending.length) {
+                alert(newUrls.length
+                    ? 'Some files could not be uploaded. The rest were saved.'
+                    : 'Upload failed. Please try again.');
             }
-            if (!newUrls.length) return;
+            if (!newUrls.length) { refreshEditViews(threadId, thread); return; }
 
             const tgt = memoryTarget(thread);
             const { data: cur } = await _supabase
@@ -10472,16 +10569,18 @@
                 thread.photos = thread.media.filter(m => m.type !== 'video').map(m => m.url);
             }
 
-            // Re-render: memories are shown as content in the card, the edit
-            // grid only exists for external saves.
-            if (isMemoryThread(thread)) refreshMemoryCard(threadId);
-            else renderEditPhotoGrid(threadId, thread);
+            refreshEditViews(threadId, thread);
 
         } catch(e) {
+            clearPendingMedia(thread, pending);
+            refreshEditViews(threadId, thread);
             console.error('Edit media error:', e);
             alert('Error uploading.');
         } finally {
-            if (btn) { btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Add Photos &amp; Videos'; btn.disabled = false; }
+            // The buttons are re-queried: a refresh above may have rebuilt them.
+            [document.querySelector(`[onclick="document.getElementById('photo-input-${threadId}').click()"]`),
+             document.querySelector(`[onclick="document.getElementById('video-input-${threadId}').click()"]`)
+            ].filter(Boolean).forEach(b => { b.disabled = false; b.style.opacity = ''; });
             input.value = '';
         }
     }
