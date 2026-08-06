@@ -10198,7 +10198,9 @@
         '<div style="margin:18px 0 0;padding:16px 14px 14px;background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;">' +
             '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.45rem;font-weight:700;color:#2E2A28;text-align:center;">Your memories</div>' +
             '<div style="font-size:0.95rem;color:#9A8478;text-align:center;margin:4px 0 15px;line-height:1.5;">' +
-                (isEmpty ? 'Only you can see these. Tap ✏️ above to add a photo, a video, a voice note or a few words.' : 'Only you can see these.') +
+                // The same pencil glyph as the header button, not the emoji, so
+                // the hint points at something that looks like the real control.
+                (isEmpty ? 'Only you can see these. Tap <svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;" fill="none" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg> above to add a photo, a video, a voice note or a few words.' : 'Only you can see these.') +
             '</div>' +
             photos +
             '<div id="photo-grid-' + tid + '" style="display:none;"></div>' +
