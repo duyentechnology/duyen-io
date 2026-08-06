@@ -10145,15 +10145,11 @@
             ? '<div id="memory-voice-player-' + tid + '" style="margin-bottom:14px;"><audio controls src="' + String(thread.memoryVoice).replace(/"/g,'&quot;') + '" style="width:100%;"></audio></div>'
             : '<div id="memory-voice-player-' + tid + '" style="display:none;margin-bottom:14px;"></div>';
 
+        // The note box stays visible with the note in it — writing is the point.
+        // The Save button is what was missing before.
         var noteBlock =
-            '<div id="memory-note-view-' + tid + '" style="' + (note.trim() ? '' : 'display:none;') + 'position:relative;">' +
-                '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.32rem;font-style:italic;color:#3D2E24;line-height:1.6;text-align:center;padding:0 6px 4px;">' + noteEsc + '</div>' +
-                '<button onclick="editMemoryNote(\'' + tid + '\')" style="display:block;margin:6px auto 0;background:none;border:none;color:#8B3A7F;font-family:\'DM Sans\',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;">Edit note</button>' +
-            '</div>' +
-            '<div id="memory-note-edit-' + tid + '" style="' + (note.trim() ? 'display:none;' : '') + '">' +
-                '<textarea id="memory-note-' + tid + '" rows="3" placeholder="What do you want to remember about this?" style="width:100%;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:1.05rem;color:#3D2E24;resize:vertical;">' + noteEsc + '</textarea>' +
-                '<button id="memory-note-save-' + tid + '" onclick="saveMemoryNote(\'' + tid + '\')" style="width:100%;margin-top:8px;background:#8B3A7F;color:#fff;border:none;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:1.02rem;font-weight:600;cursor:pointer;">Save note</button>' +
-            '</div>';
+            '<textarea id="memory-note-' + tid + '" rows="3" placeholder="What do you want to remember about this?" oninput="markMemoryNoteDirty(\'' + tid + '\')" style="width:100%;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:12px;font-family:\'DM Sans\',sans-serif;font-size:1.05rem;color:#3D2E24;resize:vertical;">' + noteEsc + '</textarea>' +
+            '<button id="memory-note-save-' + tid + '" onclick="saveMemoryNote(\'' + tid + '\')" style="width:100%;margin-top:8px;background:#8B3A7F;color:#fff;border:none;border-radius:11px;padding:12px;font-family:\'DM Sans\',sans-serif;font-size:1.02rem;font-weight:600;cursor:pointer;">Save note</button>';
 
         return '' +
         '<div style="margin:18px 0 0;padding:16px 14px 14px;background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;">' +
@@ -10173,10 +10169,9 @@
             '<input type="file" id="photo-input-' + tid + '" accept="image/*" multiple style="display:none;" onchange="handleEditPhotos(\'' + tid + '\', this)">' +
             '<input type="file" id="video-input-' + tid + '" accept="video/*" multiple style="display:none;" onchange="handleEditPhotos(\'' + tid + '\', this)">' +
             '<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px;">' +
-                '<button onclick="document.getElementById(\'photo-input-' + tid + '\').click()" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;">＋ Photo</button>' +
-                '<button onclick="document.getElementById(\'video-input-' + tid + '\').click()" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;">＋ Video</button>' +
-                '<button id="edit-voice-btn-' + tid + '" onclick="toggleEditRecording(\'' + tid + '\')" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;">' + (hasVoice ? 'Re-record' : '＋ Voice') + '</button>' +
-                (note.trim() ? '' : '<button onclick="editMemoryNote(\'' + tid + '\')" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;">＋ Note</button>') +
+                '<button onclick="document.getElementById(\'photo-input-' + tid + '\').click()" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>Photo</button>' +
+                '<button onclick="document.getElementById(\'video-input-' + tid + '\').click()" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5 21 8v8l-5-2.5"/></svg>Video</button>' +
+                '<button id="edit-voice-btn-' + tid + '" onclick="toggleEditRecording(\'' + tid + '\')" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;">' + '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M8.5 21h7"/></svg>' + (hasVoice ? 'Re-record' : 'Voice') + '</button>' +
             '</div>' +
             '<div id="edit-voice-timer-' + tid + '" style="display:none;font-size:0.85rem;color:#9A8478;text-align:center;margin-top:6px;"><span id="edit-timer-text-' + tid + '">0:00</span></div>' +
             '<div id="edit-voice-preview-' + tid + '" style="display:none;align-items:center;gap:8px;margin-top:9px;">' +
@@ -10187,11 +10182,9 @@
         '</div>';
     }
 
-    function editMemoryNote(threadId) {
-        var v = document.getElementById('memory-note-view-' + threadId);
-        var e = document.getElementById('memory-note-edit-' + threadId);
-        if (v) v.style.display = 'none';
-        if (e) { e.style.display = 'block'; var t = document.getElementById('memory-note-' + threadId); if (t) t.focus(); }
+    function markMemoryNoteDirty(threadId) {
+        var btn = document.getElementById('memory-note-save-' + threadId);
+        if (btn) { btn.disabled = false; btn.textContent = 'Save note'; btn.style.background = '#8B3A7F'; }
     }
 
     async function saveMemoryNote(threadId) {
@@ -10206,12 +10199,10 @@
             var res = await _supabase.from('tapestry').update({ memory_note: v }).eq('id', thread.id);
             if (res && res.error) throw res.error;
             thread.memoryNote = v;
-            if (btn) btn.textContent = '✓ Saved';
-            // swap back to the reading view
+            if (btn) { btn.textContent = '✓ Saved'; btn.style.background = '#166534'; }
             setTimeout(function () {
-                var card = document.getElementById('tapDetailCards');
-                if (card) openTapSingle(threadId);
-            }, 500);
+                if (btn) { btn.disabled = false; btn.textContent = 'Save note'; btn.style.background = '#8B3A7F'; }
+            }, 1600);
         } catch (e) {
             console.error('Memory note save failed:', e);
             if (btn) { btn.disabled = false; btn.textContent = 'Save note'; }
