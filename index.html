@@ -10181,11 +10181,15 @@
         }
 
         // Reading by default; the ✏️ toggle reveals the controls.
-        var noteBlock =
+        var noteView =
             '<div class="mem-note-view" style="' + (note.trim() ? '' : 'display:none;') + '">' +
                 '<div style="font-family:\'Crimson Pro\',\'Playfair Display\',serif;font-size:1.32rem;font-style:italic;color:#3D2E24;line-height:1.6;text-align:center;padding:2px 6px 0;white-space:pre-wrap;">' + noteEsc + '</div>' +
-            '</div>' +
-            '<div class="mem-edit">' +
+            '</div>';
+
+        // In edit mode the note box and its Save sit at the very bottom, under
+        // the Photo / Video / Voice buttons.
+        var noteEdit =
+            '<div class="mem-edit" style="margin-top:14px;">' +
                 '<textarea id="memory-note-' + tid + '" rows="3" placeholder="What do you want to remember about this?" oninput="markMemoryNoteDirty(\'' + tid + '\')" style="width:100%;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:12px;font-family:\'DM Sans\',sans-serif;font-size:1.05rem;color:#3D2E24;resize:vertical;">' + noteEsc + '</textarea>' +
                 '<button id="memory-note-save-' + tid + '" onclick="saveMemoryNote(\'' + tid + '\')" style="width:100%;margin-top:8px;background:#8B3A7F;color:#fff;border:none;border-radius:11px;padding:12px;font-family:\'DM Sans\',sans-serif;font-size:1.02rem;font-weight:600;cursor:pointer;">Save note</button>' +
             '</div>';
@@ -10200,7 +10204,7 @@
             '<div id="photo-grid-' + tid + '" style="display:none;"></div>' +
             '<div id="photo-count-' + tid + '" style="display:none;"></div>' +
             voice +
-            noteBlock +
+            noteView +
             // Separate inputs: photos and videos get their own picker, so the
             // phone opens the right chooser instead of one mixed camera roll.
             // accept="video/*" without capture lets them pick an existing video
@@ -10218,6 +10222,7 @@
                 '<button onclick="cancelEditRecording(\'' + tid + '\')" style="background:none;border:none;cursor:pointer;color:#9A8478;font-size:1.1rem;">✕</button>' +
                 '<button onclick="saveEditVoice(\'' + tid + '\')" style="background:#8B3A7F;color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;">✓ Save</button>' +
             '</div>' +
+            noteEdit +
         '</div>';
     }
 
