@@ -10147,18 +10147,18 @@
 
         var noteBlock =
             '<div id="memory-note-view-' + tid + '" style="' + (note.trim() ? '' : 'display:none;') + 'position:relative;">' +
-                '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.12rem;font-style:italic;color:#3D2E24;line-height:1.65;text-align:center;padding:0 6px 4px;">' + noteEsc + '</div>' +
-                '<button onclick="editMemoryNote(\'' + tid + '\')" style="display:block;margin:6px auto 0;background:none;border:none;color:#8B3A7F;font-family:\'DM Sans\',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">Edit note</button>' +
+                '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.32rem;font-style:italic;color:#3D2E24;line-height:1.6;text-align:center;padding:0 6px 4px;">' + noteEsc + '</div>' +
+                '<button onclick="editMemoryNote(\'' + tid + '\')" style="display:block;margin:6px auto 0;background:none;border:none;color:#8B3A7F;font-family:\'DM Sans\',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;">Edit note</button>' +
             '</div>' +
             '<div id="memory-note-edit-' + tid + '" style="' + (note.trim() ? 'display:none;' : '') + '">' +
-                '<textarea id="memory-note-' + tid + '" rows="3" placeholder="What do you want to remember about this?" style="width:100%;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.95rem;color:#3D2E24;resize:vertical;">' + noteEsc + '</textarea>' +
-                '<button id="memory-note-save-' + tid + '" onclick="saveMemoryNote(\'' + tid + '\')" style="width:100%;margin-top:8px;background:#8B3A7F;color:#fff;border:none;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:0.92rem;font-weight:600;cursor:pointer;">Save note</button>' +
+                '<textarea id="memory-note-' + tid + '" rows="3" placeholder="What do you want to remember about this?" style="width:100%;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:1.05rem;color:#3D2E24;resize:vertical;">' + noteEsc + '</textarea>' +
+                '<button id="memory-note-save-' + tid + '" onclick="saveMemoryNote(\'' + tid + '\')" style="width:100%;margin-top:8px;background:#8B3A7F;color:#fff;border:none;border-radius:11px;padding:11px;font-family:\'DM Sans\',sans-serif;font-size:1.02rem;font-weight:600;cursor:pointer;">Save note</button>' +
             '</div>';
 
         return '' +
         '<div style="margin:18px 0 0;padding:16px 14px 14px;background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;">' +
-            '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.25rem;font-weight:700;color:#2E2A28;text-align:center;">Your memories</div>' +
-            '<div style="font-size:0.82rem;color:#9A8478;text-align:center;margin:3px 0 13px;line-height:1.45;">' +
+            '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.45rem;font-weight:700;color:#2E2A28;text-align:center;">Your memories</div>' +
+            '<div style="font-size:0.95rem;color:#9A8478;text-align:center;margin:4px 0 15px;line-height:1.5;">' +
                 (isEmpty ? 'Add a photo, a voice note or a few words. Only you can see them.' : 'Only you can see these.') +
             '</div>' +
             photos +
@@ -10166,11 +10166,17 @@
             '<div id="photo-count-' + tid + '" style="display:none;"></div>' +
             voice +
             noteBlock +
-            '<input type="file" id="photo-input-' + tid + '" accept="image/*,video/*" multiple style="display:none;" onchange="handleEditPhotos(\'' + tid + '\', this)">' +
-            '<div style="display:flex;gap:8px;margin-top:12px;">' +
-                '<button onclick="document.getElementById(\'photo-input-' + tid + '\').click()" style="flex:1;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:10px 6px;font-family:\'DM Sans\',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer;">＋ Photo</button>' +
-                '<button id="edit-voice-btn-' + tid + '" onclick="toggleEditRecording(\'' + tid + '\')" style="flex:1;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:10px 6px;font-family:\'DM Sans\',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer;">' + (hasVoice ? 'Re-record' : '＋ Voice') + '</button>' +
-                (note.trim() ? '' : '<button onclick="editMemoryNote(\'' + tid + '\')" style="flex:1;background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:11px;padding:10px 6px;font-family:\'DM Sans\',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer;">＋ Note</button>') +
+            // Separate inputs: photos and videos get their own picker, so the
+            // phone opens the right chooser instead of one mixed camera roll.
+            // accept="video/*" without capture lets them pick an existing video
+            // OR record a new one, which iOS offers in the same sheet.
+            '<input type="file" id="photo-input-' + tid + '" accept="image/*" multiple style="display:none;" onchange="handleEditPhotos(\'' + tid + '\', this)">' +
+            '<input type="file" id="video-input-' + tid + '" accept="video/*" multiple style="display:none;" onchange="handleEditPhotos(\'' + tid + '\', this)">' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px;">' +
+                '<button onclick="document.getElementById(\'photo-input-' + tid + '\').click()" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;">＋ Photo</button>' +
+                '<button onclick="document.getElementById(\'video-input-' + tid + '\').click()" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;">＋ Video</button>' +
+                '<button id="edit-voice-btn-' + tid + '" onclick="toggleEditRecording(\'' + tid + '\')" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;">' + (hasVoice ? 'Re-record' : '＋ Voice') + '</button>' +
+                (note.trim() ? '' : '<button onclick="editMemoryNote(\'' + tid + '\')" style="background:#fff;border:1.5px solid #C9A0C4;color:#8B3A7F;border-radius:12px;padding:13px 8px;font-family:\'DM Sans\',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;">＋ Note</button>') +
             '</div>' +
             '<div id="edit-voice-timer-' + tid + '" style="display:none;font-size:0.85rem;color:#9A8478;text-align:center;margin-top:6px;"><span id="edit-timer-text-' + tid + '">0:00</span></div>' +
             '<div id="edit-voice-preview-' + tid + '" style="display:none;align-items:center;gap:8px;margin-top:9px;">' +
