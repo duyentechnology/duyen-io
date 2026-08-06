@@ -8583,9 +8583,12 @@
                     : '';
                 // External scan with no photo but with a note → show the note as the visual and the domain as the caption
                 const isExternalNote = thread.role==='external' && !hasPhoto && thread.message;
-                // Link preview image (from Edge Function) — treat as photo when present
+                // Link preview image (from Edge Function) — treat as photo when present.
+                // An external save is a link first, so its own preview image is what
+                // identifies it on the Polaroid, ahead of any photos the saver added
+                // afterwards — those live inside the card.
                 const linkImage = thread.linkMeta && thread.linkMeta.image ? thread.linkMeta.image : null;
-                const hasLinkImage = !!linkImage && !hasPhoto;
+                const hasLinkImage = !!linkImage && (thread.role === 'external' || !hasPhoto);
                 let extDomain = '';
                 if (isExternalNote && thread.externalUrl) {
                     try { extDomain = new URL(thread.externalUrl).hostname.replace(/^www\./,''); } catch(e) {}
@@ -8596,10 +8599,10 @@
                 attachCardTap(div, (function(id){ return function(){ openTapSingle(id); }; })(thread.id));
                 div.innerHTML=`
                     ${isNew?'<div class="tap-col-new">new</div>':''}
-                    ${hasPhoto
-                        ? `<div class="tap-col-photo"><img src="${thumbUrl(thread.photos[0], 720)}" alt="${caption}" loading="lazy"></div>`
-                        : hasLinkImage
-                            ? `<div class="tap-col-photo"><img src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
+                    ${hasLinkImage
+                        ? `<div class="tap-col-photo"><img src="${linkImage}" alt="${caption}" loading="lazy" onerror="this.parentNode.style.display='none';"></div>`
+                        : hasPhoto
+                            ? `<div class="tap-col-photo"><img src="${thumbUrl(thread.photos[0], 720)}" alt="${caption}" loading="lazy"></div>`
                             : isExternalNote
                                 ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                                 : thread.role === 'business'
@@ -8851,17 +8854,19 @@
                 const date = tapDateShort(t.date);
                 const hasPhoto = t.photos && t.photos.length > 0;
                 const linkImage = (t.linkMeta && t.linkMeta.image) ? t.linkMeta.image : null;
-                const hasLinkImage = !!linkImage && !hasPhoto;
+                // Same rule as the collage above: an external save shows its link's
+                // own image, not the photos the saver added to it.
+                const hasLinkImage = !!linkImage && (t.role === 'external' || !hasPhoto);
                 const isExternalNote = t.role === 'external' && !hasPhoto && !hasLinkImage && t.message;
                 let extDomain = '';
                 if (isExternalNote && t.externalUrl) {
                     try { extDomain = new URL(t.externalUrl).hostname.replace(/^www\./,''); } catch(e) {}
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
-                const visual = hasPhoto
-                    ? `<img src="${thumbUrl(t.photos[0], 520)}" alt="${safeTitle}" loading="lazy">`
-                    : hasLinkImage
-                        ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
+                const visual = hasLinkImage
+                    ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon)}</div>`
+                    : hasPhoto
+                        ? `<img src="${thumbUrl(t.photos[0], 520)}" alt="${safeTitle}" loading="lazy">`
                         : isExternalNote
                             ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
                             : t.role === 'business'
