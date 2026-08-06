@@ -8981,10 +8981,12 @@
     // Display label for an external scan: the link's real page title (og:title) when we have it,
     // else the destination domain. Empty for non-external entries (or those with no link yet), so
     // callers fall back to the stored title. This is display-only — the stored label is untouched.
+    // The domain, always — not the page's og:title. A title like "The Most
+    // Exceptional Experiences Are Possible With Marriott Bonvoy" truncates
+    // mid-word on a Polaroid and wraps to three lines in the card header. The
+    // full title is still shown on the link preview card inside the entry.
     function externalDisplayLabel(t) {
         if (!t || t.role !== 'external') return '';
-        var title = (t.linkMeta && t.linkMeta.title) ? String(t.linkMeta.title).trim() : '';
-        if (title) return title;
         return linkDomain(t);
     }
     // link_meta is filled asynchronously by the resolve-link edge function (fetch + redirect-follow,
