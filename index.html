@@ -8940,13 +8940,6 @@
     // Helper: append #t=0.1 so iOS Safari renders first frame as poster instead of black box
     function posterUrl(u) { return u ? (u + '#t=0.1') : u; }
 
-    // Videos play inline now, so a card can hold several at once. Starting one
-    // stops the rest — the lightbox used to give that for free.
-    function pauseOtherVideos(el) {
-        document.querySelectorAll('video').forEach(function (v) {
-            if (v !== el && !v.paused) { try { v.pause(); } catch (e) {} }
-        });
-    }
     // Downscaled Supabase Storage image via the render/transform endpoint.
     // Branded tile for saved businesses. Their logo fills the frame edge to
     // edge; without one, full-bleed initials (SVG so they scale to any tile).
@@ -9103,7 +9096,7 @@
                     // back already does — no modal. Photos still open the
                     // lightbox, where zooming and swiping are the point.
                     if(isVid){
-                        return `<video src="${posterUrl(url)}" controls playsinline preload="metadata" onplay="pauseOtherVideos(this)" onerror="tapMediaRetry(this)" style="width:100%;height:auto;display:block;border-radius:14px;background:#000;"></video>`;
+                        return `<video src="${posterUrl(url)}" controls playsinline preload="metadata" onerror="tapMediaRetry(this)" style="width:100%;height:auto;display:block;border-radius:14px;background:#000;"></video>`;
                     }
                     return `<div class="tap-photo-wrap" onclick="openLightbox('${tid2}',${i})"><img src="${url}" alt="" loading="eager" decoding="async" onload="this.parentElement.classList.add('loaded')" onerror="tapMediaRetry(this)"></div>`;
                 }).join('')
@@ -10185,7 +10178,7 @@
                   // wrapped, so the ✕ remove badge has something to sit on.
                   if (m.type === 'video' && !m.pending) {
                       return '<div style="position:relative;">' +
-                             '<video src="' + posterUrl(u) + '" controls playsinline preload="metadata" onplay="pauseOtherVideos(this)" onerror="tapMediaRetry(this)" style="width:100%;height:auto;display:block;border-radius:14px;background:#000;"></video>' +
+                             '<video src="' + posterUrl(u) + '" controls playsinline preload="metadata" onerror="tapMediaRetry(this)" style="width:100%;height:auto;display:block;border-radius:14px;background:#000;"></video>' +
                              '<button class="mem-remove" onclick="removeEditPhoto(\'' + tid + '\',' + i + ')" aria-label="Remove" ' +
                              'style="display:none;position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(61,46,36,0.85);color:#fff;font-size:13px;line-height:26px;padding:0;cursor:pointer;z-index:3;">✕</button>' +
                              '</div>';
