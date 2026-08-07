@@ -9325,6 +9325,10 @@
         // gifts. A saved business has no gift message — its story and contact
         // live in the origin panel above, so the gift block is skipped.
         const isGiftEntry = thread.role !== 'external' && thread.role !== 'business';
+        // On an external save the link comes first — its preview, then Open Link
+        // and Share. Sitting below the saver's own photos, Share read as if it
+        // would send those photos rather than the link.
+        const isExtSave = thread.role === 'external';
         card.innerHTML=`${originHtml}
         <div class="tap-fc-body">
             ${thread.isFavorite ? '<div class="tap-fc-role">⭐</div>' : ''}
@@ -9335,11 +9339,14 @@
                 <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3.5rem; color: #2E2A28; line-height: 1; letter-spacing: 0.04em;">${recipientName}</div>
             </div>`}
 
+            <!-- External save: the link leads, before anything the saver added -->
+            ${isExtSave ? linkCardHtml + linkHtml : ''}
+
             <!-- Original message — italic serif, no sandy box (gifts only) -->
             ${!isGiftEntry && thread.role === 'business' ? '' : `<div id="field-${tid}-message" class="${isGiftQR ? '' : 'mem-note-view'}" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.giverMessage || thread.message || ''}</div>`}
             <!-- Photos / videos / voice -->
             ${photoHtml}
-            ${linkCardHtml}
+            ${isExtSave ? '' : linkCardHtml}
             ${voiceHtml}
 
             <!-- "from" attribution (small, below media). Gift pathway only —
@@ -9347,25 +9354,21 @@
             ${!isGiftEntry ? '' : `<div style="text-align: center; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; color: #6B5751;">${fromPrefixes[thread.role]||'from'} <span style="color:#8B3A7F;font-weight:500;">${thread.from}</span></div>`}
 
             ${(thread.externalUrl && !(thread.linkMeta && thread.linkMeta.image)) ? editField('url','Link',thread.externalUrl,'url') : ''}
-            ${linkHtml}
+            ${isExtSave ? '' : linkHtml}
 
             <!-- Date — postmark style at the bottom -->
             <div style="text-align: center; margin-top: 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: #9A8478; letter-spacing: 0.05em;">
                 ${tapDateFull(thread.date, thread.occurred)}
             </div>
 
-            <!-- Edit controls. Laid out exactly like the memory card: note box
-                 with a Save button, then Photo / Video / Voice in one grid.
-                 Gift QRs get only a delete button, placed after the receiver
-                 response below. -->
+            <!-- Edit controls, laid out exactly like the memory card: Photo /
+                 Video / Voice in one grid, then the note box and its Save at
+                 the bottom. Gift QRs get only a delete button, placed after
+                 the receiver response below. -->
             ${isGiftQR ? `` : `
             <div class="tap-fc-photo-edit-grid" id="photo-grid-${tid}"></div>
             <div class="tap-fc-photo-count-label" id="photo-count-${tid}"></div>
             ${thread.hasVoice && thread.voiceUrl ? `<div class="mem-edit" style="margin-top:10px;"><audio controls src="${thread.voiceUrl}" id="voice-edit-audio-${tid}" style="width:100%;"></audio></div>` : ''}
-            <div class="mem-edit" style="margin-top:10px;">
-                <textarea id="ext-note-${tid}" rows="3" placeholder="What do you want to remember about this?" oninput="markExtNoteDirty('${tid}')" style="width:100%;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:12px;font-family:'DM Sans',sans-serif;font-size:1.05rem;color:#3D2E24;resize:vertical;">${(thread.message === 'A meaningful moment' ? '' : (thread.message || '')).replace(/</g,'&lt;')}</textarea>
-                <button id="ext-note-save-${tid}" onclick="saveExternalNote('${tid}')" style="width:100%;margin-top:8px;background:#8B3A7F;color:#fff;border:none;border-radius:11px;padding:12px;font-family:'DM Sans',sans-serif;font-size:1.02rem;font-weight:600;cursor:pointer;">Save note</button>
-            </div>
             <input type="file" id="photo-input-${tid}" accept="image/*" multiple style="display:none;" onchange="handleEditPhotos('${tid}', this)">
             <input type="file" id="video-input-${tid}" accept="video/*" multiple style="display:none;" onchange="handleEditPhotos('${tid}', this)">
             <div class="tap-fc-add-row">
@@ -9378,6 +9381,10 @@
                 <audio id="edit-voice-audio-${tid}" controls style="flex:1;min-width:0;"></audio>
                 <button onclick="cancelEditRecording('${tid}')" style="background:none;border:none;cursor:pointer;color:#9A8478;font-size:1.1rem;">✕</button>
                 <button onclick="saveEditVoice('${tid}')" style="background:#8B3A7F;color:white;border:none;border-radius:20px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;">✓ Save</button>
+            </div>
+            <div class="mem-edit" style="margin-top:14px;">
+                <textarea id="ext-note-${tid}" rows="3" placeholder="What do you want to remember about this?" oninput="markExtNoteDirty('${tid}')" style="width:100%;box-sizing:border-box;border:1.5px solid #E8DDD6;border-radius:11px;padding:12px;font-family:'DM Sans',sans-serif;font-size:1.05rem;color:#3D2E24;resize:vertical;">${(thread.message === 'A meaningful moment' ? '' : (thread.message || '')).replace(/</g,'&lt;')}</textarea>
+                <button id="ext-note-save-${tid}" onclick="saveExternalNote('${tid}')" style="width:100%;margin-top:8px;background:#8B3A7F;color:#fff;border:none;border-radius:11px;padding:12px;font-family:'DM Sans',sans-serif;font-size:1.02rem;font-weight:600;cursor:pointer;">Save note</button>
             </div>
             <button class="tap-fc-delete-btn" onclick="confirmDeleteThread('${tid}')"><svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:6px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v5M14 11v5"/></svg>Delete Memory</button>
             `}
