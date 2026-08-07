@@ -5367,7 +5367,7 @@
             }
 
             // Insert into qr_codes table as external source
-            var urlToSave = document.getElementById('externalUrl').value.trim() || scannedExternalUrl;
+            var urlToSave = normalizeExternalUrl(document.getElementById('externalUrl').value.trim() || scannedExternalUrl);
             console.log('📌 Saving external scan — URL value:', JSON.stringify(urlToSave));
             var { data, error } = await _supabase
                 .from('qr_codes')
@@ -8987,6 +8987,18 @@
     // Display domain for an external scan: the resolved destination site (e.g. joinmarriottbonvoy.com)
     // when known, else the domain of the URL as saved. The tap target stays the exact saved URL —
     // this is label-only.
+    // A pasted "example.com" is a URL missing only its scheme. Stored raw it is
+    // a RELATIVE path: resolve-link's fetch() rejects it so no preview is ever
+    // built, and Open Link resolves against duyen.io instead of the site.
+    function normalizeExternalUrl(u) {
+        u = String(u == null ? '' : u).trim();
+        if (!u) return u;
+        // Leave anything that already names a scheme alone — http:, https:,
+        // and also mailto: / tel:, which are legitimate saved links.
+        if (/^[a-z][a-z0-9+.-]*:/i.test(u)) return u;
+        return 'https://' + u;
+    }
+
     function linkDomain(t) {
         if (!t) return '';
         var u = (t.linkMeta && t.linkMeta.resolved_url) || t.externalUrl;
