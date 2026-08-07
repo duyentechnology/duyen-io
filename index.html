@@ -9073,17 +9073,6 @@
             }
         }
 
-        // Helper: render one media item (image or video)
-        const mediaEl = (item, extra='') => {
-            const url = item.url || item;
-            const isVid = item.type === 'video';
-            if (isVid) return `<div class="tap-fc-photo" style="position:relative;background:#000;${extra}" onclick="event.stopPropagation();this.querySelector('video').paused?this.querySelector('video').play():this.querySelector('video').pause();this.querySelector('.vid-play-icon').style.display=this.querySelector('video').paused?'flex':'none';">
-                <video src="${posterUrl(url)}" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline preload="metadata"></video>
-                <div class="vid-play-icon" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.5);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;pointer-events:none;">▶</div>
-            </div>`;
-            return `<div class="tap-fc-photo"${extra?` style="${extra}"`:''}><img src="${url}" alt=""></div>`;
-        };
-
         // Build photo/video section — stacked one per row, matching live scan view
         let photoHtml='';
         if(media.length > 0){
