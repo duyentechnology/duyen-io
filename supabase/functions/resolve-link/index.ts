@@ -108,7 +108,33 @@ Deno.serve(async (req)=>{
     }
     // ---- Parse title, og:image, og:description ----
     const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-    const ogImage = html.match(/<meta\s+[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)?.[1] || html.match(/<meta\s+[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i)?.[1] || html.match(/<meta\s+[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i)?.[1] || null;
+    // Declared preview image. The first three cover the mainstream forms; the
+    // rest are variants real sites use that were previously invisible to us —
+    // a page carrying only og:image:secure_url or <link rel="image_src"> read
+    // as having no image at all, and fell back to a favicon tile.
+    // Every one of these is a preview image the SITE declared. Nothing here
+    // guesses at <img> tags in the body, so we can never pick up a tracking
+    // pixel or a spacer.
+    const imagePatterns = [
+      /<meta\s+[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i,
+      /<meta\s+[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i,
+      /<meta\s+[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i,
+      /<meta\s+[^>]*content=["']([^"']+)["'][^>]*name=["']twitter:image["']/i,
+      /<meta\s+[^>]*property=["']og:image:secure_url["'][^>]*content=["']([^"']+)["']/i,
+      /<meta\s+[^>]*property=["']og:image:url["'][^>]*content=["']([^"']+)["']/i,
+      /<meta\s+[^>]*name=["']twitter:image:src["'][^>]*content=["']([^"']+)["']/i,
+      /<meta\s+[^>]*itemprop=["']image["'][^>]*content=["']([^"']+)["']/i,
+      /<link\s+[^>]*rel=["']image_src["'][^>]*href=["']([^"']+)["']/i,
+      /<link\s+[^>]*href=["']([^"']+)["'][^>]*rel=["']image_src["']/i
+    ];
+    let ogImage = null;
+    for (const re of imagePatterns){
+      const m = html.match(re);
+      if (m?.[1]) { ogImage = m[1]; break; }
+    }
+    // Which tag answered — so a link that still comes back without an image can
+    // be diagnosed from the stored row instead of guessed at.
+    const imageSource = ogImage ? imagePatterns.findIndex((re)=>html.match(re)?.[1] === ogImage) : -1;
     const ogDesc = html.match(/<meta\s+[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i)?.[1] || html.match(/<meta\s+[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)?.[1] || null;
     // Decode HTML entities from the raw captures before any URL resolution or storage.
     const titleRaw = decodeEntities(titleMatch?.[1]?.trim().replace(/\s+/g, " ").slice(0, 300)) || null;
@@ -127,7 +153,12 @@ Deno.serve(async (req)=>{
       title: titleRaw,
       image: imageUrl,
       description: descRaw,
-      fetched_at: new Date().toISOString()
+      fetched_at: new Date().toISOString(),
+      // Diagnostics: distinguishes "the page declares no preview image" from
+      // "we fetched nothing useful". Read from the stored row when a card comes
+      // back imageless. Display code never reads these.
+      image_tag: imageUrl ? imageSource : null,
+      html_bytes: html.length
     };
     // ---- Update qr_codes.link_meta with service role (bypass RLS for write) ----
     const adminClient = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));

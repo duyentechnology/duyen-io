@@ -8603,7 +8603,9 @@
                 const hasLinkImage = !!linkImage && (thread.role === 'external' || !hasPhoto);
                 let extDomain = '';
                 if (isExternalNote && thread.externalUrl) {
-                    try { extDomain = new URL(thread.externalUrl).hostname.replace(/^www\./,''); } catch(e) {}
+                    // linkDomain prefers the RESOLVED url: a shortened link would
+                    // otherwise show the shortener's favicon, not the destination's.
+                    extDomain = linkDomain(thread);
                 }
                 const div=document.createElement('div');
                 div.className='tap-col-card';
@@ -8872,7 +8874,7 @@
                 const isExternalNote = t.role === 'external' && !hasPhoto && !hasLinkImage && t.message;
                 let extDomain = '';
                 if (isExternalNote && t.externalUrl) {
-                    try { extDomain = new URL(t.externalUrl).hostname.replace(/^www\./,''); } catch(e) {}
+                    extDomain = linkDomain(t);   // resolved domain, not the shortener's
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
                 const visual = hasLinkImage
@@ -9751,7 +9753,9 @@
                 const isExternalNote = thread.role === 'external' && !hasLinkImage && thread.message;
                 let extDomain = '';
                 if (isExternalNote && thread.externalUrl) {
-                    try { extDomain = new URL(thread.externalUrl).hostname.replace(/^www\./,''); } catch(e) {}
+                    // linkDomain prefers the RESOLVED url: a shortened link would
+                    // otherwise show the shortener's favicon, not the destination's.
+                    extDomain = linkDomain(thread);
                 }
                 const visual = hasLinkImage
                     ? `<div class="thread-card-image" style="background:#f5f0eb;">${linkImgInner(linkImage, thread.icon)}</div>`
