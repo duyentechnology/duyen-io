@@ -6,7 +6,13 @@
 // or via CLI: supabase functions deploy resolve-link
 //
 // Env (auto-provided by Supabase): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// No imports. A remote specifier (esm.sh) makes the worker fail to boot with
+// "--no-remote is specified" on some deploy paths, which took this function
+// down silently — saves kept succeeding, previews just stopped appearing.
+// The three calls it needed the library for are plain HTTP, done directly below.
+const SB_URL     = Deno.env.get("SUPABASE_URL");
+const SB_ANON    = Deno.env.get("SUPABASE_ANON_KEY");
+const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -51,23 +57,18 @@ Deno.serve(async (req)=>{
     }, 400);
     // ---- Verify the caller owns the qr_codes row (ownership check) ----
     const authHeader = req.headers.get("Authorization") || "";
-    const userClient = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_ANON_KEY"), {
-      global: {
-        headers: {
-          Authorization: authHeader
-        }
-      }
+    const userRes = await fetch(`${SB_URL}/auth/v1/user`, {
+      headers: { Authorization: authHeader, apikey: SB_ANON }
     });
-    const { data: userData } = await userClient.auth.getUser();
-    if (!userData?.user) return json({
-      error: "unauthorized"
-    }, 401);
-    const { data: row, error: rowErr } = await userClient.from("qr_codes").select("user_id").eq("id", id).single();
-    if (rowErr || !row || row.user_id !== userData.user.id) {
-      return json({
-        error: "forbidden"
-      }, 403);
-    }
+    if (!userRes.ok) return json({ error: "unauthorized" }, 401);
+    const user = await userRes.json();
+    if (!user?.id) return json({ error: "unauthorized" }, 401);
+    // Read through the CALLER's token so row-level security still applies.
+    const rowRes = await fetch(`${SB_URL}/rest/v1/qr_codes?id=eq.${encodeURIComponent(id)}&select=user_id`, {
+      headers: { Authorization: authHeader, apikey: SB_ANON }
+    });
+    const rows = rowRes.ok ? await rowRes.json() : [];
+    if (!rows?.[0] || rows[0].user_id !== user.id) return json({ error: "forbidden" }, 403);
     // ---- Fetch the URL with redirect-follow and an 8s timeout ----
     const controller = new AbortController();
     const timer = setTimeout(()=>controller.abort(), 8000);
@@ -200,14 +201,17 @@ Deno.serve(async (req)=>{
       icon_px: iconPick ? iconPick.px : null
     };
     // ---- Update qr_codes.link_meta with service role (bypass RLS for write) ----
-    const adminClient = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
-    const { error: updErr } = await adminClient.from("qr_codes").update({
-      link_meta: meta
-    }).eq("id", id);
-    if (updErr) return json({
-      error: updErr.message,
-      meta
-    }, 500);
+    const updRes = await fetch(`${SB_URL}/rest/v1/qr_codes?id=eq.${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: {
+        apikey: SB_SERVICE,
+        Authorization: `Bearer ${SB_SERVICE}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal"
+      },
+      body: JSON.stringify({ link_meta: meta })
+    });
+    if (!updRes.ok) return json({ error: `update failed: ${updRes.status} ${(await updRes.text()).slice(0,160)}`, meta }, 500);
     return json({
       ok: true,
       meta

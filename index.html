@@ -4590,20 +4590,32 @@
 
     function closeScanner() {
         const overlay = document.getElementById('scannerOverlay');
-        overlay.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
 
+        // stop() THROWS outright if the scanner was never running — camera
+        // permission denied, or a URL pasted before the camera came up. That
+        // exception used to escape closeScanner and abort handleManualURL
+        // before it could act on the URL, so the overlay closed and the pasted
+        // link was silently dropped.
         if (html5QrScanner) {
-            html5QrScanner.stop().then(() => {
-                html5QrScanner.clear();
-            }).catch(() => {});
+            const scanner = html5QrScanner;
             html5QrScanner = null;
+            try {
+                const stopping = scanner.stop();
+                if (stopping && typeof stopping.then === 'function') {
+                    stopping.then(() => { try { scanner.clear(); } catch (e) {} }).catch(() => {});
+                }
+            } catch (e) {
+                console.log('Scanner stop skipped (was not running):', e && e.message);
+            }
         }
     }
 
     function handleManualURL() {
         const url = document.getElementById('manualQRInput').value.trim();
         if (!url) return;
-        closeScanner();
+        // Closing the camera must never be able to lose the URL.
+        try { closeScanner(); } catch (e) { console.log('closeScanner failed:', e && e.message); }
         onQRDetected(url);
     }
 
