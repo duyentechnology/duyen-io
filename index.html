@@ -8618,7 +8618,7 @@
                         : hasPhoto
                             ? `<div class="tap-col-photo"><img src="${thumbUrl(thread.photos[0], 720)}" alt="${caption}" loading="lazy"></div>`
                             : isExternalNote
-                                ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
+                                ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="${siteIconUrl(thread, extDomain)}" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                                 : thread.role === 'business'
                                     ? `<div class="tap-col-nophoto" style="padding:0;">${bizTileHtml(thread.from, thread.businessInfo && thread.businessInfo.logo)}</div>`
                                     : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
@@ -8882,7 +8882,7 @@
                     : hasPhoto
                         ? `<img src="${thumbUrl(t.photos[0], 520)}" alt="${safeTitle}" loading="lazy">`
                         : isExternalNote
-                            ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
+                            ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="${siteIconUrl(t, extDomain)}" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
                             : t.role === 'business'
                                 ? `<div style="width:100%;height:100%;">${bizTileHtml(t.from, t.businessInfo && t.businessInfo.logo)}</div>`
                                 : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
@@ -8997,6 +8997,16 @@
         // and also mailto: / tel:, which are legitimate saved links.
         if (/^[a-z][a-z0-9+.-]*:/i.test(u)) return u;
         return 'https://' + u;
+    }
+
+    // The site's own logo for a link with no preview image. resolve-link stores
+    // the apple-touch-icon (usually 180px, usually the real mark) when the page
+    // publishes one; Google's favicon service is the fallback, and returns a
+    // generic globe for sites it has never indexed.
+    function siteIconUrl(t, domain) {
+        var own = t && t.linkMeta && t.linkMeta.icon;
+        if (typeof own === 'string' && /^https?:\/\//i.test(own)) return own;
+        return 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain || '') + '&sz=128';
     }
 
     function linkDomain(t) {
@@ -9170,7 +9180,7 @@
             // Favicon fallback
             return `<a href="${esc(thread.externalUrl)}" target="_blank" rel="noopener noreferrer" style="display:flex;flex-direction:column;align-items:center;gap:12px;background:white;border:1px solid #EEE7E1;border-radius:14px;padding:22px 18px;margin:0 0 0.75rem;box-shadow:0 1px 8px rgba(0,0,0,0.06);text-decoration:none;cursor:pointer;">
                 <div style="width:72px;height:72px;border-radius:16px;background:#F7F1EC;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;">
-                    <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none';">
+                    <img src="${siteIconUrl(thread, domain)}" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none';">
                 </div>
                 <div style="font-family:'DM Sans',sans-serif;font-weight:500;font-size:16px;color:#3D2E24;letter-spacing:0.01em;word-break:break-all;text-align:center;">${safeDomain}</div>
                 <div style="font-size:11px;color:#8B3A7F;letter-spacing:0.12em;text-transform:uppercase;font-weight:500;">tap to open</div>
@@ -9772,7 +9782,7 @@
                 const visual = hasLinkImage
                     ? `<div class="thread-card-image" style="background:#f5f0eb;">${linkImgInner(linkImage, thread.icon)}</div>`
                     : isExternalNote
-                        ? `<div class="thread-card-image" style="background:#FBF8F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:14px;line-height:1.45;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:40px;height:40px;border-radius:9px;background:white;display:flex;align-items:center;justify-content:center;padding:6px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(extDomain)}&sz=128" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
+                        ? `<div class="thread-card-image" style="background:#FBF8F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:14px;line-height:1.45;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:40px;height:40px;border-radius:9px;background:white;display:flex;align-items:center;justify-content:center;padding:6px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="${siteIconUrl(thread, extDomain)}" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                         : `<div class="thread-card-image" style="background:#f5f0eb;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">${thread.icon||'🧵'}</div>`;
                 const bodyMsg = isExternalNote ? '' : (thread.message || '');
                 card.innerHTML = `
