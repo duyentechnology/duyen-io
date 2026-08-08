@@ -4338,7 +4338,13 @@
                     memoryMedia: Array.isArray(entry.media) ? entry.media : [],
                     memoryVoice: entry.voice || null,
                     memoryNote: entry.memory_note || '',
-                    externalUrl: (entry.role === 'external') ? (entry.note || qr.url || null) : null,
+                    // Normalised on the way IN as well as on save: rows written
+                    // before the save-side fix still hold a schemeless string,
+                    // and that is not a URL — it is a relative path. Opening it
+                    // navigates to duyen.io/<domain>, which 404s, and because
+                    // that is same-origin iOS keeps it inside the PWA's own
+                    // webview, so there is no Done button and no way back.
+                    externalUrl: (entry.role === 'external') ? (normalizeExternalUrl(entry.note || qr.url || '') || null) : null,
                     qrUrl: qr.url || null,
                     media: (qr.media && qr.media.length > 0) ? qr.media : null,
                     linkMeta: qr.link_meta || null,
