@@ -6006,6 +6006,12 @@
             var subtitle = document.getElementById('qrRoleSubtitle');
             var giverTitle = document.getElementById('roleGiverTitle');
             var receiverTitle = document.getElementById('roleReceiverTitle');
+            // Declared here again after a June edit dropped it while leaving three
+            // uses below. Undeclared, every one of them threw a ReferenceError, so
+            // this whole block was skipped and the catch revealed all three role
+            // cards — including "I'm Giving a Gift" on a note whose message was
+            // already written, which a second scanner could then overwrite.
+            var bizOption = document.getElementById('roleBusinessOption');
 
             // If business_data has a name, skip role selection and show profile directly
             var bizDataCheck = data.business_data;
