@@ -2730,6 +2730,10 @@
                 <div style="font-size:13px;color:var(--text-muted);">Loading your thread...</div>
             </div>
 
+            <!-- Product tag only: the item itself, above the roles. A tag stuck to
+                 a dress should show the dress before it asks anything. -->
+            <div id="roleItemBlock" style="display:none;"></div>
+
             <!-- Role cards — hidden until QR data is fetched -->
             <div id="qrRoleCards" style="display:none;">
 
@@ -2746,6 +2750,14 @@
             <div id="roleBusinessOption" class="identity-card" onclick="selectRole('business')">
                 <div class="identity-title">I'm the Business</div>
                 <div class="identity-desc">Claim this code and set up your profile on dayduyen.tech</div>
+            </div>
+
+            <!-- Product tags only. Someone who bought the item for themselves was
+                 never given it, so they have no gift role to play — they just keep
+                 the thing. Notes don't show this. -->
+            <div id="roleSaveCard" class="identity-card" style="display:none;" onclick="saveToTapestryDirect()">
+                <div class="identity-title">Just save this</div>
+                <div class="identity-desc">Keep it in your life tapestry</div>
             </div>
             </div><!-- end qrRoleCards -->
             <!-- Owner's door: attach-after for blank codes a business generated
@@ -4518,6 +4530,43 @@
     // ==========================================
     // QR SCAN FLOW
     // ==========================================
+    // The item on a product tag, drawn above the role cards. Photos first, then
+    // whatever the business typed, then the shop's name — the thing in your hand
+    // before the question about it. Videos are skipped here on purpose: this is a
+    // glance before choosing a role, not the moment itself.
+    function renderProductItemBlock(data, biz) {
+        var host = document.getElementById('roleItemBlock');
+        if (!host) return;
+        var pics = [];
+        if (data.photo) pics.push(data.photo);
+        if (Array.isArray(data.media)) {
+            data.media.forEach(function (u) {
+                if (typeof u === 'string' && !/\.(mp4|mov|webm|m4v)(\?|$)/i.test(u)) pics.push(u);
+            });
+        }
+        var details = String(data.details || '').trim();
+        var name = (biz && biz.name) ? String(biz.name) : '';
+        if (!pics.length && !details && !name) { host.style.display = 'none'; host.innerHTML = ''; return; }
+
+        var esc = function (s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
+        var shown = pics.slice(0, 3);
+        var grid = shown.length
+            ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(shown.length, 3) + ',1fr);gap:8px;margin-bottom:' + (details || name ? '12px' : '0') + ';">' +
+              shown.map(function (u) {
+                  return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;">' +
+                         '<img src="' + esc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">' +
+                         '</div>';
+              }).join('') + '</div>'
+            : '';
+        host.innerHTML =
+            '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:13px;margin-bottom:1.1rem;text-align:left;">' +
+                grid +
+                (details ? '<div style="font-size:15px;color:#3D2E24;line-height:1.5;white-space:pre-wrap;">' + esc(details) + '</div>' : '') +
+                (name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:700;color:#8B3A7F;margin-top:' + (details ? '8px' : '0') + ';">' + esc(name) + '</div>' : '') +
+            '</div>';
+        host.style.display = 'block';
+    }
+
     function selectRole(role) {
         console.log('🎯 Role:', role);
         currentRole = role;
@@ -6017,6 +6066,43 @@
             var bizDataCheck = data.business_data;
             if (typeof bizDataCheck === 'string') { try { bizDataCheck = JSON.parse(bizDataCheck); } catch(e) { bizDataCheck = null; } }
             if (data.about_photos && data.about_photos.length) { bizDataCheck = bizDataCheck || {}; bizDataCheck.aboutPhotos = data.about_photos; }
+            // ---- Product tags have their own ladder ------------------------------
+            // Handled before the business-profile branch: a product tag carrying a
+            // profile must still lead with the ITEM, not the shop, and must keep the
+            // gift roles a business-profile QR deliberately hides. Notes and profile
+            // QRs fall through untouched below.
+            //
+            // Two things differ from a note, both deliberate:
+            //   * "I received or bought this" shows before any giver exists — the
+            //     buyer of the dress was never given it;
+            //   * it narrows to "I received this" once a giver has written, because
+            //     at that point a purchase is no longer what happened.
+            if (data.source === 'product') {
+                var pItem   = !!((data.details && data.details.trim()) || data.photo ||
+                                 (data.media && data.media.length) || (bizDataCheck && bizDataCheck.name));
+                var pGiver  = !!(data.giver_data || data.giver_user_id);
+                var pRecv   = !!(data.receiver_data || data.receiver_user_id);
+                renderProductItemBlock(data, bizDataCheck);
+                // The business role IS the attach path — it's how the item gets onto
+                // the tag — so it goes the moment there is an item or an owner.
+                bizOption.style.display = (pItem || data.business_user_id) ? 'none' : 'block';
+                document.getElementById('roleGiverCard').style.display = pGiver ? 'none' : 'block';
+                document.getElementById('roleReceiverCard').style.display = pRecv ? 'none' : 'block';
+                if (giverTitle) giverTitle.textContent = 'I am giving this';
+                if (receiverTitle) receiverTitle.textContent = pGiver ? 'I received this' : 'I received or bought this';
+                // "View the gift" is wrong when nobody gifted it — a buyer bought it.
+                var pRDesc = document.querySelector('#roleReceiverCard .identity-desc');
+                if (pRDesc) pRDesc.textContent = pGiver ? 'See what was left for you' : "It's mine — keep it in my tapestry";
+                var pSave = document.getElementById('roleSaveCard');
+                if (pSave) pSave.style.display = 'block';
+                if (subtitle) subtitle.textContent = pGiver ? 'A gift is waiting for you.'
+                    : (pItem ? "What's your part in this story?"
+                             : "This tag hasn't been set up yet. If it's yours, claim it and add the item.");
+                if (roleLoader) roleLoader.style.display = 'none';
+                if (roleCards) roleCards.style.display = 'block';
+                return;
+            }
+
             if (bizDataCheck && bizDataCheck.name) {
                 if (roleLoader) roleLoader.style.display = 'none';
                 showBusinessProfile(data, bizDataCheck);
