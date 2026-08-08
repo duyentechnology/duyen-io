@@ -1222,7 +1222,12 @@
             background:white;
             padding:8px 8px 0 8px;
             box-shadow:2px 4px 14px rgba(0,0,0,0.15);
-            transition:transform 0.28s ease, box-shadow 0.28s ease, opacity 0.28s ease;
+            /* transform only, and shorter. box-shadow was in here too: a 32px
+               blur repainting across every card is the expensive part of this
+               animation, and now that the featured card tracks the swipe live
+               it would repaint continuously. The shadow still changes — it just
+               snaps instead of tweening, which is invisible at this speed. */
+            transition:transform 0.16s ease-out, opacity 0.28s ease;
             transform:rotate(var(--ctilt,0deg));
             scroll-snap-align: center;
         }
@@ -8578,9 +8583,19 @@
             _collageCards[j].classList.toggle('tap-col-featured', j === best);
         }
     }
+    // Track the centred card AS YOU SWIPE, throttled to one check per frame.
+    // This used to wait 90ms after scrolling stopped — but momentum keeps the
+    // scroll alive after your finger lifts, so the timer only started once
+    // everything had settled and the card rose long after the gesture. The
+    // work is 18 subtractions against cached centres; it is cheap enough to do
+    // per frame.
+    var _collageRaf = 0;
     function onCollageScroll() {
-        if (_collageSettleTimer) clearTimeout(_collageSettleTimer);
-        _collageSettleTimer = setTimeout(applyCollageFeatured, 90);
+        if (_collageRaf) return;
+        _collageRaf = requestAnimationFrame(function () {
+            _collageRaf = 0;
+            applyCollageFeatured();
+        });
     }
 
     function buildTapCollage(month) {
