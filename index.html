@@ -7575,6 +7575,12 @@
                 console.error('Direct save error:', error);
                 return;
             }
+            // Count the save. The giver and receiver paths already did this; the
+            // business path did not, so the Saves figure a business pays to see
+            // sat at zero no matter how many people saved their code.
+            // Only on a fresh row — 23505 is this person saving again, which is
+            // not a new save.
+            if (!error) incrementSaveCount(scannedQRData.id);
             var _bpd = document.getElementById('bizProfileDisplay');
             if (_bpd) _bpd.style.display = 'none';
             document.getElementById('successMsg').textContent = 'Saved to your life tapestry!';
