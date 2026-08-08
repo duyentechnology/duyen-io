@@ -6943,14 +6943,22 @@
                 }
             }
 
-            var { error } = await _supabase
-                .from('qr_codes')
-                .update({ giver_data: giverData, giver_user_id: (await _supabase.auth.getUser()).data.user.id, status: isDraft ? 'draft' : 'active' })
-                .eq('id', scannedQRData.id);
+            // Through claim_giver, not a table update: this is a code the giver
+            // does not own, and granting that as a table update granted every
+            // other row and column with it. The function also refuses to
+            // overwrite a message someone else already left — a rule that now
+            // holds even if the role screen ever mis-renders again.
+            var { error } = await _supabase.rpc('claim_giver', {
+                p_id: scannedQRData.id,
+                p_giver_data: giverData,
+                p_is_draft: !!isDraft
+            });
 
             if (error) {
                 console.error('Save giver error:', error);
-                alert('Error saving. Please try again.');
+                alert(/giver_already_set/.test(error.message || '')
+                    ? 'Someone has already left their message on this code.'
+                    : 'Error saving. Please try again.');
                 return;
             }
 
@@ -7420,14 +7428,18 @@
                 date: new Date().toISOString()
             };
             
-            var { error } = await _supabase
-                .from('qr_codes')
-                .update({ receiver_data: receiverData, receiver_user_id: (await _supabase.auth.getUser()).data.user.id })
-                .eq('id', scannedQRData.id);
-            
+            // Same as the giver write: a function that touches only the
+            // receiver columns, and refuses if someone else already replied.
+            var { error } = await _supabase.rpc('claim_receiver', {
+                p_id: scannedQRData.id,
+                p_receiver_data: receiverData
+            });
+
             if (error) {
                 console.error('Save receiver error:', error);
-                alert('Error saving. Please try again.');
+                alert(/receiver_already_set/.test(error.message || '')
+                    ? 'Someone has already replied on this code.'
+                    : 'Error saving. Please try again.');
                 return;
             }
             
