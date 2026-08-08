@@ -136,6 +136,42 @@ Deno.serve(async (req)=>{
     // be diagnosed from the stored row instead of guessed at.
     const imageSource = ogImage ? imagePatterns.findIndex((re)=>html.match(re)?.[1] === ogImage) : -1;
     const ogDesc = html.match(/<meta\s+[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i)?.[1] || html.match(/<meta\s+[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)?.[1] || null;
+
+    // ---- The site's own icon, for links that declare no preview image ----
+    // Falling back to Google's favicon service gives a 16px mark upscaled, or a
+    // generic globe for sites it has never indexed. Most sites publish an
+    // apple-touch-icon — typically 180px and usually the real logo — so read it
+    // straight from the page instead.
+    //
+    // rel="icon" is only accepted when it declares a size of 96px or more: an
+    // undeclared favicon.ico is usually 16px and would be worse than what we
+    // already have.
+    function pickIcon(markup) {
+      const links = markup.match(/<link\b[^>]*>/gi) || [];
+      let best = null;
+      for (const tag of links){
+        const rel = tag.match(/rel\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase() || "";
+        const href = tag.match(/href\s*=\s*["']([^"']+)["']/i)?.[1];
+        if (!href) continue;
+        const isApple = /\bapple-touch-icon(-precomposed)?\b/.test(rel);
+        const isIcon  = /\b(shortcut\s+)?icon\b/.test(rel) && !/mask-icon/.test(rel);
+        if (!isApple && !isIcon) continue;
+        // An SVG icon scales perfectly, so treat it as large.
+        const isSvg = /\.svg(\?|$)/i.test(href);
+        const sizes = tag.match(/sizes\s*=\s*["'](\d+)\s*[xX]\s*(\d+)["']/i);
+        const px = isSvg ? 512 : (sizes ? parseInt(sizes[1], 10) : (isApple ? 180 : 0));
+        if (isIcon && !isApple && px < 96) continue;   // tiny favicon: not an upgrade
+        // Apple icons win ties — they are the ones designed to be seen big.
+        const score = px + (isApple ? 1000 : 0);
+        if (!best || score > best.score) best = { href, score, px };
+      }
+      return best;
+    }
+    const iconPick = pickIcon(html);
+    let iconUrl = iconPick ? decodeEntities(iconPick.href) : null;
+    if (iconUrl && !/^https?:\/\//i.test(iconUrl)) {
+      try { iconUrl = new URL(iconUrl, resolvedUrl).toString(); } catch (_) { iconUrl = null; }
+    }
     // Decode HTML entities from the raw captures before any URL resolution or storage.
     const titleRaw = decodeEntities(titleMatch?.[1]?.trim().replace(/\s+/g, " ").slice(0, 300)) || null;
     const descRaw = decodeEntities(ogDesc?.trim().slice(0, 500)) || null;
@@ -158,7 +194,10 @@ Deno.serve(async (req)=>{
       // "we fetched nothing useful". Read from the stored row when a card comes
       // back imageless. Display code never reads these.
       image_tag: imageUrl ? imageSource : null,
-      html_bytes: html.length
+      html_bytes: html.length,
+      // The site's own logo. Used only when there is no preview image.
+      icon: iconUrl,
+      icon_px: iconPick ? iconPick.px : null
     };
     // ---- Update qr_codes.link_meta with service role (bypass RLS for write) ----
     const adminClient = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
