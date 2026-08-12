@@ -10518,7 +10518,11 @@
     }
 
     function isMemoryThread(thread) {
-        return !!(thread && thread.role === 'business' && thread.memoryEnabled);
+        // Not gated on memoryEnabled. What the business pays for is analytics and
+        // promotions; the memory layer belongs to the SAVER — their photos, their
+        // voice note, on their own tapestry row. Gating it meant a saved business
+        // gave the saver less than a random external link did.
+        return !!(thread && thread.role === 'business');
     }
     // Where this thread's media/voice is persisted. Business saves write to
     // their own tapestry row; everything else keeps its existing home.
