@@ -2721,8 +2721,8 @@
             <div class="logo-text">DUYÊN</div>
         </div>
         <div class="card">
-            <h1>A Thread Awaits</h1>
-            <p class="subtitle" id="qrRoleSubtitle">Someone wove a connection into this code. What's your role in this story?</p>
+            <h1 id="qrRoleHeading" style="display:none;">A Thread Awaits</h1>
+            <p class="subtitle" id="qrRoleSubtitle" style="display:none;">Someone wove a connection into this code. What's your role in this story?</p>
 
             <!-- Loading state — shown while fetching QR data -->
             <div id="qrRoleLoader" style="text-align:center;padding:2rem 0;display:none;">
@@ -6075,6 +6075,19 @@
         var roleLoader = document.getElementById('qrRoleLoader');
         if (roleCards) roleCards.style.display = 'none';
         if (roleLoader) roleLoader.style.display = 'block';
+        // Keep the gift-framed heading/subtitle ("A Thread Awaits / what's your
+        // role in this story?") hidden while we resolve the code. A shared
+        // BUSINESS/PRODUCT link goes straight to showBusinessProfile and must
+        // never flash that gift language — it reads like an error and makes
+        // people question the link. Revealed only on the actual role flow below.
+        var roleHeading = document.getElementById('qrRoleHeading');
+        var roleSubtitle = document.getElementById('qrRoleSubtitle');
+        if (roleHeading) roleHeading.style.display = 'none';
+        if (roleSubtitle) roleSubtitle.style.display = 'none';
+        var _showRoleFraming = function() {
+            if (roleHeading) roleHeading.style.display = '';
+            if (roleSubtitle) roleSubtitle.style.display = '';
+        };
 
         try {
             let data = null;
@@ -6179,6 +6192,7 @@
                     : (pItem ? "What's your part in this story?"
                              : "This tag hasn't been set up yet. If it's yours, claim it and add the item.");
                 if (roleLoader) roleLoader.style.display = 'none';
+                _showRoleFraming();
                 if (roleCards) roleCards.style.display = 'block';
                 return;
             }
@@ -6248,11 +6262,13 @@
             document.getElementById('roleReceiverCard').style.display = (data.giver_data || data.giver_user_id) ? 'block' : 'none';
             // Now reveal role cards (data is ready, no more flash)
             if (roleLoader) roleLoader.style.display = 'none';
+            _showRoleFraming();
             if (roleCards) roleCards.style.display = 'block';
 
         } catch(e) {
             console.error('Error loading QR:', e);
             if (roleLoader) roleLoader.style.display = 'none';
+            _showRoleFraming();
             if (roleCards) roleCards.style.display = 'block';
         }
     }
