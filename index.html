@@ -4574,38 +4574,6 @@
         host.style.display = 'block';
     }
 
-    // A business profile's storefront — every product/menu modular it carries,
-    // rendered on the profile page. Products live in business_data.products
-    // (name, details, photos[]); each is shown as a card.
-    function storefrontHTML(products) {
-        if (!Array.isArray(products) || !products.length) return '';
-        var esc = function (s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
-        var cards = products.map(function (prod) {
-            if (!prod) return '';
-            var isMenu = prod.type === 'menu';
-            var urls = (Array.isArray(prod.photos) ? prod.photos : []).filter(function (u) { return typeof u === 'string'; });
-            var pics = urls.slice(0, 3);
-            var name = esc((prod.name || '').trim());
-            var details = esc((prod.details || '').trim());
-            if (!pics.length && !name && !details) return '';
-            var grid = pics.length
-                ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(pics.length, 3) + ',1fr);gap:8px;margin-bottom:' + (name || details ? '10px' : '0') + ';">' +
-                    pics.map(function (u) { return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + esc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"></div>'; }).join('') +
-                  '</div>'
-                : '';
-            return '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:13px;margin-bottom:12px;text-align:left;">' +
-                (name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:18px;font-weight:700;color:#8B3A7F;margin-bottom:' + (pics.length || details ? '8px' : '0') + ';">' + (isMenu ? '🍽️ ' : '') + name + '</div>' : '') +
-                grid +
-                (details ? '<div style="font-size:14px;color:#3D2E24;line-height:1.5;white-space:pre-wrap;">' + details + '</div>' : '') +
-            '</div>';
-        }).filter(Boolean).join('');
-        if (!cards) return '';
-        return '<div style="padding:20px 16px 0;background:#F0EFED;">' +
-            '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;margin-bottom:12px;">Products &amp; menus</div>' +
-            cards +
-        '</div>';
-    }
-
     function selectRole(role) {
         console.log('🎯 Role:', role);
         currentRole = role;
@@ -5934,9 +5902,6 @@
         // A product modular leads with its item (photos + details) above About;
         // the brand name is already in the header, so it is omitted here.
         var _prodItem = (data.source === 'product') ? productItemBlockHTML(data, {}) : '';
-        // Profile scan: show the storefront — every modular this business carries.
-        // A single-product scan leads with its own item instead (above).
-        var _storefront = (data.source !== 'product' && biz && Array.isArray(biz.products)) ? storefrontHTML(biz.products) : '';
 
         var html =
             // Close button
@@ -5964,8 +5929,6 @@
             ) +
             // Product modular: its item leads, right under the brand header.
             (_prodItem ? '<div style="padding:20px 16px 0;background:#F0EFED;">' + _prodItem + '</div>' : '') +
-            // Profile scan: the storefront (all products & menus) under the header.
-            _storefront +
             // Sections: About + What's new — open by default (full experience),
             // still collapsible via their headers.
             '<div style="padding:22px 16px 4px;background:#F0EFED;">' +
