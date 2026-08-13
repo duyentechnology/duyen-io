@@ -5921,11 +5921,17 @@
                       _piPics.map(function (u) { return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + _piEsc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"></div>'; }).join('') +
                       '</div>'
                     : '';
+                var _piHead = _piLabel || 'Product';
                 _prodItem =
-                    '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:14px;">' +
-                        (_piLabel ? '<div style="font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;margin-bottom:' + ((_piPics.length || _piDetails) ? '10px' : '0') + ';">' + _piEsc(_piLabel) + '</div>' : '') +
-                        _piGrid +
-                        (_piDetails ? '<div style="font-size:15px;color:#3D2E24;line-height:1.5;white-space:pre-wrap;">' + _piEsc(_piDetails) + '</div>' : '') +
+                    '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
+                        '<div onclick="toggleScanSection(\'product\')" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
+                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;">' + _piEsc(_piHead) + '</span>' +
+                            '<svg id="scanChev-product" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);"><path d="M6 9l6 6 6-6"/></svg>' +
+                        '</div>' +
+                        '<div id="scanBody-product" style="display:block;padding:0 16px 16px;">' +
+                            _piGrid +
+                            (_piDetails ? '<div style="font-size:15px;color:#3D2E24;line-height:1.5;white-space:pre-wrap;">' + _piEsc(_piDetails) + '</div>' : '') +
+                        '</div>' +
                     '</div>';
             }
         }
@@ -6000,11 +6006,10 @@
                         '</div>' +
                     '</div>'
                 : '') +
+                // Product — a collapsible card in the same region as About / What's new.
+                (_prodItem || '') +
             '</div>' +
-            '</div>' + // /scanBody-origin — the header arrow collapses everything above
-            // Product data — the content of a product scan, rendered below the
-            // business profile + About (mirrors the moment content on the tapestry).
-            (_prodItem ? '<div style="padding:16px 16px 4px;background:#F0EFED;">' + _prodItem + '</div>' : '') +
+            '</div>' + // /scanBody-origin — the header arrow collapses About + What's new + Product
             // Divider
             '<div style="height:1px;background:#E8DDD6;margin:28px 28px;"></div>' +
             // Role buttons — only show giver if no message yet. A SHARED link
