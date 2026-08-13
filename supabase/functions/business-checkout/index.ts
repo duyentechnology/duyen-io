@@ -26,8 +26,8 @@ const json = (b: unknown, s = 200) =>
 
 // The single source of truth for business pricing. Amounts in cents.
 const TIERS: Record<string, { name: string; cents: number; mode: "payment" | "subscription" }> = {
-  generator: { name: "Business profile + first modular", cents: 2000,  mode: "payment" },
-  modular:   { name: "Additional modular QR",            cents: 1000,  mode: "payment" },
+  generator: { name: "Business profile QR", cents: 1000,  mode: "payment" },
+  modular:   { name: "Modular QR",          cents: 1000,  mode: "payment" },
   insights:  { name: "Insights plan",                    cents: 999,   mode: "subscription" },
   boutique:  { name: "Boutique plan",                    cents: 1999,  mode: "subscription" },
 };

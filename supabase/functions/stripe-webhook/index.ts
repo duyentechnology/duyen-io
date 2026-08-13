@@ -109,19 +109,15 @@ Deno.serve(async (req) => {
         const customer = typeof obj.customer === "string" ? obj.customer : null;
         if (!userId) break;
         if (tier === "generator") {
-          // The $20 unlocks one named profile; metadata carries which.
+          // $10 unlocks this profile's own QR (design + print). Flat pricing:
+          // modulars are billed separately, one credit each.
           ok = await rpc("business_unlock_profile", {
             p_user: userId,
             p_profile: meta.profile_id || "",
             p_customer: customer,
           });
-          // …and includes the first modular credit. Distinct ref suffix so it
-          // is idempotent independently of the unlock.
-          if (ok) ok = await rpc("business_add_modular_credits", {
-            p_user: userId, p_qty: 1, p_ref: `${obj.id}:modular`,
-          });
         } else if (tier === "modular") {
-          // $10 additional modular. Idempotent per session id.
+          // $10 per modular QR. Idempotent per session id.
           ok = await rpc("business_add_modular_credits", {
             p_user: userId, p_qty: 1, p_ref: obj.id,
           });
