@@ -4257,7 +4257,14 @@
                 if (bizData) {
                     from = bizData.name || 'Business';
                     message = bizData.description || '';
-                    photos = bizData.photos || (bizData.photo ? [bizData.photo] : []);
+                    // Tapestry tile cover: use the business LOGO so a saved
+                    // business/product is instantly recognizable (a generic 🏢
+                    // emoji confused people). Logo first (a Storage URL, so it
+                    // thumbnails cleanly), then any explicit photo, then About.
+                    photos = (bizData.photos && bizData.photos.length) ? bizData.photos
+                        : (bizData.logo ? [bizData.logo]
+                        : (bizData.photo ? [bizData.photo]
+                        : ((Array.isArray(bizData.aboutPhotos) && bizData.aboutPhotos.length) ? [bizData.aboutPhotos[0]] : [])));
                     hasVoice = !!bizData.voice;
                 }
                 if (giverData) {
