@@ -9551,10 +9551,18 @@
                     var _pnm  = String(thread.productName||'').trim();
                     if (_ppics.length || _pdet) {
                         var _pgrid = _ppics.length ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(_ppics.length,3) + ',1fr);gap:8px;margin-bottom:' + (_pdet?'12px':'0') + ';">' + _ppics.map(function(u){ return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + _pesc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') + '</div>' : '';
-                        bProduct = '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:14px;margin-bottom:12px;">' +
-                            (_pnm ? '<div style="font-family:\'Crimson Pro\',serif;font-size:1.2rem;font-weight:700;color:#8B3A7F;margin-bottom:' + ((_ppics.length||_pdet)?'10px':'0') + ';">' + _pesc(_pnm) + '</div>' : '') +
-                            _pgrid +
-                            (_pdet ? '<div style="font-size:0.95rem;color:#3D2E24;line-height:1.55;white-space:pre-wrap;">' + _pesc(_pdet) + '</div>' : '') +
+                        // Collapsible like the scan — a chevron header (open by
+                        // default), self-contained toggle so it can't collide.
+                        var _phead = _pnm || 'Product';
+                        bProduct = '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;margin-bottom:12px;">' +
+                            '<div onclick="var d=this.parentNode.querySelector(\'.sc-pb\');var a=this.querySelector(\'.sc-pr\');var o=d.style.display!==\'none\';d.style.display=o?\'none\':\'block\';a.style.transform=o?\'rotate(0deg)\':\'rotate(180deg)\';" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
+                                '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:1.2rem;font-weight:700;color:#8B3A7F;">' + _pesc(_phead) + '</span>' +
+                                '<svg class="sc-pr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>' +
+                            '</div>' +
+                            '<div class="sc-pb" style="display:block;padding:0 16px 16px;">' +
+                                _pgrid +
+                                (_pdet ? '<div style="font-size:0.95rem;color:#3D2E24;line-height:1.55;white-space:pre-wrap;">' + _pesc(_pdet) + '</div>' : '') +
+                            '</div>' +
                         '</div>';
                     }
                 }
