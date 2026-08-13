@@ -4534,9 +4534,11 @@
     // whatever the business typed, then the shop's name — the thing in your hand
     // before the question about it. Videos are skipped here on purpose: this is a
     // glance before choosing a role, not the moment itself.
-    function renderProductItemBlock(data, biz) {
-        var host = document.getElementById('roleItemBlock');
-        if (!host) return;
+    // The product item as an HTML string — photos (first, then non-video media),
+    // the typed details, and optionally the shop's name. Reused by the role
+    // screen (renderProductItemBlock) and the business-profile page, where a
+    // product modular now leads with its item above About.
+    function productItemBlockHTML(data, biz) {
         var pics = [];
         if (data.photo) pics.push(data.photo);
         if (Array.isArray(data.media)) {
@@ -4546,8 +4548,7 @@
         }
         var details = String(data.details || '').trim();
         var name = (biz && biz.name) ? String(biz.name) : '';
-        if (!pics.length && !details && !name) { host.style.display = 'none'; host.innerHTML = ''; return; }
-
+        if (!pics.length && !details && !name) return '';
         var esc = function (s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
         var shown = pics.slice(0, 3);
         var grid = shown.length
@@ -4558,12 +4559,18 @@
                          '</div>';
               }).join('') + '</div>'
             : '';
-        host.innerHTML =
-            '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:13px;margin-bottom:1.1rem;text-align:left;">' +
+        return '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:13px;margin-bottom:1.1rem;text-align:left;">' +
                 grid +
                 (details ? '<div style="font-size:15px;color:#3D2E24;line-height:1.5;white-space:pre-wrap;">' + esc(details) + '</div>' : '') +
                 (name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:700;color:#8B3A7F;margin-top:' + (details ? '8px' : '0') + ';">' + esc(name) + '</div>' : '') +
             '</div>';
+    }
+    function renderProductItemBlock(data, biz) {
+        var host = document.getElementById('roleItemBlock');
+        if (!host) return;
+        var html = productItemBlockHTML(data, biz);
+        if (!html) { host.style.display = 'none'; host.innerHTML = ''; return; }
+        host.innerHTML = html;
         host.style.display = 'block';
     }
 
@@ -5892,6 +5899,10 @@
             (biz.name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;text-align:center;margin-top:8px;">' + biz.name + '</div>' : '') +
             iconRowHtml;
 
+        // A product modular leads with its item (photos + details) above About;
+        // the brand name is already in the header, so it is omitted here.
+        var _prodItem = (data.source === 'product') ? productItemBlockHTML(data, {}) : '';
+
         var html =
             // Close button
             '<div style="padding:12px 20px;display:flex;align-items:center;background:#EFE5EF;">' +
@@ -5916,6 +5927,8 @@
                     '<div style="flex:1;min-width:0;">' + _bizHeadText + '</div>' +
                 '</div>'
             ) +
+            // Product modular: its item leads, right under the brand header.
+            (_prodItem ? '<div style="padding:20px 16px 0;background:#F0EFED;">' + _prodItem + '</div>' : '') +
             // Sections: About + What's new — open by default (full experience),
             // still collapsible via their headers.
             '<div style="padding:22px 16px 4px;background:#F0EFED;">' +
@@ -6080,6 +6093,14 @@
             //   * it narrows to "I received this" once a giver has written, because
             //     at that point a purchase is no longer what happened.
             if (data.source === 'product') {
+                // A product modular / activated tag carries a business profile:
+                // lead with the brand + item, gift roles below. showBusinessProfile
+                // injects the item and keeps the giving/receiving/save choices.
+                if (bizDataCheck && bizDataCheck.name) {
+                    if (roleLoader) roleLoader.style.display = 'none';
+                    showBusinessProfile(data, bizDataCheck);
+                    return;
+                }
                 var pItem   = !!((data.details && data.details.trim()) || data.photo ||
                                  (data.media && data.media.length) || (bizDataCheck && bizDataCheck.name));
                 var pGiver  = !!(data.giver_data || data.giver_user_id);
