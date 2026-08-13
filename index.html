@@ -6105,6 +6105,15 @@
                 return;
             }
 
+            // A menu modular (dayduyen): the shop's profile with its menu, opened
+            // straight to the menu since that's what the code is for.
+            if (data.source === 'menu' && bizDataCheck && bizDataCheck.name) {
+                if (roleLoader) roleLoader.style.display = 'none';
+                showBusinessProfile(data, bizDataCheck);
+                setTimeout(function(){ try { openMenuViewer(); } catch (e) {} }, 60);
+                return;
+            }
+
             if (bizDataCheck && bizDataCheck.name) {
                 if (roleLoader) roleLoader.style.display = 'none';
                 showBusinessProfile(data, bizDataCheck);
