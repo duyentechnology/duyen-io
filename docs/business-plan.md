@@ -108,6 +108,28 @@ The EU **Ecodesign for Sustainable Products Regulation (ESPR)** entered into for
 
 Market context: the digital product passport market is projected to grow from ~$275M (2025) to ~$3.0B by 2033 (~35% CAGR); on-pack QR + DPP combined from $3.3B (2026) to $13.9B by 2036.
 
+### 6b. California SB 707 — the US front (Responsible Textile Recovery Act of 2024)
+
+The EU is not the only regulator moving. In September 2024 California enacted **SB 707**, the **first extended producer responsibility (EPR) law for textiles in the United States**. It makes producers financially responsible for the collection, repair, reuse, and recycling of textiles they sell into California.
+
+**What the law requires:**
+- **Covered products:** most apparel and household textiles — clothing, footwear, handbags, towels, bedding, pillows, curtains.
+- **Who must comply:** producers with **more than $1M in annual global sales** selling covered products into California. Smaller and secondhand sellers are exempt.
+- **July 1, 2026** — deadline to register with the state-approved producer responsibility organization (PRO, Landbell USA). Penalties for non-registration run up to **$10,000/day** (up to $50,000/day for knowing violations). *This deadline has already passed — late registrants are in the penalty window now.*
+- **By 2030** (or earlier if CalRecycle approves the PRO plan sooner) — participation in the full stewardship program; producer fees begin at full implementation.
+- **Eco-modulated fees:** the fee methodology (being developed now) charges producers less for design and programs that facilitate **reuse, repair, and recycling** — and the PRO must credit **existing producer collection, repair, and reuse programs** in the fee structure.
+- **Data obligations:** annual transparency reporting; the PRO and recyclers need **granular, SKU-level material data** to assess fees.
+
+**How Duyên is a solution:**
+
+1. **The SKU-level data registry already exists.** A Duyên modular is a per-product record behind a QR. Extending its schema with fiber composition, material, and repairability fields gives a producer one dataset that serves *both* SB 707 fee reporting and the EU DPP — entered once, at boutique prices.
+2. **Eco-modulation evidence = lower fees.** A scannable care/repair/resale layer on every garment is a *documentable, producer-run reuse and repair program* — exactly what the eco-modulated fee structure is required to credit. Duyên can give a small brand auditable scan logs proving the program is real and used.
+3. **The QR is the consumer end-of-life touchpoint.** The law's whole machinery depends on garments actually reaching repair, resale, or collection instead of landfill. The tag on the garment is the natural interface: scan → care instructions, repair options, resale guidance, nearest PRO collection point.
+4. **Provenance extends garment life.** Duyên keepsakes attach the garment's story to the garment. Items with stories are kept longer and resell better with provenance — directly serving the law's reuse-over-disposal hierarchy.
+5. **The wedge customer is acute and underserved:** California boutiques and DTC labels just over the $1M threshold now carry enterprise-grade compliance obligations with no enterprise budget — plus under-threshold brands who want the reuse/repair story voluntarily as brand value.
+
+**Timing implication for the plan:** SB 707 pulls compliance-adjacent revenue *forward* of the EU's ~2028 date — the PRO registration deadline has already passed (mid-2026) and the fee-design phase runs now through ~2030, which is precisely when producers should be standing up the repair/reuse programs that reduce their fees.
+
 ---
 
 ## 7. Market size & QR adoption research
@@ -179,4 +201,5 @@ Beyond Year 3, the textile DPP mandate (~2028) is the step-change: if Duyên con
 - Gifting & cards: [MRFR personalized gifts](https://www.marketresearchfuture.com/reports/personalized-gifts-market-10348), [Verified Market Research](https://www.verifiedmarketresearch.com/product/personalized-gifts-market/), [Grand View Research greeting cards](https://www.grandviewresearch.com/industry-analysis/greeting-cards-market-report)
 - Journaling & business cards: [Straits Research digital journal apps](https://straitsresearch.com/report/digital-journal-apps-market), [IMARC digital business card](https://www.imarcgroup.com/digital-business-card-market), [Mordor Intelligence](https://www.mordorintelligence.com/industry-reports/qr-codes-market)
 - Textile DPP / ESPR: [COSH! ESPR explainer](https://cosh.eco/en/articles/eu-digital-product-passport-espr-explained-fashion-textiles), [Carbonfact DPP for fashion](https://www.carbonfact.com/blog/policy/digital-product-passport-fashion), [Cycle Intelligence timeline](https://www.cycle-platform.com/knowledge/eu-digital-product-passport-textiles/), [Wave PLM ESPR requirements](https://blog.waveplm.com/eu-digital-product-passport-dpp/)
+- California SB 707: [Bill text (CA Legislature)](https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202320240SB707), [K&L Gates deadline analysis](https://www.klgates.com/thought-leadership/Californias-Landmark-Textile-Recycling-Law-With-Looming-1-July-2026-Deadline-6-26-2026), [Anthesis SB 707 explainer](https://www.anthesisgroup.com/insights/sb-707-californias-textile-epr-law-explained/), [DLA Piper implementation notes](https://www.dlapiper.com/en-us/insights/publications/2025/10/california-sb-707-key-takeaways), [RRS compliance overview](https://www.recycle.com/latest/california-sb707-textile-epr-compliance), [CalRecycle textile PRO](https://calrecycle.ca.gov/epr/textiles/textileproapp)
 - DPP / connected packaging market: [Grand View Research DPP market](https://www.grandviewresearch.com/industry-analysis/digital-product-passport-market-report), [FMI on-pack QR & DPP](https://www.openpr.com/news/4595542/on-pack-qr-codes-digital-product-passport-market-size-to-reach), [Connected packaging](https://www.openpr.com/news/4535478/connected-packaging-market-to-reach-usd-65-3-billion-by-2036-as)
