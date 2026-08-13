@@ -9551,15 +9551,42 @@
                         '</div>';
                     }
                 }
-                // No Polaroid hero here — the header and grid tile already
-                // carry name + date; the opened card is the content itself.
-                originHtml =
-                    '<div style="background:#F0EFED;padding:16px 16px 2px;">' +
-                        bProduct +
-                        '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:18px 16px 16px;">' +
-                            (biz.description ? '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.18rem;color:#3D2E24;line-height:1.7;text-align:center;">“' + biz.description + '”</div>' : '') +
+                // Render the saved business/product EXACTLY like opening its link
+                // (showBusinessProfile): brand header (logo or 緣) + origin lines +
+                // name + contacts, then a collapsible About, then the product. The
+                // toggles are self-contained (class-scoped) so they never collide.
+                var _bizLogo = (typeof biz.logo === 'string' && /^https?:\/\//.test(biz.logo)) ? biz.logo.replace(/"/g, '&quot;') : '';
+                var _headText =
+                    '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#3D2E24;line-height:1.15;text-align:center;padding:0 20px;">Every thing has an origin</div>' +
+                    '<div style="font-size:13.5px;color:#6B5751;line-height:1.45;margin-top:6px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
+                    (biz.name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;text-align:center;margin-top:8px;">' + biz.name + '</div>' : '') +
+                    iconRowHtml;
+                var _header = _bizLogo
+                    ? '<div style="background:#EFE5EF;padding:16px 14px 13px;border-bottom:1px solid #E0CFE0;">' +
+                          '<img src="' + _bizLogo + '" alt="' + String(biz.name||'').replace(/"/g,'&quot;') + '" style="display:block;margin:0 auto 10px;max-width:78%;max-height:185px;object-fit:contain;border-radius:14px;">' +
+                          _headText +
+                      '</div>'
+                    : '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #E0CFE0;">' +
+                          '<div style="flex-shrink:0;text-align:center;width:92px;"><span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span><span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span></div>' +
+                          '<div style="flex:1;min-width:0;">' + _headText + '</div>' +
+                      '</div>';
+                var _aboutSection = (biz.description || (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length)) ?
+                    '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
+                        '<div onclick="var d=this.parentNode.querySelector(\'.sc-ab\');var a=this.querySelector(\'.sc-ar\');var o=d.style.display!==\'none\';d.style.display=o?\'none\':\'block\';a.style.transform=o?\'rotate(0deg)\':\'rotate(180deg)\';" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
+                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;">About</span>' +
+                            '<svg class="sc-ar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(0deg);"><path d="M6 9l6 6 6-6"/></svg>' +
+                        '</div>' +
+                        '<div class="sc-ab" style="display:none;padding:0 16px 16px;">' +
+                            (biz.description ? '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;font-style:italic;color:#5D4E44;line-height:1.7;margin-bottom:14px;">“' + biz.description + '”</div>' : '') +
                             bAbout +
-                            iconRowHtml +
+                        '</div>' +
+                    '</div>' : '';
+                originHtml =
+                    '<div style="border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' +
+                        _header +
+                        '<div style="padding:22px 16px 4px;background:#F0EFED;">' +
+                            _aboutSection +
+                            bProduct +
                             bPromo +
                         '</div>' +
                     '</div>';
