@@ -10925,13 +10925,22 @@
         var shareUrl = m ? 'https://duyen.io/s/' + m[1]
             : url + (url.indexOf('?') === -1 ? '?' : '&') + 'v=share';
         countShare(url);
-        // URL only — adding any text alongside would split into a second
-        // bubble and lose the card.
+        // A bare link arrives with no reason attached — the person receiving it
+        // has to guess why. The line says why.
+        //
+        // The trade-off, which was the reason this used to be URL-only: text
+        // alongside a URL can make iMessage render a plain bubble instead of the
+        // rich preview card. Keeping the URL last gives it the best chance of
+        // still previewing. VERIFY ON A REAL PHONE — if the card disappears,
+        // the fix is to drop `text` here and let the sender type their own line
+        // above the card, which keeps both.
+        var shareLine = 'From my life tapestry: thought of you';
         if (navigator.share) {
-            navigator.share({ url: shareUrl }).catch(function(){});
+            navigator.share({ text: shareLine, url: shareUrl }).catch(function(){});
         } else {
-            try { navigator.clipboard.writeText(shareUrl); alert('Copied: ' + shareUrl); }
-            catch(e) { prompt('Copy this:', shareUrl); }
+            var copyText = shareLine + '\n' + shareUrl;
+            try { navigator.clipboard.writeText(copyText); alert('Copied: ' + copyText); }
+            catch(e) { prompt('Copy this:', copyText); }
         }
     }
 
