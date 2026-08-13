@@ -4359,6 +4359,12 @@
                     externalUrl: (entry.role === 'external') ? (normalizeExternalUrl(entry.note || qr.url || '') || null) : null,
                     qrUrl: qr.url || null,
                     media: (qr.media && qr.media.length > 0) ? qr.media : null,
+                    // Product fields — so a saved product keepsake can show the
+                    // item (photos + details), not just the business profile.
+                    isProduct: qr.source === 'product',
+                    productPhoto: (qr.source === 'product') ? (qr.photo || null) : null,
+                    productDetails: (qr.source === 'product') ? (qr.details || null) : null,
+                    productName: (qr.source === 'product') ? (qr.label || null) : null,
                     linkMeta: qr.link_meta || null,
                     promotion: qr.promotion || null,
                     receiverResponse: receiverResponse,
@@ -9524,10 +9530,32 @@
                 var bPromo = (thread.promotion && thread.promotion.text)
                     ? '<div style="background:#faf4fa;border:1.5px dashed #C9A0C4;border-radius:11px;padding:10px 12px;font-size:0.92rem;color:#5D4E44;margin-top:14px;line-height:1.5;">📣 ' + thread.promotion.text + '</div>'
                     : '';
+                // A saved PRODUCT leads with the item itself (name + photos +
+                // details) in its own card, above the business About/contacts —
+                // so the keepsake shows what was actually saved, not just the shop.
+                var bProduct = '';
+                if (thread.isProduct && (thread.productPhoto || (thread.media && thread.media.length) || thread.productDetails)) {
+                    var _pesc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
+                    var _ppics = [];
+                    if (thread.productPhoto) _ppics.push(thread.productPhoto);
+                    if (Array.isArray(thread.media)) thread.media.forEach(function(m){ var u=(m&&m.url)?m.url:m; if (typeof u==='string' && !/\.(mp4|mov|webm|m4v)(\?|$)/i.test(u)) _ppics.push(u); });
+                    _ppics = _ppics.slice(0,3);
+                    var _pdet = String(thread.productDetails||'').trim();
+                    var _pnm  = String(thread.productName||'').trim();
+                    if (_ppics.length || _pdet) {
+                        var _pgrid = _ppics.length ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(_ppics.length,3) + ',1fr);gap:8px;margin-bottom:' + (_pdet?'12px':'0') + ';">' + _ppics.map(function(u){ return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + _pesc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') + '</div>' : '';
+                        bProduct = '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:14px;margin-bottom:12px;">' +
+                            (_pnm ? '<div style="font-family:\'Crimson Pro\',serif;font-size:1.2rem;font-weight:700;color:#8B3A7F;margin-bottom:' + ((_ppics.length||_pdet)?'10px':'0') + ';">' + _pesc(_pnm) + '</div>' : '') +
+                            _pgrid +
+                            (_pdet ? '<div style="font-size:0.95rem;color:#3D2E24;line-height:1.55;white-space:pre-wrap;">' + _pesc(_pdet) + '</div>' : '') +
+                        '</div>';
+                    }
+                }
                 // No Polaroid hero here — the header and grid tile already
                 // carry name + date; the opened card is the content itself.
                 originHtml =
                     '<div style="background:#F0EFED;padding:16px 16px 2px;">' +
+                        bProduct +
                         '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;padding:18px 16px 16px;">' +
                             (biz.description ? '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.18rem;color:#3D2E24;line-height:1.7;text-align:center;">“' + biz.description + '”</div>' : '') +
                             bAbout +
