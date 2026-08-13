@@ -5900,8 +5900,39 @@
             iconRowHtml;
 
         // A product modular leads with its item (photos + details) above About;
-        // the brand name is already in the header, so it is omitted here.
-        var _prodItem = (data.source === 'product') ? productItemBlockHTML(data, {}) : '';
+        // the brand name is already in the header, so it is omitted here. The
+        // card is collapsible (chevron), matching About and What's new.
+        var _prodItem = '';
+        if (data.source === 'product') {
+            var _piEsc = function (s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
+            var _piPics = [];
+            if (data.photo) _piPics.push(data.photo);
+            if (Array.isArray(data.media)) data.media.forEach(function (u) {
+                if (typeof u === 'string' && !/\.(mp4|mov|webm|m4v)(\?|$)/i.test(u)) _piPics.push(u);
+            });
+            _piPics = _piPics.slice(0, 3);
+            var _piDetails = String(data.details || '').trim();
+            if (_piPics.length || _piDetails) {
+                var _piLabel = (data.label && data.label.trim() && data.label !== 'QR Code' && !/^QR-\d+$/i.test(data.label))
+                    ? data.label.trim() : 'Product';
+                var _piGrid = _piPics.length
+                    ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(_piPics.length, 3) + ',1fr);gap:8px;margin-bottom:' + (_piDetails ? '12px' : '0') + ';">' +
+                      _piPics.map(function (u) { return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + _piEsc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"></div>'; }).join('') +
+                      '</div>'
+                    : '';
+                _prodItem =
+                    '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' +
+                        '<div onclick="toggleScanSection(\'product\')" style="display:flex;align-items:center;gap:10px;padding:14px 14px;cursor:pointer;">' +
+                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;">' + _piEsc(_piLabel) + '</span>' +
+                            '<svg id="scanChev-product" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>' +
+                        '</div>' +
+                        '<div id="scanBody-product" style="display:block;padding:0 14px 14px;">' +
+                            _piGrid +
+                            (_piDetails ? '<div style="font-size:15px;color:#3D2E24;line-height:1.5;white-space:pre-wrap;">' + _piEsc(_piDetails) + '</div>' : '') +
+                        '</div>' +
+                    '</div>';
+            }
+        }
 
         var html =
             // Close button
