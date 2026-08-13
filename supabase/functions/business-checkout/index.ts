@@ -26,9 +26,10 @@ const json = (b: unknown, s = 200) =>
 
 // The single source of truth for business pricing. Amounts in cents.
 const TIERS: Record<string, { name: string; cents: number; mode: "payment" | "subscription" }> = {
-  generator: { name: "QR generator (one-time unlock)", cents: 2000,  mode: "payment" },
-  insights:  { name: "Insights plan",                  cents: 999,   mode: "subscription" },
-  boutique:  { name: "Boutique plan",                  cents: 1999,  mode: "subscription" },
+  generator: { name: "Business profile + first modular", cents: 2000,  mode: "payment" },
+  modular:   { name: "Additional modular QR",            cents: 1000,  mode: "payment" },
+  insights:  { name: "Insights plan",                    cents: 999,   mode: "subscription" },
+  boutique:  { name: "Boutique plan",                    cents: 1999,  mode: "subscription" },
 };
 
 Deno.serve(async (req) => {
@@ -57,11 +58,15 @@ Deno.serve(async (req) => {
   let tier = "generator";
   let qty = 1;
   let profileId = "";
+  let modularId = "";
   try {
     const b = await req.json();
     if (b?.tier) tier = String(b.tier);
     if (b?.qty) qty = Math.max(1, Math.min(1000, parseInt(b.qty, 10) || 1));
     if (b?.profileId) profileId = String(b.profileId).slice(0, 128);
+    // Which modular (product/menu draft) this purchase is for, so the app can
+    // create exactly that one on return. Carried in metadata + the success URL.
+    if (b?.modularId) modularId = String(b.modularId).slice(0, 128);
   } catch { /* defaults */ }
 
   // Build a Checkout session via the Stripe REST API (form-encoded, inline price).
@@ -73,6 +78,7 @@ Deno.serve(async (req) => {
   p.set("metadata[tier]", tier);
   p.set("metadata[user_id]", user.id);
   if (profileId) p.set("metadata[profile_id]", profileId);
+  if (modularId) p.set("metadata[modular_id]", modularId);
 
   if (tier === "credits") {
     // Boutique mint-credit top-up: $0.10 per credit, one-time (qty credits).
@@ -98,7 +104,12 @@ Deno.serve(async (req) => {
       p.set("subscription_data[metadata][user_id]", user.id);
     }
   }
-  p.set("success_url", `${APP_URL}/?upgrade=success`);
+  // Carry the modular context back so the app can create that draft's code and
+  // open the design studio right after payment.
+  let successUrl = `${APP_URL}/?upgrade=success`;
+  if (modularId) successUrl += `&mid=${encodeURIComponent(modularId)}`;
+  if (profileId) successUrl += `&pid=${encodeURIComponent(profileId)}`;
+  p.set("success_url", successUrl);
   p.set("cancel_url", `${APP_URL}/?upgrade=cancel`);
 
   const sres = await fetch("https://api.stripe.com/v1/checkout/sessions", {
