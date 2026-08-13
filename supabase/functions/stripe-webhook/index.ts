@@ -115,6 +115,16 @@ Deno.serve(async (req) => {
             p_profile: meta.profile_id || "",
             p_customer: customer,
           });
+          // …and includes the first modular credit. Distinct ref suffix so it
+          // is idempotent independently of the unlock.
+          if (ok) ok = await rpc("business_add_modular_credits", {
+            p_user: userId, p_qty: 1, p_ref: `${obj.id}:modular`,
+          });
+        } else if (tier === "modular") {
+          // $10 additional modular. Idempotent per session id.
+          ok = await rpc("business_add_modular_credits", {
+            p_user: userId, p_qty: 1, p_ref: obj.id,
+          });
         } else if (tier === "credits") {
           // Boutique mint-credit top-up ($0.10/QR). Idempotent per session id.
           const credits = parseInt(meta.credits || "0", 10);
