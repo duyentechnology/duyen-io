@@ -14,6 +14,22 @@
     <meta name="apple-mobile-web-app-title" content="Duyên">
     <link rel="apple-touch-icon" href="/icon-192.png">
     <script>
+      // A scanned/shared QR link (/q/, /s/, or #/q/) should open straight to its
+      // content. Flag it on <html> BEFORE first paint so the branded intro
+      // splash never shows — a business or product share flashing "Weaving the
+      // Tapestry of Life" reads like an error or a security interstitial to
+      // someone who just tapped a link.
+      (function(){
+        try {
+          var p = location.pathname, h = location.hash;
+          if (p.indexOf('/q/') === 0 || p.indexOf('/s/') === 0 || h.indexOf('#/q/') === 0) {
+            document.documentElement.classList.add('qr-direct');
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <style>html.qr-direct #splash{display:none!important;}</style>
+    <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js');
@@ -4082,12 +4098,13 @@
                 navigate('setPassword');
             }, 1500);
         } else if (isQRScan) {
-            // Show splash briefly then go straight to role selection
-            setTimeout(function() {
-                var splash = document.getElementById('splash');
-                if (splash) splash.classList.add('hidden');
-                handleRoute();
-            }, 1500);
+            // Scanned/shared link: no branded intro splash. It's already
+            // suppressed before paint (html.qr-direct), so route straight to the
+            // content and the visitor lands on the business/product, not a
+            // "Weaving the Tapestry of Life" flash.
+            var splash = document.getElementById('splash');
+            if (splash) splash.style.display = 'none';
+            handleRoute();
         } else {
             // Normal flow: show splash then welcome (unless returning from OAuth)
             setTimeout(function() {
