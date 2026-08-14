@@ -4179,8 +4179,16 @@
         var message = (giverData.message || '').trim();
         var hasGiverContent = !!(message || fromName || recipientName || giverData.photos || giverData.video || giverData.voice);
 
+        // A saved title that is just the app's own name/domain is junk captured
+        // from the page <title> when the moment was saved (e.g. "Duyen.io",
+        // "Duyên — Your Life's Tapestry") — never a name the user chose. Treat it
+        // like a placeholder so a gift's own message becomes the title instead.
+        // The optional trailing dash clause only matches "duyên — …", so a real
+        // title like "Duyen is my friend" is left untouched.
+        var isAppJunk = /^(day)?duy[eê]n(\.io|\.tech)?(\s*[—–-].*)?$/i.test(saved);
+
         // Honor a user's renamed title (anything they typed that isn't a placeholder)
-        if (saved && placeholders.indexOf(saved) === -1) return saved;
+        if (saved && placeholders.indexOf(saved) === -1 && !isAppJunk) return saved;
 
         // GIVER tapestry rules
         if (role === 'giver') {
