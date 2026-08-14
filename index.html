@@ -4292,7 +4292,18 @@
                         message = giverData.message || '';
                         from = giverData.from_name || 'You';
                     }
-                    photos = photos.length ? photos : (giverData.photos || []);
+                    // The gift's own photos are what belongs on the polaroid.
+                    // When a moment is created on a code that also carries a
+                    // business profile, the bizData block above already filled
+                    // `photos` with that profile's promo/about shot — so every
+                    // moment on the same profile would show the SAME promo image
+                    // instead of its own. The giver's photos must win here; fall
+                    // back to whatever bizData/about left only if the gift has none.
+                    if (giverData.photos && giverData.photos.length) {
+                        photos = giverData.photos.slice();
+                    } else {
+                        photos = photos.length ? photos : [];
+                    }
                     hasVoice = hasVoice || !!giverData.voice;
                 }
 
