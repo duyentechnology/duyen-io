@@ -6106,6 +6106,24 @@
             if (roleSubtitle) roleSubtitle.style.display = '';
         };
 
+        // Neutral loader for the fetch window. Until the code resolves we don't
+        // yet know if it's a gift or a business/product — and a business or
+        // product share must NOT flash the branded "緣 DUYÊN / Loading your
+        // thread…" role screen first. That interstitial reads like a wrong turn
+        // and makes people question the link. A plain spinner on the business
+        // background covers the role screen until we know what to show; every
+        // exit path below hides it via _hideBoot().
+        var _boot = document.getElementById('scanBootLoader');
+        if (!_boot) {
+            _boot = document.createElement('div');
+            _boot.id = 'scanBootLoader';
+            _boot.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#F0EFED;display:flex;align-items:center;justify-content:center;';
+            _boot.innerHTML = '<div style="width:34px;height:34px;border:3px solid rgba(139,58,127,0.18);border-top-color:#8B3A7F;border-radius:50%;animation:spin 0.8s linear infinite;"></div>';
+            document.body.appendChild(_boot);
+        }
+        _boot.style.display = 'flex';
+        var _hideBoot = function() { if (_boot) _boot.style.display = 'none'; };
+
         try {
             let data = null;
 
@@ -6128,7 +6146,7 @@
             }
             
             if (!data) {
-                if (roleLoader) roleLoader.style.display = 'none';
+                if (roleLoader) roleLoader.style.display = 'none'; _hideBoot();
                 notFound.style.display = 'block';
                 return;
             }
@@ -6184,7 +6202,7 @@
                 // lead with the brand + item, gift roles below. showBusinessProfile
                 // injects the item and keeps the giving/receiving/save choices.
                 if (bizDataCheck && bizDataCheck.name) {
-                    if (roleLoader) roleLoader.style.display = 'none';
+                    if (roleLoader) roleLoader.style.display = 'none'; _hideBoot();
                     showBusinessProfile(data, bizDataCheck);
                     return;
                 }
@@ -6208,7 +6226,7 @@
                 if (subtitle) subtitle.textContent = pGiver ? 'A gift is waiting for you.'
                     : (pItem ? "What's your part in this story?"
                              : "This tag hasn't been set up yet. If it's yours, claim it and add the item.");
-                if (roleLoader) roleLoader.style.display = 'none';
+                if (roleLoader) roleLoader.style.display = 'none'; _hideBoot();
                 _showRoleFraming();
                 if (roleCards) roleCards.style.display = 'block';
                 return;
@@ -6217,14 +6235,14 @@
             // A menu modular (dayduyen): the shop's profile with its menu, opened
             // straight to the menu since that's what the code is for.
             if (data.source === 'menu' && bizDataCheck && bizDataCheck.name) {
-                if (roleLoader) roleLoader.style.display = 'none';
+                if (roleLoader) roleLoader.style.display = 'none'; _hideBoot();
                 showBusinessProfile(data, bizDataCheck);
                 setTimeout(function(){ try { openMenuViewer(); } catch (e) {} }, 60);
                 return;
             }
 
             if (bizDataCheck && bizDataCheck.name) {
-                if (roleLoader) roleLoader.style.display = 'none';
+                if (roleLoader) roleLoader.style.display = 'none'; _hideBoot();
                 showBusinessProfile(data, bizDataCheck);
                 return;
             }
@@ -6278,13 +6296,13 @@
 
             document.getElementById('roleReceiverCard').style.display = (data.giver_data || data.giver_user_id) ? 'block' : 'none';
             // Now reveal role cards (data is ready, no more flash)
-            if (roleLoader) roleLoader.style.display = 'none';
+            if (roleLoader) roleLoader.style.display = 'none'; _hideBoot();
             _showRoleFraming();
             if (roleCards) roleCards.style.display = 'block';
 
         } catch(e) {
             console.error('Error loading QR:', e);
-            if (roleLoader) roleLoader.style.display = 'none';
+            if (roleLoader) roleLoader.style.display = 'none'; _hideBoot();
             _showRoleFraming();
             if (roleCards) roleCards.style.display = 'block';
         }
