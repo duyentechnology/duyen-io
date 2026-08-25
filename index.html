@@ -5514,47 +5514,13 @@
                 console.log('🎙️ No voice blob found', extVoiceSlot);
             }
 
-            // Insert into qr_codes table as external source
+            // The URL as saved (scheme-normalised).
             var urlToSave = normalizeExternalUrl(document.getElementById('externalUrl').value.trim() || scannedExternalUrl);
             console.log('📌 Saving external scan — URL value:', JSON.stringify(urlToSave));
-            var { data, error } = await _supabase
-                .from('qr_codes')
-                .insert({
-                    user_id: user.id,
-                    url: urlToSave,
-                    label: title,
-                    details: notes || '',
-                    source: 'external',
-                    media: mediaUrls.length > 0 ? mediaUrls : null,
-                    voice: voiceUrl || null,
-                    status: 'active',
-                    giver_data: from ? { name: from, tags: tags, category: extSelectedCategory } : null
-                })
-                .select();
-
-            if (error) {
-                console.error('Save external QR error:', error);
-                alert('Error saving: ' + error.message);
-                return;
-            }
-
-            console.log('📌 External scan saved to Supabase:', data);
-
-            // Capture link metadata in background — resolves redirects (qrco.de → real URL),
-            // fetches page title + og:image. Fire-and-forget: failures never block the save.
-            if (data && data[0] && urlToSave) {
-                _supabase.functions.invoke('resolve-link', {
-                    body: { id: data[0].id, url: urlToSave }
-                }).then(function(r){
-                    if (r && r.error) console.log('🔗 resolve-link error:', r.error.message || r.error);
-                    else console.log('🔗 resolve-link ok');
-                }).catch(function(err){
-                    console.log('🔗 resolve-link skipped:', err && err.message);
-                });
-            }
 
             // Optional backfill date: when did this moment actually happen?
             // Blank => leave occurred_at null so it falls back to created_at (now).
+            // Parsed BEFORE the write so it can go in the single atomic call.
             var occurredAt = null;
             var extDateVal = (document.getElementById('extDate').value || '').trim();
             if (extDateVal) {
@@ -5572,24 +5538,49 @@
                 }
             }
 
-            // Also add to tapestry so it shows in the collection
-            if (data && data[0]) {
-                var tapInsert = {
-                    user_id: user.id,
-                    qr_code_id: data[0].id,
-                    role: 'external',
-                    title: title,
-                    note: urlToSave
-                };
-                if (occurredAt) tapInsert.occurred_at = occurredAt;
-                var { data: tapData, error: tapError } = await _supabase
-                    .from('tapestry')
-                    .insert(tapInsert)
-                    .select();
-                if (tapError) console.error('Tapestry insert error:', tapError);
-                // Store ID so "View Thread" opens the right entry
-                if (tapData && tapData[0]) window.lastSavedExternalId = tapData[0].id;
+            // ONE atomic write: the save_external_link RPC inserts the qr_codes
+            // row AND the tapestry row in a single transaction. Previously these
+            // were two separate REST calls; an interruption between them left an
+            // orphan qr_codes row (no tapestry entry) and the user, seeing
+            // nothing saved, would save again — producing a duplicate. Now the
+            // save either fully lands or not at all.
+            var { data: saved, error } = await _supabase.rpc('save_external_link', {
+                p_url: urlToSave,
+                p_title: title,
+                p_notes: notes || '',
+                p_media: mediaUrls.length > 0 ? mediaUrls : null,
+                p_voice: voiceUrl || null,
+                p_giver_data: from ? { name: from, tags: tags, category: extSelectedCategory } : null,
+                p_occurred_at: occurredAt
+            });
+
+            if (error) {
+                console.error('Save external QR error:', error);
+                alert('Error saving: ' + error.message);
+                return;
             }
+
+            // RPC returns rows of { qr_id, tapestry_id }.
+            var savedRow = Array.isArray(saved) ? saved[0] : saved;
+            var newQrId = savedRow && savedRow.qr_id;
+            var newTapId = savedRow && savedRow.tapestry_id;
+            console.log('📌 External scan saved atomically:', savedRow);
+
+            // Capture link metadata in background — resolves redirects (qrco.de → real URL),
+            // fetches page title + og:image, and re-hosts the image. Fire-and-forget.
+            if (newQrId && urlToSave) {
+                _supabase.functions.invoke('resolve-link', {
+                    body: { id: newQrId, url: urlToSave }
+                }).then(function(r){
+                    if (r && r.error) console.log('🔗 resolve-link error:', r.error.message || r.error);
+                    else console.log('🔗 resolve-link ok');
+                }).catch(function(err){
+                    console.log('🔗 resolve-link skipped:', err && err.message);
+                });
+            }
+
+            // Store ID so "View Thread" opens the right entry
+            if (newTapId) window.lastSavedExternalId = newTapId;
 
             document.getElementById('successMsg').textContent = 'Woven into your tapestry! This moment is now part of the days of your life.';
             navigate('success');
