@@ -185,10 +185,78 @@ Deno.serve(async (req)=>{
         imageUrl = null;
       }
     }
+
+    // ---- Re-host the preview image in our own Storage ----
+    // Third-party og:image hosts (dynamic endpoints like .ashx, CDNs with
+    // hotlink/referer protection or rate limits) frequently REFUSE cross-origin
+    // <img> requests from the app — especially when the same image is requested
+    // several times at once (the tapestry renders it in the polaroid strip AND
+    // the month grid). When that happens the card's onerror swaps in the thread
+    // emoji and the preview looks broken, even though the detail view — a single
+    // request — loads fine. Downloading the image ONCE here (server-to-server,
+    // where hotlink checks usually pass) and serving our own public copy makes
+    // the preview render reliably everywhere and lets thumbUrl() transform it.
+    // On any failure we fall back to the original URL — never worse than before.
+    let cachedImageUrl = null;
+    let imageCached = false;
+    if (imageUrl) {
+      try {
+        const imgCtrl = new AbortController();
+        const imgTimer = setTimeout(() => imgCtrl.abort(), 8000);
+        let origin = "";
+        try { origin = new URL(resolvedUrl).origin + "/"; } catch (_) {}
+        const imgRes = await fetch(imageUrl, {
+          redirect: "follow",
+          signal: imgCtrl.signal,
+          headers: {
+            // A real browser UA + same-site Referer clears most hotlink checks.
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+            "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+            ...(origin ? { "Referer": origin } : {})
+          }
+        }).finally(() => clearTimeout(imgTimer));
+        const ct = (imgRes.headers.get("content-type") || "").toLowerCase();
+        if (imgRes.ok && ct.startsWith("image/")) {
+          const buf = new Uint8Array(await imgRes.arrayBuffer());
+          // Skip absurdly large or empty payloads.
+          if (buf.length > 0 && buf.length <= 6_000_000) {
+            const ext = ct.includes("png") ? "png"
+              : ct.includes("webp") ? "webp"
+              : ct.includes("gif") ? "gif"
+              : ct.includes("avif") ? "avif"
+              : ct.includes("svg") ? "svg"
+              : "jpg";
+            const path = `link-preview/${id}.${ext}`;
+            const upRes = await fetch(`${SB_URL}/storage/v1/object/qr-media/${path}`, {
+              method: "POST",
+              headers: {
+                apikey: SB_SERVICE,
+                Authorization: `Bearer ${SB_SERVICE}`,
+                "Content-Type": ct,
+                "x-upsert": "true",
+                "Cache-Control": "public, max-age=31536000, immutable"
+              },
+              body: buf
+            });
+            if (upRes.ok) {
+              cachedImageUrl = `${SB_URL}/storage/v1/object/public/qr-media/${path}`;
+              imageCached = true;
+            }
+          }
+        }
+      } catch (_) {
+        // fall through — original imageUrl is kept below
+      }
+    }
+
     const meta = {
       resolved_url: resolvedUrl,
       title: titleRaw,
-      image: imageUrl,
+      // Prefer our re-hosted copy; fall back to the original if caching failed.
+      image: cachedImageUrl || imageUrl,
+      // Keep the source URL for diagnostics / re-caching later.
+      image_source: imageUrl,
+      image_cached: imageCached,
       description: descRaw,
       fetched_at: new Date().toISOString(),
       // Diagnostics: distinguishes "the page declares no preview image" from
