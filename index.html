@@ -4223,7 +4223,13 @@
                         : ((Array.isArray(bizData.aboutPhotos) && bizData.aboutPhotos.length) ? [bizData.aboutPhotos[0]] : [])));
                     hasVoice = !!bizData.voice;
                 }
-                if (giverData) {
+                // Gift content (message + photos + voice) belongs ONLY to the
+                // note's people — the giver and the receiver. A "just save this
+                // business" save (role 'business') must not adopt a giver's
+                // message or photos, even though the gift sits on the SAME shared
+                // code: that's the cross-user leak (a stranger's business tile
+                // would show the giver's private photo).
+                if (giverData && (entry.role === 'giver' || entry.role === 'receiver')) {
                     if (entry.role === 'receiver') {
                         from = giverData.from_name || giverData.user || 'Gift Giver';
                         message = giverData.message || '';
