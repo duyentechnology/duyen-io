@@ -4256,21 +4256,27 @@
                 // The legacy `photos`/`message` fields below get mashed for the old polaroid UI;
                 // these fields preserve unmashed giver/biz content for the new layered card view.
                 // Defensive: any data-shape surprise here must NOT crash the whole tapestry load.
+                // Gift content belongs to the giver and receiver only. isGiftRole
+                // is the single gate for EVERY gift-derived field — for any other
+                // role (a business "just save", external) these fall back to
+                // business data, never the giver's, so nothing personal rides along
+                // on the wrong card.
+                var isGiftRole = (entry.role === 'giver' || entry.role === 'receiver');
                 var giverPhotos = [];
                 var giverMessage = '';
                 var giverVoiceUrl = null;
                 var giverVideo = null;
                 try {
-                    if (giverData && Array.isArray(giverData.photos) && giverData.photos.length) {
+                    if (isGiftRole && giverData && Array.isArray(giverData.photos) && giverData.photos.length) {
                         giverPhotos = giverData.photos.slice();
                     } else if (bizData && Array.isArray(bizData.photos) && bizData.photos.length) {
                         giverPhotos = bizData.photos.slice();
                     } else if (bizData && bizData.photo && typeof bizData.photo === 'string') {
                         giverPhotos = [bizData.photo];
                     }
-                    giverMessage = (giverData && giverData.message) || (bizData && bizData.description) || '';
-                    giverVoiceUrl = (giverData && giverData.voice) || (bizData && bizData.voice) || null;
-                    giverVideo = (giverData && giverData.video) || (bizData && bizData.video) || null;
+                    giverMessage = (isGiftRole && giverData && giverData.message) || (bizData && bizData.description) || '';
+                    giverVoiceUrl = (isGiftRole && giverData && giverData.voice) || (bizData && bizData.voice) || null;
+                    giverVideo = (isGiftRole && giverData && giverData.video) || (bizData && bizData.video) || null;
                 } catch (e) {
                     console.warn('Clean giver-field extract failed for entry', entry.id, e);
                 }
@@ -4318,8 +4324,8 @@
                     icon: icon,
                     photos: photos,
                     hasVoice: hasVoice,
-                    voiceUrl: (bizData && bizData.voice) || (giverData && giverData.voice) || qr.voice || null,
-                    video: (giverData && giverData.video) || (bizData && bizData.video) || null,
+                    voiceUrl: (bizData && bizData.voice) || (isGiftRole ? ((giverData && giverData.voice) || qr.voice) : null) || null,
+                    video: (isGiftRole && giverData && giverData.video) || (bizData && bizData.video) || null,
                     isFavorite: entry.is_favorite,
                     note: entry.note,
                     role: entry.role,
@@ -4349,7 +4355,7 @@
                     promotion: qr.promotion || null,
                     receiverResponse: receiverResponse,
                     businessInfo: bizData || null,
-                    recipientName: (giverData && giverData.recipient_name) || null,
+                    recipientName: (isGiftRole && giverData && giverData.recipient_name) || null,
                     giverPhotos: giverPhotos,
                     giverMessage: giverMessage,
                     giverVoiceUrl: giverVoiceUrl,
