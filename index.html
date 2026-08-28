@@ -6594,17 +6594,28 @@
             // shows the logo, the "Every thing has an origin" line and the
             // contact icons, not a stripped-down name + About.
             bizP.aboutPhotos = bizAboutPhotos;
-            var _qcCard = bizProfileCard(bizP, { shareUrl: data.url, promotion: bizPromo, aboutOpen: true });
+            // Product/item (maker's public content) — same collapsible card the
+            // scan landing and tapestry render, so the item shows the same way
+            // in every view.
+            var _qcProd = '';
+            var _qcMediaRaw = [];
+            try { _qcMediaRaw = typeof data.media === 'string' ? JSON.parse(data.media) : (data.media || []); } catch(e) {}
+            if (data.source === 'product') {
+                var _qcProdPhotos = [];
+                if (data.photo) _qcProdPhotos.push(data.photo);
+                _qcMediaRaw.forEach(function(m){ var u=(m&&m.url)?m.url:(m&&m.dataUrl)?m.dataUrl:m; if (typeof u==='string') _qcProdPhotos.push(u); });
+                _qcProd = bizProductCard({ label: data.label, photos: _qcProdPhotos, details: data.details });
+            }
+            var _qcCard = bizProfileCard(bizP, { shareUrl: data.url, promotion: bizPromo, productHtml: _qcProd, aboutOpen: true });
             document.getElementById('qcBizPanel').innerHTML =
                 '<div style="border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' +
                     _qcCard.header + _qcCard.body +
                 '</div>';
-            // Show media
+            // Raw media grid — only for legacy business media NOT already shown
+            // as the product card above (avoids showing the item's photos twice).
             var mediaGrid = document.getElementById('qcBizMedia');
-            var mediaItems = [];
-            try { mediaItems = typeof data.media === 'string' ? JSON.parse(data.media) : (data.media || []); } catch(e) {}
-            if (mediaItems.length > 0) {
-                mediaGrid.innerHTML = mediaItems.map(function(m) {
+            if (data.source !== 'product' && _qcMediaRaw.length > 0) {
+                mediaGrid.innerHTML = _qcMediaRaw.map(function(m) {
                     var src = m.url || m.dataUrl || m;
                     return '<img src="' + src + '" alt="Media" style="cursor:pointer;" onclick="window.open(this.src)">';
                 }).join('');
@@ -6612,7 +6623,7 @@
             } else {
                 mediaGrid.style.display = 'none';
             }
-            
+
         }
         
         // Role-specific content
@@ -9340,15 +9351,18 @@
         var originHtml = '';
         if (thread.businessInfo) {
             var biz = thread.businessInfo;
-            // Giver & receiver — the note's intended people — also see the gift
-            // item. A "just save this business" stranger gets the profile only:
-            // the item's photos and free-text note live on the SHARED code, so
-            // showing them to a stranger would leak personal content.
-            var _showGiftItem = (thread.role === 'giver' || thread.role === 'receiver');
+            // The product/item (name + photos + details) is the MAKER's content:
+            // a product modular, or the maker-fill item a Duyen note carries in
+            // its place for one-of-a-kind / limited pieces. Like the business
+            // profile it is public — the florist assigns it before handing the
+            // note off — so it renders in EVERY view (business save included),
+            // consistently. What stays private is the GIVER's layer (their
+            // message, photos, voice, recipient), which lives on giver_data and
+            // is gated to giver/receiver elsewhere — never mixed in here.
             var _prodPhotos = [];
             if (thread.productPhoto) _prodPhotos.push(thread.productPhoto);
             if (Array.isArray(thread.media)) thread.media.forEach(function(m){ var u=(m&&m.url)?m.url:m; if (typeof u==='string') _prodPhotos.push(u); });
-            var _prodHtml = (_showGiftItem && thread.isProduct)
+            var _prodHtml = thread.isProduct
                 ? bizProductCard({ label: thread.productName, photos: _prodPhotos, details: thread.productDetails })
                 : '';
             var _card = bizProfileCard(biz, { shareUrl: thread.qrUrl, promotion: thread.promotion, productHtml: _prodHtml, aboutOpen: true });
