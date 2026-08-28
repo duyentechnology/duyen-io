@@ -5877,72 +5877,10 @@
     function showBusinessProfile(data, biz) {
         scannedQRData = data;
 
-        // Build detail rows — only show fields that exist
-        var details = '';
-        var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
-
-        // --- Persistent header icon row: social icons (brand colors) + call + navigate (plum) ---
-        var soc = biz.social || {};
-        var socialDefs = [
-            { key:'facebook',  color:'#1877F2', path:'M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z' },
-            { key:'pinterest', color:'#E60023', path:'M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z' },
-            { key:'youtube',   color:'#FF0000', path:'M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z' },
-            { key:'yelp',      color:'#D32323', path:'M20.16 12.594l-4.995 1.433c-.96.275-1.775-.8-1.172-1.633l2.915-4.1a1.084 1.084 0 0 1 1.671-.102c1.021 1.112 1.985 2.928 1.591 4.328l-.01.074zm-9.967 3.08l-4.342 2.882c-.84.557-1.874-.278-1.51-1.225.752-1.96 2.268-4.03 3.76-4.566a1.085 1.085 0 0 1 1.423.765l.424 1.69c.145.59-.146 1.195-.755 1.454zm-2.88-6.956L3.07 7.56c-.96-.212-1.167-1.49-.31-1.973 1.8-.998 4.17-1.42 5.559-.858.727.295 1.018 1.147.636 1.81l-.864 1.487c-.293.504-.93.722-1.47.536-.1-.034-.198-.063-.298-.09zm4.215-3.483l.037-5.176C11.586-.016 12.748.03 13.02.987c.57 1.985.57 4.575-.175 5.865a1.085 1.085 0 0 1-1.593.39l-.944-.697c-.49-.36-.677-1.003-.44-1.554.1-.23.15-.473.112-.706zm5.792 11.52c.648.802.195 1.93-.806 2.007-2.07.156-4.61-.404-5.61-1.618a1.085 1.085 0 0 1 .167-1.63l1.428-1.023c.482-.345 1.145-.267 1.538.183.09.103.188.198.29.286 1.075.929 2.19 1.14 3.013.967l-.02-.172z' },
-            { key:'linkedin',  color:'#0A66C2', path:'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z' },
-            { key:'x',         color:'#000000', path:'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' },
-            { key:'instagram', color:'#E4405F', path:'M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405a1.441 1.441 0 01-2.88 0 1.44 1.44 0 012.88 0z' },
-            { key:'tiktok',    color:'#010101', path:'M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z' },
-        ];
-        var iconsHtml = '';
-        if (biz.website) {
-            iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:46px;height:46px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
-        }
-        socialDefs.forEach(function(s){
-            var url = soc[s.key];
-            if (!url) return;
-            iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:46px;height:46px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="21" height="21" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
-        });
-        if (biz.phone) {
-            iconsHtml += '<a href="tel:' + biz.phone + '" style="width:46px;height:46px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
-        }
-        if (biz.email) {
-            iconsHtml += '<a href="mailto:' + biz.email + '" style="width:46px;height:46px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
-        }
-        if (addr) {
-            iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:46px;height:46px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
-        }
-        if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
-            window.__menuPhotos = biz.menuPhotos;
-            iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:46px;height:46px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
-        }
-        // Share this business — canonical link is its QR URL, so shared opens
-        // count in the same scan stats.
-        if (data.url) {
-            var _shu = String(data.url).replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            var _shn = String(biz.name || 'this business').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            iconsHtml += '<a href="#" onclick="event.stopPropagation();shareBusinessLink(\'' + _shu + '\',\'' + _shn + '\');return false;" aria-label="Share" style="width:46px;height:46px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6"/><path d="M8.2 13.2l7.6 4.6"/></svg></a>';
-        }
-        var iconRowHtml = iconsHtml ? '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
-
         // True when this code belongs to the business itself — a flyer QR or
         // one they minted — as opposed to a note carrying their profile. Also
         // true for a shared link, which has no physical card behind it.
         var _bizOwnCode = (data.source === 'business') || !!window._sharedOpen;
-
-        // Their own logo replaces the 緣 mark in the header when uploaded.
-        var bizLogo = (typeof biz.logo === 'string' && /^https?:\/\//.test(biz.logo))
-            ? biz.logo.replace(/"/g, '&quot;') : '';
-
-        // Header text split into two pieces so the logo layout can read:
-        // origin line → logo → business name + icons. The 緣-beside layout keeps
-        // them together (_bizHeadText).
-        var _bizOriginText =
-            '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.15;text-align:center;padding:0 24px;">Every thing has an origin</div>' +
-            '<div style="font-size:15.5px;color:#6B5751;line-height:1.5;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>';
-        var _bizNameIcons =
-            (biz.name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:700;color:#8B3A7F;text-align:center;margin-top:10px;">' + biz.name + '</div>' : '') +
-            iconRowHtml;
-        var _bizHeadText = _bizOriginText + _bizNameIcons;
 
         // The product's item (name + photos + details) is the content of a
         // product scan — it renders below the business profile + About, the
@@ -5950,116 +5888,31 @@
         // the saved tapestry entry read the same.
         var _prodItem = '';
         if (data.source === 'product') {
-            var _piEsc = function (s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
             var _piPics = [];
             if (data.photo) _piPics.push(data.photo);
-            if (Array.isArray(data.media)) data.media.forEach(function (u) {
-                if (typeof u === 'string' && !/\.(mp4|mov|webm|m4v)(\?|$)/i.test(u)) _piPics.push(u);
-            });
-            _piPics = _piPics.slice(0, 3);
-            var _piDetails = String(data.details || '').trim();
-            if (_piPics.length || _piDetails) {
-                var _piLabel = (data.label && data.label.trim() && data.label !== 'QR Code' && !/^QR-\d+$/i.test(data.label))
-                    ? data.label.trim() : '';
-                var _piGrid = _piPics.length
-                    ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(_piPics.length, 3) + ',1fr);gap:8px;margin-bottom:' + (_piDetails ? '12px' : '0') + ';">' +
-                      _piPics.map(function (u) { return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + _piEsc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"></div>'; }).join('') +
-                      '</div>'
-                    : '';
-                // Collapsible product card (open by default on a scan). No generic
-                // "Product" word and never the QR serial: the header shows the
-                // item's real name when it has one, otherwise the label is blank —
-                // the chevron alone toggles the photos + message.
-                _prodItem =
-                    '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
-                        '<div onclick="toggleScanSection(\'product\')" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
-                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;">' + (_piLabel ? _piEsc(_piLabel) : '') + '</span>' +
-                            '<svg id="scanChev-product" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);"><path d="M6 9l6 6 6-6"/></svg>' +
-                        '</div>' +
-                        '<div id="scanBody-product" style="display:block;padding:0 16px 16px;">' +
-                            _piGrid +
-                            (_piDetails ? '<div style="font-size:15px;color:#3D2E24;line-height:1.5;white-space:pre-wrap;">' + _piEsc(_piDetails) + '</div>' : '') +
-                        '</div>' +
-                    '</div>';
-            }
+            if (Array.isArray(data.media)) data.media.forEach(function (u) { if (typeof u === 'string') _piPics.push(u); });
+            _prodItem = bizProductCard({ label: data.label, photos: _piPics, details: data.details });
         }
+
+        // ONE shared business-profile card (bizProfileCard) — identical header,
+        // logo, contact icons and About the tapestry and receiver views use.
+        // The scan landing wraps it with a top-right arrow that collapses the
+        // whole About/What's new/Product region (scanBody-origin).
+        var _card = bizProfileCard(biz, { shareUrl: data.url, promotion: data.promotion, productHtml: _prodItem, aboutOpen: true });
 
         var html =
             // No "← Back" here on purpose: a first-time scanner arrives cold on
-            // this business, and a Back that jumps to the app home (tapestry)
-            // just detours them into a manual "Add a moment" composer. The real
-            // path is the save actions below ("Just save this"), so the landing
-            // stays focused on them.
-            // Header — when they've uploaded a logo it sits on top, full
-            // width, with the origin text beneath it; contain + no frame so
-            // any logo shape shows whole (uploaded logos are wordmarks and
-            // banners, not square icons). Without a logo, the 緣 DUYÊN mark
-            // keeps its original spot beside the text.
-            // Business-profile header. A circular arrow at the top-right
-            // collapses the business info (About + What's new) below it, exactly
-            // like the origin card on the tapestry — so the scan view and the
-            // saved tapestry entry read the same.
+            // this business, and the real path is the save actions below.
             '<div style="position:relative;">' +
-            (bizLogo ?
-                '<div style="background:#EFE5EF;padding:18px 14px 15px;">' +
-                    _bizOriginText +
-                    '<img src="' + bizLogo + '" alt="' + String(biz.name || '').replace(/"/g,'&quot;') + '" style="display:block;margin:15px auto 12px;max-width:78%;max-height:185px;object-fit:contain;border-radius:14px;">' +
-                    _bizNameIcons +
-                '</div>'
-            :
-                '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;">' +
-                    '<div style="flex-shrink:0;text-align:center;width:92px;">' +
-                        '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
-                        '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>' +
-                    '</div>' +
-                    '<div style="flex:1;min-width:0;">' + _bizHeadText + '</div>' +
-                '</div>'
-            ) +
+                _card.header +
                 '<span onclick="toggleScanSection(\'origin\')" style="position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(139,58,127,0.12);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;">' +
                     '<svg id="scanChev-origin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
                 '</span>' +
             '</div>' +
-            // Business info — About + What's new — collapsed by the header arrow.
-            // Open by default (full experience), each still collapsible on its own.
+            // Business info — About + What's new + Product — collapsed by the header arrow.
             '<div id="scanBody-origin" style="display:block;">' +
-            '<div style="padding:22px 16px 4px;background:#EFE5EF;">' +
-                ((biz.description || (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length)) ?
-                    '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
-                        '<div onclick="toggleScanSection(\'about\')" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
-                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;">About</span>' +
-                            '<svg id="scanChev-about" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);"><path d="M6 9l6 6 6-6"/></svg>' +
-                        '</div>' +
-                        '<div id="scanBody-about" style="display:block;padding:0 16px 16px;">' +
-                            (biz.description ? '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;font-style:italic;color:#5D4E44;line-height:1.7;margin-bottom:14px;">\u201C' + biz.description + '\u201D</div>' : '') +
-                            ((Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) ?
-                                '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;">' +
-                                biz.aboutPhotos.slice(0,3).map(function(u){ return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;"><img src="' + u + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>'; }).join('') +
-                                '</div>'
-                            : '') +
-                        '</div>' +
-                    '</div>'
-                : '') +
-                ((data.promotion && data.promotion.text) ?
-                    '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
-                        '<div onclick="toggleScanSection(\'promo\')" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
-                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;">What\'s new</span>' +
-                            '<span style="background:#8B3A7F;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;">1</span>' +
-                            '<svg id="scanChev-promo" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(0deg);"><path d="M6 9l6 6 6-6"/></svg>' +
-                        '</div>' +
-                        '<div id="scanBody-promo" style="display:none;padding:0 16px 16px;">' +
-                            '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + data.promotion.text + '\u201D</div>' +
-                            ((data.promotion.photos && data.promotion.photos.length) ?
-                                '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">' +
-                                data.promotion.photos.slice(0,5).map(function(url){ var s=String(url).replace(/"/g,'&quot;'); return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:auto;display:block;"></div>'; }).join('') +
-                                '</div>'
-                            : '') +
-                        '</div>' +
-                    '</div>'
-                : '') +
-                // Product — a collapsible card in the same region as About / What's new.
-                (_prodItem || '') +
+                _card.body +
             '</div>' +
-            '</div>' + // /scanBody-origin — the header arrow collapses About + What's new + Product
             // Divider
             '<div style="height:1px;background:#E8DDD6;margin:28px 28px;"></div>' +
             // Role buttons — only show giver if no message yet. A SHARED link
@@ -6736,32 +6589,16 @@
             var bizP = bizDataObj || {};
             var bizAboutPhotos = (data.about_photos && data.about_photos.length) ? data.about_photos : (Array.isArray(bizP.aboutPhotos) ? bizP.aboutPhotos : []);
             var bizPromo = (data.promotion && data.promotion.text) ? data.promotion : null;
-            var accToggleR = "var d=this.parentNode.querySelector('.acc-body');var a=this.querySelector('.acc-arrow');if(d.style.display==='none'){d.style.display='block';a.style.transform='rotate(180deg)';}else{d.style.display='none';a.style.transform='rotate(0deg)';}";
-            var accArrowR = '<span class="acc-arrow" style="display:inline-flex;align-items:center;transition:transform 0.2s ease;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>';
-            var panelHtml = '';
-            if (bizP.name) panelHtml += '<h1 style="font-family:\'Crimson Pro\',serif;font-size:1.75rem;font-weight:600;color:#3D2E24;margin:0 0 14px;">' + bizP.name + '</h1>';
-            var aboutInnerR = '';
-            if (bizP.description) aboutInnerR += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.05rem;color:#5D4E44;line-height:1.7;margin-bottom:10px;">\u201C' + bizP.description + '\u201D</div>';
-            if (bizAboutPhotos.length) {
-                aboutInnerR += '<div style="display:grid;grid-template-columns:repeat(' + Math.min(bizAboutPhotos.length,3) + ',1fr);gap:8px;">' +
-                    bizAboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
+            // Render the SAME shared business card as the scan landing and the
+            // tapestry (bizProfileCard) \u2014 so the giver/receiver in-scan view
+            // shows the logo, the "Every thing has an origin" line and the
+            // contact icons, not a stripped-down name + About.
+            bizP.aboutPhotos = bizAboutPhotos;
+            var _qcCard = bizProfileCard(bizP, { shareUrl: data.url, promotion: bizPromo, aboutOpen: true });
+            document.getElementById('qcBizPanel').innerHTML =
+                '<div style="border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' +
+                    _qcCard.header + _qcCard.body +
                 '</div>';
-            }
-            if (aboutInnerR) {
-                panelHtml += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
-                    '<div onclick="'+accToggleR+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:600;color:#2E2A28;">About</span>'+accArrowR+'</div>' +
-                    '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+aboutInnerR+'</div>' +
-                '</div>';
-            }
-            if (bizPromo) {
-                var promoInnerR = '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.2rem;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + bizPromo.text + '\u201D</div>' +
-                    ((bizPromo.photos && bizPromo.photos.length) ? '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">' + bizPromo.photos.slice(0,5).map(function(url){ var s=String(url).replace(/"/g,'&quot;'); return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:auto;display:block;"></div>'; }).join('') + '</div>' : '');
-                panelHtml += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
-                    '<div onclick="'+accToggleR+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:600;color:#2E2A28;">What\'s new</span><span style="background:#8B3A7F;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;">1</span>'+accArrowR+'</div>' +
-                    '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+promoInnerR+'</div>' +
-                '</div>';
-            }
-            document.getElementById('qcBizPanel').innerHTML = panelHtml;
             // Show media
             var mediaGrid = document.getElementById('qcBizMedia');
             var mediaItems = [];
@@ -9230,6 +9067,140 @@
         setTimeout(function(){ el.src = orig.split('?')[0] + '?r=' + Date.now(); }, 400);
     }
 
+    // ── ONE business-profile card renderer for every path ──────────────────
+    // The scan landing (showBusinessProfile), the saved tapestry card
+    // (buildTapFullCard) and the in-scan giver/receiver view (qcBizPanel) all
+    // used to build this header + About + What's new + product markup from
+    // their own copy-pasted code, and they drifted — the receiver view lost
+    // the logo, the "Every thing has an origin" line and the contact icons.
+    // Every one now calls this, so the business profile renders identically
+    // wherever it appears and a change lands in a single place.
+    //   biz  : { name, logo, description, aboutPhotos, social, website, phone,
+    //           email, address, menuPhotos }
+    //   opts : { shareUrl, promotion, productHtml, aboutOpen (default true) }
+    // Returns { header, body } so a caller can wrap them (border, collapse
+    // arrow, role buttons) however that surface needs.
+    function bizProfileCard(biz, opts) {
+        biz = biz || {}; opts = opts || {};
+        var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
+        var soc = biz.social || {};
+        var socialDefs = [
+            { key:'facebook',  path:'M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z' },
+            { key:'pinterest', path:'M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z' },
+            { key:'youtube',   path:'M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z' },
+            { key:'yelp',      path:'M20.16 12.594l-4.995 1.433c-.96.275-1.775-.8-1.172-1.633l2.915-4.1a1.084 1.084 0 0 1 1.671-.102c1.021 1.112 1.985 2.928 1.591 4.328l-.01.074zm-9.967 3.08l-4.342 2.882c-.84.557-1.874-.278-1.51-1.225.752-1.96 2.268-4.03 3.76-4.566a1.085 1.085 0 0 1 1.423.765l.424 1.69c.145.59-.146 1.195-.755 1.454zm-2.88-6.956L3.07 7.56c-.96-.212-1.167-1.49-.31-1.973 1.8-.998 4.17-1.42 5.559-.858.727.295 1.018 1.147.636 1.81l-.864 1.487c-.293.504-.93.722-1.47.536-.1-.034-.198-.063-.298-.09zm4.215-3.483l.037-5.176C11.586-.016 12.748.03 13.02.987c.57 1.985.57 4.575-.175 5.865a1.085 1.085 0 0 1-1.593.39l-.944-.697c-.49-.36-.677-1.003-.44-1.554.1-.23.15-.473.112-.706zm5.792 11.52c.648.802.195 1.93-.806 2.007-2.07.156-4.61-.404-5.61-1.618a1.085 1.085 0 0 1 .167-1.63l1.428-1.023c.482-.345 1.145-.267 1.538.183.09.103.188.198.29.286 1.075.929 2.19 1.14 3.013.967l-.02-.172z' },
+            { key:'linkedin',  path:'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z' },
+            { key:'x',         path:'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' },
+            { key:'instagram', path:'M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405a1.441 1.441 0 01-2.88 0 1.44 1.44 0 012.88 0z' },
+            { key:'tiktok',    path:'M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z' },
+        ];
+        var box = 'width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;';
+        var iconsHtml = '';
+        if (biz.website) iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="'+box+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
+        socialDefs.forEach(function(s){ var url = soc[s.key]; if (!url) return; iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="'+box+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>'; });
+        if (biz.phone) iconsHtml += '<a href="tel:' + biz.phone + '" style="'+box+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
+        if (biz.email) iconsHtml += '<a href="mailto:' + biz.email + '" style="'+box+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
+        if (addr) iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="'+box+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
+        if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
+            window.__menuPhotos = biz.menuPhotos;
+            iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="'+box+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
+        }
+        if (opts.shareUrl) {
+            var _shu = String(opts.shareUrl).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            var _shn = String(biz.name || 'this business').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            iconsHtml += '<a href="#" onclick="event.stopPropagation();shareBusinessLink(\'' + _shu + '\',\'' + _shn + '\');return false;" aria-label="Share" style="'+box+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6"/><path d="M8.2 13.2l7.6 4.6"/></svg></a>';
+        }
+        var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
+
+        var bizLogo = (typeof biz.logo === 'string' && /^https?:\/\//.test(biz.logo)) ? biz.logo.replace(/"/g, '&quot;') : '';
+        var originText =
+            '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.15;text-align:center;padding:0 24px;">Every thing has an origin</div>' +
+            '<div style="font-size:15.5px;color:#6B5751;line-height:1.5;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>';
+        var nameIcons =
+            (biz.name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:700;color:#8B3A7F;text-align:center;margin-top:10px;">' + biz.name + '</div>' : '') +
+            iconRowHtml;
+        var header = bizLogo
+            ? '<div style="background:#EFE5EF;padding:18px 14px 15px;">' +
+                  originText +
+                  '<img src="' + bizLogo + '" alt="' + String(biz.name||'').replace(/"/g,'&quot;') + '" style="display:block;margin:15px auto 12px;max-width:78%;max-height:185px;object-fit:contain;border-radius:14px;">' +
+                  nameIcons +
+              '</div>'
+            : '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;">' +
+                  '<div style="flex-shrink:0;text-align:center;width:92px;"><span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span><span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span></div>' +
+                  '<div style="flex:1;min-width:0;">' + originText + nameIcons + '</div>' +
+              '</div>';
+
+        var aboutPhotos = Array.isArray(biz.aboutPhotos) ? biz.aboutPhotos : [];
+        var bAbout = aboutPhotos.length
+            ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(aboutPhotos.length,3) + ',1fr);gap:8px;margin-top:14px;">' +
+                aboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
+              '</div>'
+            : '';
+        var aboutDisp = (opts.aboutOpen === false) ? 'none' : 'block';
+        var aboutRot  = (opts.aboutOpen === false) ? 'rotate(0deg)' : 'rotate(180deg)';
+        var aboutSection = (biz.description || aboutPhotos.length) ?
+            '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
+                '<div onclick="var d=this.parentNode.querySelector(\'.sc-ab\');var a=this.querySelector(\'.sc-ar\');var o=d.style.display!==\'none\';d.style.display=o?\'none\':\'block\';a.style.transform=o?\'rotate(0deg)\':\'rotate(180deg)\';" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
+                    '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;">About</span>' +
+                    '<svg class="sc-ar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:'+aboutRot+';"><path d="M6 9l6 6 6-6"/></svg>' +
+                '</div>' +
+                '<div class="sc-ab" style="display:'+aboutDisp+';padding:0 16px 16px;">' +
+                    (biz.description ? '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;font-style:italic;color:#5D4E44;line-height:1.7;margin-bottom:14px;">\u201C' + biz.description + '\u201D</div>' : '') +
+                    bAbout +
+                '</div>' +
+            '</div>' : '';
+        // What's new — collapsed by default (scoped self-contained toggle).
+        var promo = opts.promotion;
+        var promoSection = (promo && promo.text) ?
+            '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
+                '<div onclick="var d=this.parentNode.querySelector(\'.sc-pm\');var a=this.querySelector(\'.sc-pmr\');var o=d.style.display!==\'none\';d.style.display=o?\'none\':\'block\';a.style.transform=o?\'rotate(0deg)\':\'rotate(180deg)\';" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
+                    '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;">What\'s new</span>' +
+                    '<span style="background:#8B3A7F;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;">1</span>' +
+                    '<svg class="sc-pmr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(0deg);"><path d="M6 9l6 6 6-6"/></svg>' +
+                '</div>' +
+                '<div class="sc-pm" style="display:none;padding:0 16px 16px;">' +
+                    '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + promo.text + '\u201D</div>' +
+                    ((promo.photos && promo.photos.length) ?
+                        '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">' +
+                        promo.photos.slice(0,5).map(function(url){ var s=String(url).replace(/"/g,'&quot;'); return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:auto;display:block;"></div>'; }).join('') +
+                        '</div>'
+                    : '') +
+                '</div>' +
+            '</div>' : '';
+
+        var body = '<div style="padding:22px 16px 4px;background:#EFE5EF;">' +
+            aboutSection +
+            (opts.productHtml || '') +
+            promoSection +
+        '</div>';
+        return { header: header, body: body };
+    }
+
+    // Collapsible product card (name + photos + details) — the "item" a scan
+    // or saved keepsake leads with, shown inside the business card's body.
+    // Shared so the scan landing and the tapestry render the product the same.
+    //   item : { label, photos:[], details }
+    function bizProductCard(item) {
+        item = item || {};
+        var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
+        var pics = (item.photos || []).filter(function(u){ return typeof u==='string' && !/\.(mp4|mov|webm|m4v)(\?|$)/i.test(u); }).slice(0,3);
+        var det = String(item.details || '').trim();
+        var nm = String(item.label || '').trim();
+        if (nm === 'QR Code' || /^QR-\d+$/i.test(nm)) nm = ''; // never the serial
+        if (!pics.length && !det) return '';
+        var grid = pics.length ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(pics.length,3) + ',1fr);gap:8px;margin-bottom:' + (det?'12px':'0') + ';">' + pics.map(function(u){ return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + esc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') + '</div>' : '';
+        return '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;margin-bottom:12px;">' +
+            '<div onclick="var d=this.parentNode.querySelector(\'.sc-pb\');var a=this.querySelector(\'.sc-pr\');var o=d.style.display!==\'none\';d.style.display=o?\'none\':\'block\';a.style.transform=o?\'rotate(0deg)\':\'rotate(180deg)\';" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
+                '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:1.2rem;font-weight:700;color:#8B3A7F;">' + esc(nm) + '</span>' +
+                '<svg class="sc-pr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>' +
+            '</div>' +
+            '<div class="sc-pb" style="display:block;padding:0 16px 16px;">' +
+                grid +
+                (det ? '<div style="font-size:0.95rem;color:#3D2E24;line-height:1.55;white-space:pre-wrap;">' + esc(det) + '</div>' : '') +
+            '</div>' +
+        '</div>';
+    }
+
     function buildTapFullCard(thread) {
         const roleLabels={giver:'You gave a gift',receiver:'A gift you received',business:'A Business Moment',external:''};
         const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:''};
@@ -9363,146 +9334,28 @@
             </div>`;
         };
 
-        // Build collapsible origin banner
+        // Build the origin banner from the ONE shared business-profile renderer
+        // (bizProfileCard) — same header/logo/icons/About the scan landing and
+        // the receiver view use, so every path reads identically.
         var originHtml = '';
         if (thread.businessInfo) {
             var biz = thread.businessInfo;
-            var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
-            // Icon row: social icons (brand colors) + call + navigate (plum) — matches first-scan header
-            var soc = biz.social || {};
-            var socialDefs = [
-                { key:'facebook',  color:'#1877F2', path:'M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z' },
-                { key:'pinterest', color:'#E60023', path:'M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z' },
-                { key:'youtube',   color:'#FF0000', path:'M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z' },
-                { key:'yelp',      color:'#D32323', path:'M20.16 12.594l-4.995 1.433c-.96.275-1.775-.8-1.172-1.633l2.915-4.1a1.084 1.084 0 0 1 1.671-.102c1.021 1.112 1.985 2.928 1.591 4.328l-.01.074zm-9.967 3.08l-4.342 2.882c-.84.557-1.874-.278-1.51-1.225.752-1.96 2.268-4.03 3.76-4.566a1.085 1.085 0 0 1 1.423.765l.424 1.69c.145.59-.146 1.195-.755 1.454zm-2.88-6.956L3.07 7.56c-.96-.212-1.167-1.49-.31-1.973 1.8-.998 4.17-1.42 5.559-.858.727.295 1.018 1.147.636 1.81l-.864 1.487c-.293.504-.93.722-1.47.536-.1-.034-.198-.063-.298-.09zm4.215-3.483l.037-5.176C11.586-.016 12.748.03 13.02.987c.57 1.985.57 4.575-.175 5.865a1.085 1.085 0 0 1-1.593.39l-.944-.697c-.49-.36-.677-1.003-.44-1.554.1-.23.15-.473.112-.706zm5.792 11.52c.648.802.195 1.93-.806 2.007-2.07.156-4.61-.404-5.61-1.618a1.085 1.085 0 0 1 .167-1.63l1.428-1.023c.482-.345 1.145-.267 1.538.183.09.103.188.198.29.286 1.075.929 2.19 1.14 3.013.967l-.02-.172z' },
-                { key:'linkedin',  color:'#0A66C2', path:'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z' },
-                { key:'x',         color:'#000000', path:'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' },
-                { key:'instagram', color:'#E4405F', path:'M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405a1.441 1.441 0 01-2.88 0 1.44 1.44 0 012.88 0z' },
-                { key:'tiktok',    color:'#010101', path:'M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z' },
-            ];
-            var iconsHtml = '';
-            if (biz.website) {
-                iconsHtml += '<a href="' + biz.website + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>';
-            }
-            socialDefs.forEach(function(s){
-                var url = soc[s.key];
-                if (!url) return;
-                iconsHtml += '<a href="' + url + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="#8B3A7F"><path d="' + s.path + '"/></svg></a>';
-            });
-            if (biz.phone) {
-                iconsHtml += '<a href="tel:' + biz.phone + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>';
-            }
-            if (biz.email) {
-                iconsHtml += '<a href="mailto:' + biz.email + '" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></a>';
-            }
-            if (addr) {
-                iconsHtml += '<a href="https://maps.google.com/?q=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>';
-            }
-            if (Array.isArray(biz.menuPhotos) && biz.menuPhotos.length) {
-                window.__menuPhotos = biz.menuPhotos;
-                iconsHtml += '<a href="#" onclick="event.stopPropagation();openMenuViewer();return false;" aria-label="View menu" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></a>';
-            }
-            if (thread.qrUrl) {
-                var _shu2 = String(thread.qrUrl).replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                var _shn2 = String(biz.name || 'this business').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                iconsHtml += '<a href="#" onclick="event.stopPropagation();shareBusinessLink(\'' + _shu2 + '\',\'' + _shn2 + '\');return false;" aria-label="Share" style="width:44px;height:44px;border-radius:11px;background:transparent;border:2px solid #8B3A7F;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6"/><path d="M8.2 13.2l7.6 4.6"/></svg></a>';
-            }
-            var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
-
-            // The business's own logo, if any — used by both the saved-business
-            // header and the gift header so a gift shows WHO it came from.
-            var _bizLogo = (typeof biz.logo === 'string' && /^https?:\/\//.test(biz.logo)) ? biz.logo.replace(/"/g, '&quot;') : '';
-
-            { // ONE business-profile card for EVERY role (business, giver, receiver)
-              // — same brand header + About, so a saved gift and a saved business
-              // read the same. Per-role extras (the gift item, the personal gift
-              // block) are layered on below.
-                var bAbout = '';
-                if (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) {
-                    bAbout = '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;margin-top:14px;">' +
-                        biz.aboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
-                    '</div>';
-                }
-                var bPromo = (thread.promotion && thread.promotion.text)
-                    ? '<div style="background:#faf4fa;border:1.5px dashed #C9A0C4;border-radius:11px;padding:10px 12px;font-size:0.92rem;color:#5D4E44;margin-top:14px;line-height:1.5;">📣 ' + thread.promotion.text + '</div>'
-                    : '';
-                // A saved PRODUCT leads with the item itself (name + photos +
-                // details) in its own card, above the business About/contacts —
-                // so the keepsake shows what was actually saved, not just the shop.
-                var bProduct = '';
-                if (thread.isProduct && (thread.productPhoto || (thread.media && thread.media.length) || thread.productDetails)) {
-                    var _pesc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
-                    var _ppics = [];
-                    if (thread.productPhoto) _ppics.push(thread.productPhoto);
-                    if (Array.isArray(thread.media)) thread.media.forEach(function(m){ var u=(m&&m.url)?m.url:m; if (typeof u==='string' && !/\.(mp4|mov|webm|m4v)(\?|$)/i.test(u)) _ppics.push(u); });
-                    _ppics = _ppics.slice(0,3);
-                    var _pdet = String(thread.productDetails||'').trim();
-                    var _pnm  = String(thread.productName||'').trim();
-                    if (_pnm === 'QR Code' || /^QR-\d+$/i.test(_pnm)) _pnm = ''; // never show the code's serial as a heading
-                    if (_ppics.length || _pdet) {
-                        var _pgrid = _ppics.length ? '<div style="display:grid;grid-template-columns:repeat(' + Math.min(_ppics.length,3) + ',1fr);gap:8px;margin-bottom:' + (_pdet?'12px':'0') + ';">' + _ppics.map(function(u){ return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + _pesc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') + '</div>' : '';
-                        // Collapsible like the scan — a chevron header (open by
-                        // default), self-contained toggle so it can't collide.
-                        var _phead = _pnm; // blank when unnamed — no generic "Product" heading
-                        bProduct = '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;margin-bottom:12px;">' +
-                            '<div onclick="var d=this.parentNode.querySelector(\'.sc-pb\');var a=this.querySelector(\'.sc-pr\');var o=d.style.display!==\'none\';d.style.display=o?\'none\':\'block\';a.style.transform=o?\'rotate(0deg)\':\'rotate(180deg)\';" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
-                                '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:1.2rem;font-weight:700;color:#8B3A7F;">' + _pesc(_phead) + '</span>' +
-                                '<svg class="sc-pr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>' +
-                            '</div>' +
-                            '<div class="sc-pb" style="display:block;padding:0 16px 16px;">' +
-                                _pgrid +
-                                (_pdet ? '<div style="font-size:0.95rem;color:#3D2E24;line-height:1.55;white-space:pre-wrap;">' + _pesc(_pdet) + '</div>' : '') +
-                            '</div>' +
-                        '</div>';
-                    }
-                }
-                // Render the saved business/product EXACTLY like opening its link
-                // (showBusinessProfile): brand header (logo or 緣) + origin lines +
-                // name + contacts, then a collapsible About, then the product. The
-                // toggles are self-contained (class-scoped) so they never collide.
-                var _originText =
-                    '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.15;text-align:center;padding:0 24px;">Every thing has an origin</div>' +
-                    '<div style="font-size:15.5px;color:#6B5751;line-height:1.5;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>';
-                var _nameIcons =
-                    (biz.name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:700;color:#8B3A7F;text-align:center;margin-top:10px;">' + biz.name + '</div>' : '') +
-                    iconRowHtml;
-                var _headText = _originText + _nameIcons;
-                var _header = _bizLogo
-                    ? '<div style="background:#EFE5EF;padding:18px 14px 15px;">' +
-                          _originText +
-                          '<img src="' + _bizLogo + '" alt="' + String(biz.name||'').replace(/"/g,'&quot;') + '" style="display:block;margin:15px auto 12px;max-width:78%;max-height:185px;object-fit:contain;border-radius:14px;">' +
-                          _nameIcons +
-                      '</div>'
-                    : '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;">' +
-                          '<div style="flex-shrink:0;text-align:center;width:92px;"><span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span><span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span></div>' +
-                          '<div style="flex:1;min-width:0;">' + _headText + '</div>' +
-                      '</div>';
-                var _aboutSection = (biz.description || (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length)) ?
-                    '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
-                        '<div onclick="var d=this.parentNode.querySelector(\'.sc-ab\');var a=this.querySelector(\'.sc-ar\');var o=d.style.display!==\'none\';d.style.display=o?\'none\':\'block\';a.style.transform=o?\'rotate(0deg)\':\'rotate(180deg)\';" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
-                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;">About</span>' +
-                            '<svg class="sc-ar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);"><path d="M6 9l6 6 6-6"/></svg>' +
-                        '</div>' +
-                        '<div class="sc-ab" style="display:block;padding:0 16px 16px;">' +
-                            (biz.description ? '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;font-style:italic;color:#5D4E44;line-height:1.7;margin-bottom:14px;">“' + biz.description + '”</div>' : '') +
-                            bAbout +
-                        '</div>' +
-                    '</div>' : '';
-                // Giver & receiver — the note's intended people — also see the gift
-                // item. A "just save this business" stranger gets the profile only:
-                // the item's photos and free-text note live on the SHARED code, so
-                // showing them to a stranger would leak personal content.
-                var _showGiftItem = (thread.role === 'giver' || thread.role === 'receiver');
-                originHtml =
-                    '<div style="border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' +
-                        _header +
-                        '<div style="padding:22px 16px 4px;background:#EFE5EF;">' +
-                            _aboutSection +
-                            (_showGiftItem ? bProduct : '') +
-                            bPromo +
-                        '</div>' +
-                    '</div>';
-            }
+            // Giver & receiver — the note's intended people — also see the gift
+            // item. A "just save this business" stranger gets the profile only:
+            // the item's photos and free-text note live on the SHARED code, so
+            // showing them to a stranger would leak personal content.
+            var _showGiftItem = (thread.role === 'giver' || thread.role === 'receiver');
+            var _prodPhotos = [];
+            if (thread.productPhoto) _prodPhotos.push(thread.productPhoto);
+            if (Array.isArray(thread.media)) thread.media.forEach(function(m){ var u=(m&&m.url)?m.url:m; if (typeof u==='string') _prodPhotos.push(u); });
+            var _prodHtml = (_showGiftItem && thread.isProduct)
+                ? bizProductCard({ label: thread.productName, photos: _prodPhotos, details: thread.productDetails })
+                : '';
+            var _card = bizProfileCard(biz, { shareUrl: thread.qrUrl, promotion: thread.promotion, productHtml: _prodHtml, aboutOpen: true });
+            originHtml =
+                '<div style="border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' +
+                    _card.header + _card.body +
+                '</div>';
         }
 
         const recipientName = thread.recipientName || (thread.role === 'receiver' ? 'you' : 'you');
