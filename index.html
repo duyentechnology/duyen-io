@@ -9355,49 +9355,6 @@
         var originHtml = '';
         if (thread.businessInfo) {
             var biz = thread.businessInfo;
-            var bizDetails = '';
-            var accToggle = "var d=this.parentNode.querySelector('.acc-body');var a=this.querySelector('.acc-arrow');if(d.style.display==='none'){d.style.display='block';a.style.transform='rotate(180deg)';}else{d.style.display='none';a.style.transform='rotate(0deg)';}";
-            var accArrow = '<span class="acc-arrow" style="display:inline-flex;align-items:center;transition:transform 0.2s ease;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>';
-            var aboutInner = '';
-            if (biz.description) aboutInner += '<div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.12rem;color:#5D4E44;line-height:1.7;margin-bottom:12px;">\u201C'+biz.description+'\u201D</div>';
-            if (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) {
-                aboutInner += '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;">' +
-                    biz.aboutPhotos.slice(0,3).map(function(u){ var s=String(u).replace(/"/g,'&quot;'); return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></div>'; }).join('') +
-                '</div>';
-            }
-            if (aboutInner) {
-                bizDetails += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
-                    '<div onclick="'+accToggle+'" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:18px;font-weight:600;color:#2E2A28;">About</span>'+accArrow+'</div>' +
-                    '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+aboutInner+'</div>' +
-                '</div>';
-            }
-            if (thread.promotion && thread.promotion.text) {
-                var promoPushed = thread.promotion.pushedAt ? new Date(thread.promotion.pushedAt) : null;
-                var promoTimeAgo = '';
-                if (promoPushed && !isNaN(promoPushed)) {
-                    var diffMs = Date.now() - promoPushed.getTime();
-                    var diffDays = Math.floor(diffMs / 86400000);
-                    var diffHours = Math.floor(diffMs / 3600000);
-                    promoTimeAgo = diffDays > 0 ? (diffDays + ' day' + (diffDays === 1 ? '' : 's') + ' ago')
-                                 : diffHours > 0 ? (diffHours + ' hr' + (diffHours === 1 ? '' : 's') + ' ago')
-                                 : 'just now';
-                }
-                var bizLabel = biz.name ? ('Now at ' + biz.name) : 'Currently';
-                var promoInner = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">'
-                        + '<span style="font-size:9px;letter-spacing:0.18em;color:#8B3A7F;font-weight:600;text-transform:uppercase;">' + bizLabel + '</span>'
-                        + (promoTimeAgo ? '<span style="font-size:10px;color:#9A8478;margin-left:auto;">' + promoTimeAgo + '</span>' : '')
-                    + '</div>'
-                    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:1.2rem;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + thread.promotion.text + '\u201D</div>'
-                    + (thread.promotion.photos && thread.promotion.photos.length > 0
-                        ? '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">' +
-                            thread.promotion.photos.slice(0, 5).map(function(url) { var safeUrl = url.replace(/"/g, '&quot;'); return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + safeUrl + '" alt="" loading="lazy" style="width:100%;height:auto;display:block;"></div>'; }).join('') +
-                          '</div>'
-                        : '');
-                bizDetails += '<div style="border:1px solid #E8DDD6;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;">' +
-                    '<div onclick="'+accToggle+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;"><span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:16px;font-weight:600;color:#2E2A28;">What\'s new</span><span style="background:#8B3A7F;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;">1</span>'+accArrow+'</div>' +
-                    '<div class="acc-body" style="display:none;padding:0 14px 12px;">'+promoInner+'</div>' +
-                '</div>';
-            }
             var addr = biz.address && biz.address.full ? biz.address.full : (typeof biz.address === 'string' ? biz.address : '');
             // Icon row: social icons (brand colors) + call + navigate (plum) — matches first-scan header
             var soc = biz.social || {};
@@ -9444,9 +9401,10 @@
             // header and the gift header so a gift shows WHO it came from.
             var _bizLogo = (typeof biz.logo === 'string' && /^https?:\/\//.test(biz.logo)) ? biz.logo.replace(/"/g, '&quot;') : '';
 
-            if (thread.role === 'business') {
-                // Saved business — Polaroid keepsake: the grid tile as the hero,
-                // their words and contacts on a card below. No gift language.
+            { // ONE business-profile card for EVERY role (business, giver, receiver)
+              // — same brand header + About, so a saved gift and a saved business
+              // read the same. Per-role extras (the gift item, the personal gift
+              // block) are layered on below.
                 var bAbout = '';
                 if (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length) {
                     bAbout = '<div style="display:grid;grid-template-columns:repeat(' + Math.min(biz.aboutPhotos.length,3) + ',1fr);gap:8px;margin-top:14px;">' +
@@ -9518,44 +9476,21 @@
                             bAbout +
                         '</div>' +
                     '</div>' : '';
+                // Giver & receiver — the note's intended people — also see the gift
+                // item. A "just save this business" stranger gets the profile only:
+                // the item's photos and free-text note live on the SHARED code, so
+                // showing them to a stranger would leak personal content.
+                var _showGiftItem = (thread.role === 'giver' || thread.role === 'receiver');
                 originHtml =
                     '<div style="border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' +
                         _header +
                         '<div style="padding:22px 16px 4px;background:#EFE5EF;">' +
                             _aboutSection +
-                            // No product/gift item here: a "just save this business"
-                            // must show only the business's own public profile
-                            // (About + promotion). The product card carries a
-                            // giver's item photos and free-text note, which live on
-                            // the SHARED code — showing them to a stranger who saved
-                            // the same business leaks personal content.
+                            (_showGiftItem ? bProduct : '') +
                             bPromo +
                         '</div>' +
                     '</div>';
-            } else
-            originHtml = '<div style="background:#EFE5EF;">' +
-                '<div style="cursor:pointer;padding:13px 14px;display:flex;align-items:center;gap:13px;" onclick="var d=this.parentNode.querySelector(\'.origin-details\');var a=this.querySelector(\'.origin-arrow\');if(d.style.display===\'none\'){d.style.display=\'block\';a.style.transform=\'rotate(180deg)\';}else{d.style.display=\'none\';a.style.transform=\'rotate(0deg)\';}">' +
-                    '<div style="flex-shrink:0;text-align:center;width:92px;">' +
-                        (_bizLogo
-                            ? '<img src="' + _bizLogo + '" alt="' + String(biz.name||'').replace(/"/g,'&quot;') + '" style="width:92px;max-height:92px;object-fit:contain;border-radius:12px;display:block;">'
-                            : '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span><span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>') +
-                    '</div>' +
-                    '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
-                        '<div style="font-size:15px;color:#6B5751;line-height:1.45;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
-                        (biz.name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:700;color:#8B3A7F;text-align:center;margin-top:8px;">' + biz.name + '</div>' : '') +
-                        iconRowHtml +
-                    '</div>' +
-                    '<span class="origin-arrow" style="width:32px;height:32px;border-radius:50%;background:rgba(139,58,127,0.12);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s ease;' + (thread.role === 'business' ? 'transform:rotate(180deg);' : '') + '">' +
-                        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
-                    '</span>' +
-                '</div>' +
-                // Saved businesses: the business info IS the card — start open.
-                // Gift entries keep it tucked behind the tap.
-                '<div class="origin-details" style="display:' + (thread.role === 'business' ? 'block' : 'none') + ';padding:0 1.4rem 14px;border-top:1px solid #E0CFE0;">' +
-                    '<div style="padding-top:12px;">'+bizDetails+'</div>' +
-                '</div>' +
-            '</div>';
+            }
         }
 
         const recipientName = thread.recipientName || (thread.role === 'receiver' ? 'you' : 'you');
