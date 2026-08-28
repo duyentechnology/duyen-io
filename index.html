@@ -3441,7 +3441,6 @@
             </div>
 
             <div class="btn-group">
-                <button class="btn btn-secondary" onclick="viewSavedThread()">View Thread</button>
                 <button class="btn btn-primary" onclick="navigate('tapestry')">View My Tapestry →</button>
             </div>
         </div>
@@ -7811,33 +7810,20 @@
             var bizData = scannedQRData.business_data;
             if (typeof bizData === 'string') try { bizData = JSON.parse(bizData); } catch(e) { bizData = null; }
             var title = (bizData && bizData.name) ? bizData.name : (scannedQRData.label || 'QR Moment');
-            var { data: savedRows, error } = await _supabase
+            var { error } = await _supabase
                 .from('tapestry')
                 .insert({
                     user_id: user.id,
                     qr_code_id: scannedQRData.id,
                     role: 'business', // tapestry_role_check: giver|receiver|business|external
                     title: title
-                })
-                .select();
+                });
             if (error && error.code !== '23505') {
                 // Surface the real reason — a generic message hides root causes.
                 alert('Error saving: ' + (error.message || error.code || 'unknown') + '. Please try again.');
                 console.error('Direct save error:', error);
                 return;
             }
-            // Remember which tapestry entry this became so "View Thread" on the
-            // success screen opens the woven moment, not the raw scan view. On a
-            // duplicate save (23505) the row already exists — look it up.
-            var savedId = (!error && savedRows && savedRows[0]) ? savedRows[0].id : null;
-            if (!savedId) {
-                try {
-                    var { data: exist } = await _supabase.from('tapestry')
-                        .select('id').eq('user_id', user.id).eq('qr_code_id', scannedQRData.id).eq('role', 'business').limit(1);
-                    if (exist && exist[0]) savedId = exist[0].id;
-                } catch (e) {}
-            }
-            window.lastSavedThreadId = savedId;
             // Count the save. The giver and receiver paths already did this; the
             // business path did not, so the Saves figure a business pays to see
             // sat at zero no matter how many people saved their code.
@@ -10844,23 +10830,6 @@
     }
 
 
-    function viewSavedThread() {
-        // Open the actual woven entry (external link save or a business "just
-        // save"). Only fall back to the scan view when we have no saved id.
-        var id = window.lastSavedThreadId || window.lastSavedExternalId;
-        if (id) {
-            window.lastSavedThreadId = null;
-            window.lastSavedExternalId = null;
-            // Reload tapestry data then open the thread
-            navigate('tapestry');
-            initTapestry().then(function() {
-                openTapSingle(id);
-            });
-        } else {
-            // No saved id to open — their tapestry lands them on the thread anyway.
-            navigate('tapestry');
-        }
-    }
 
     var lightboxMedia = [];
     var lightboxIdx = 0;
