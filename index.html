@@ -6037,10 +6037,11 @@
         }
 
         var html =
-            // Close button
-            '<div style="padding:12px 20px;display:flex;align-items:center;background:#EFE5EF;">' +
-                '<button onclick="document.getElementById(\'bizProfileDisplay\').style.display=\'none\'; navigate(\'tapestry\');" style="background:none;border:none;font-size:15px;font-weight:500;color:#8B3A7F;cursor:pointer;font-family:\'DM Sans\',sans-serif;padding:4px 0;">← Back</button>' +
-            '</div>' +
+            // No "← Back" here on purpose: a first-time scanner arrives cold on
+            // this business, and a Back that jumps to the app home (tapestry)
+            // just detours them into a manual "Add a moment" composer. The real
+            // path is the save actions below ("Just save this"), so the landing
+            // stays focused on them.
             // Header — when they've uploaded a logo it sits on top, full
             // width, with the origin text beneath it; contain + no frame so
             // any logo shape shows whole (uploaded logos are wordmarks and
