@@ -9226,12 +9226,18 @@
         // photos array which mashes in receiver photos for giver-role saves).
         // Fall back to legacy photos/media for roles where the clean fields don't apply (external, etc).
         let media;
-        if (thread.role === 'giver' || thread.role === 'receiver' || thread.role === 'business') {
+        if (thread.role === 'giver' || thread.role === 'receiver') {
             const cleanPhotos = (thread.giverPhotos && thread.giverPhotos.length) ? thread.giverPhotos : [];
             media = cleanPhotos.map(url => ({type:'image', url}));
             if (thread.giverVideo && !media.some(m => (m.url||m) === thread.giverVideo)) {
                 media = [...media, {type:'video', url: thread.giverVideo}];
             }
+        } else if (thread.role === 'business') {
+            // A saved business shows ONLY its own profile/product (rendered in the
+            // card above). It must never pull giverPhotos: those are a giver's
+            // private gift photos that live on the SHARED code, and every other
+            // person who saved that same business code would otherwise see them.
+            media = [];
         } else {
             media = (thread.media && thread.media.length > 0) ? thread.media : photos.map(url=>({type:'image',url}));
             if (thread.video && !media.some(m => (m.url||m) === thread.video)) {
