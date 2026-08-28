@@ -9434,6 +9434,10 @@
             }
             var iconRowHtml = iconsHtml ? '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;">' + iconsHtml + '</div>' : '';
 
+            // The business's own logo, if any — used by both the saved-business
+            // header and the gift header so a gift shows WHO it came from.
+            var _bizLogo = (typeof biz.logo === 'string' && /^https?:\/\//.test(biz.logo)) ? biz.logo.replace(/"/g, '&quot;') : '';
+
             if (thread.role === 'business') {
                 // Saved business — Polaroid keepsake: the grid tile as the hero,
                 // their words and contacts on a card below. No gift language.
@@ -9480,7 +9484,6 @@
                 // (showBusinessProfile): brand header (logo or 緣) + origin lines +
                 // name + contacts, then a collapsible About, then the product. The
                 // toggles are self-contained (class-scoped) so they never collide.
-                var _bizLogo = (typeof biz.logo === 'string' && /^https?:\/\//.test(biz.logo)) ? biz.logo.replace(/"/g, '&quot;') : '';
                 var _originText =
                     '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.15;text-align:center;padding:0 24px;">Every thing has an origin</div>' +
                     '<div style="font-size:15.5px;color:#6B5751;line-height:1.5;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>';
@@ -9522,12 +9525,14 @@
             originHtml = '<div style="background:#EFE5EF;">' +
                 '<div style="cursor:pointer;padding:13px 14px;display:flex;align-items:center;gap:13px;" onclick="var d=this.parentNode.querySelector(\'.origin-details\');var a=this.querySelector(\'.origin-arrow\');if(d.style.display===\'none\'){d.style.display=\'block\';a.style.transform=\'rotate(180deg)\';}else{d.style.display=\'none\';a.style.transform=\'rotate(0deg)\';}">' +
                     '<div style="flex-shrink:0;text-align:center;width:92px;">' +
-                        '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
-                        '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>' +
+                        (_bizLogo
+                            ? '<img src="' + _bizLogo + '" alt="' + String(biz.name||'').replace(/"/g,'&quot;') + '" style="width:92px;max-height:92px;object-fit:contain;border-radius:12px;display:block;">'
+                            : '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span><span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>') +
                     '</div>' +
                     '<div style="flex:1;min-width:0;">' +
                         '<div style="font-family:\'Crimson Pro\',serif;font-size:26px;font-weight:600;color:#3D2E24;line-height:1.12;text-align:center;">Every thing has an origin</div>' +
                         '<div style="font-size:15px;color:#6B5751;line-height:1.45;margin-top:7px;font-weight:300;text-align:center;">Behind this moment is a maker, a craft, and a reason it found its way to you.</div>' +
+                        (biz.name ? '<div style="font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:700;color:#8B3A7F;text-align:center;margin-top:8px;">' + biz.name + '</div>' : '') +
                         iconRowHtml +
                     '</div>' +
                     '<span class="origin-arrow" style="width:32px;height:32px;border-radius:50%;background:rgba(139,58,127,0.12);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s ease;' + (thread.role === 'business' ? 'transform:rotate(180deg);' : '') + '">' +
