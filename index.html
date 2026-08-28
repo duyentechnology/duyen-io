@@ -6025,14 +6025,18 @@
                       _piPics.map(function (u) { return '<div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#f5f0eb;"><img src="' + _piEsc(u) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"></div>'; }).join('') +
                       '</div>'
                     : '';
-                var _piHead = _piLabel || 'Product';
+                // No generic "Product" heading: an unnamed product just shows its
+                // photos + message directly. A product with a real name keeps its
+                // collapsible header.
                 _prodItem =
                     '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
-                        '<div onclick="toggleScanSection(\'product\')" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
-                            '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;">' + _piEsc(_piHead) + '</span>' +
-                            '<svg id="scanChev-product" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);"><path d="M6 9l6 6 6-6"/></svg>' +
-                        '</div>' +
-                        '<div id="scanBody-product" style="display:block;padding:0 16px 16px;">' +
+                        (_piLabel ?
+                            '<div onclick="toggleScanSection(\'product\')" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
+                                '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:20px;font-weight:700;color:#8B3A7F;">' + _piEsc(_piLabel) + '</span>' +
+                                '<svg id="scanChev-product" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(180deg);"><path d="M6 9l6 6 6-6"/></svg>' +
+                            '</div>'
+                        : '') +
+                        '<div id="scanBody-product" style="display:block;padding:' + (_piLabel ? '0 16px 16px' : '16px') + ';">' +
                             _piGrid +
                             (_piDetails ? '<div style="font-size:15px;color:#3D2E24;line-height:1.5;white-space:pre-wrap;">' + _piEsc(_piDetails) + '</div>' : '') +
                         '</div>' +
@@ -6057,13 +6061,13 @@
             // saved tapestry entry read the same.
             '<div style="position:relative;">' +
             (bizLogo ?
-                '<div style="background:#EFE5EF;padding:18px 14px 15px;border-bottom:1px solid #E0CFE0;">' +
+                '<div style="background:#EFE5EF;padding:18px 14px 15px;">' +
                     _bizOriginText +
                     '<img src="' + bizLogo + '" alt="' + String(biz.name || '').replace(/"/g,'&quot;') + '" style="display:block;margin:15px auto 12px;max-width:78%;max-height:185px;object-fit:contain;border-radius:14px;">' +
                     _bizNameIcons +
                 '</div>'
             :
-                '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #E0CFE0;">' +
+                '<div style="background:#EFE5EF;padding:13px 14px;display:flex;align-items:center;gap:13px;">' +
                     '<div style="flex-shrink:0;text-align:center;width:92px;">' +
                         '<span style="font-family:\'Crimson Pro\',serif;font-size:66px;font-weight:400;color:#DA251D;line-height:1;display:block;">緣</span>' +
                         '<span style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3em;color:#DA251D;display:block;margin-top:3px;">DUYÊN</span>' +
@@ -6078,7 +6082,7 @@
             // Business info — About + What's new — collapsed by the header arrow.
             // Open by default (full experience), each still collapsible on its own.
             '<div id="scanBody-origin" style="display:block;">' +
-            '<div style="padding:22px 16px 4px;background:#F0EFED;">' +
+            '<div style="padding:22px 16px 4px;background:#EFE5EF;">' +
                 ((biz.description || (Array.isArray(biz.aboutPhotos) && biz.aboutPhotos.length)) ?
                     '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
                         '<div onclick="toggleScanSection(\'about\')" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
