@@ -3344,73 +3344,6 @@
 </div>
 
 <!-- =============================================
-     SCREEN 10: THREAD VIEW (content display)
-============================================= -->
-<div class="screen" id="threadViewScreen">
-    <div class="container">
-        <div class="logo-header" onclick="navigate('home')">
-            <div class="logo-symbol">緣</div>
-            <div class="logo-text">DUYÊN</div>
-        </div>
-        <div class="card">
-            <div class="business-header">
-                <div class="business-name" id="displayBizName">Happy Flowers</div>
-                <div class="product-name" id="displayProdName">Spring Bouquet Collection</div>
-                <p class="description" id="displayDesc">Hand-selected seasonal blooms arranged fresh this morning with care and love.</p>
-            </div>
-
-            <div class="section-title">Contact Information</div>
-            <div class="contact-grid">
-                <div class="contact-item">
-                    <div class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg></div>
-                    <div>
-                        <div class="contact-label">Email</div>
-                        <div class="contact-value" id="displayEmail">hello@happyflowers.com</div>
-                    </div>
-                </div>
-                <div class="contact-item">
-                    <div class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg></div>
-                    <div>
-                        <div class="contact-label">Phone</div>
-                        <div class="contact-value" id="displayPhone">(555) 123-4567</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="linksDisplay"></div>
-            <div id="mediaDisplay"></div>
-            <div id="filesDisplay"></div>
-
-            <!-- PERSONAL CONTENT -->
-            <div id="personalContent">
-                <div id="giverMessageDisplay"></div>
-
-                <!-- Respond prompt -->
-                <div id="respondSection" style="display: none;">
-                    <div class="action-section" style="background: #fff8f0; border-color: var(--golden-thread);">
-                        <div class="action-title">💬 This Gift Has a Message for You</div>
-                        <div class="action-subtitle">Read it above, then let the giver know you received it</div>
-                        <button class="btn btn-primary" onclick="handleAction('respond')">Send Your Response</button>
-                    </div>
-                </div>
-
-                <div id="receiverResponseDisplay"></div>
-
-                <!-- Action buttons -->
-                <div class="action-section" id="actionButtons">
-                    <div class="action-title">What would you like to do?</div>
-                    <div class="action-subtitle">Continue building this connection</div>
-                    <div class="btn-group">
-                        <button class="btn btn-primary" onclick="handleAction('giver')">🎁 I'm Giving This Gift</button>
-                        <button class="btn btn-secondary" onclick="handleAction('receiver')">💝 I Received This</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- =============================================
      SCREEN 11: RECEIVER VIEW
 ============================================= -->
 <div class="screen" id="receiverScreen">
@@ -3436,7 +3369,6 @@
             </div>
 
             <div class="btn-group">
-                <button class="btn btn-secondary" onclick="navigate('threadView')">← Back to Details</button>
                 <button class="btn btn-primary" onclick="navigate('response')">💬 Send Response</button>
             </div>
         </div>
@@ -4472,7 +4404,6 @@
             'verify':     'verifyScreen',
             'forgot':     'forgotScreen',
             'setPassword': 'setPasswordScreen',
-                        'threadView': 'threadViewScreen',
             'receiver':   'receiverScreen',
             'response':   'responseScreen',
             'success':    'successScreen',
@@ -4570,7 +4501,6 @@
                 subtitle.textContent = 'Sign in to weave your tapestry';
             }
         }
-        if (screen === 'threadView') displayContent();
         if (screen === 'receiver') populateReceiver();
         if (screen === 'tapestry') { initTapestry(); startNotifPolling(); initPWAPrompt(); } else { stopNotifPolling(); }
         if (screen === 'drafts') initDrafts();
@@ -8351,155 +8281,6 @@
     // ==========================================
     // THREAD VIEW (Content Display)
     // ==========================================
-    function displayContent() {
-        // === BUSINESS INFO (always visible) ===
-        document.getElementById('displayBizName').textContent = businessData.businessName || 'Happy Flowers';
-        document.getElementById('displayProdName').textContent = businessData.productName || 'Spring Bouquet Collection';
-        document.getElementById('displayDesc').textContent = businessData.description || 'Hand-selected seasonal blooms arranged fresh this morning with care and love.';
-        document.getElementById('displayEmail').textContent = businessData.email || 'hello@happyflowers.com';
-        document.getElementById('displayPhone').textContent = businessData.phone || '(555) 123-4567';
-
-        // Links
-        const linksEl = document.getElementById('linksDisplay');
-        linksEl.innerHTML = '';
-        if (businessData.links && businessData.links.length > 0) {
-            linksEl.innerHTML = '<div class="section-title">Connect With Us</div>';
-            businessData.links.forEach(link => {
-                linksEl.innerHTML += `<a href="${safeUrl(link)}" class="link-item" target="_blank" rel="noopener noreferrer"><div class="contact-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg></div><div style="flex:1; word-break:break-all;">${sanitize(link)}</div><div style="color:var(--text-muted);">→</div></a>`;
-            });
-        }
-
-        // Media
-        const mediaEl = document.getElementById('mediaDisplay');
-        mediaEl.innerHTML = '';
-        if (businessData.media && businessData.media.length > 0) {
-            mediaEl.innerHTML = '<div class="section-title">Photos & Videos</div><div class="media-gallery">';
-            businessData.media.forEach(item => {
-                const tag = item.type.startsWith('image') ? 'img' : 'video';
-                mediaEl.innerHTML += `<div class="media-item"><${tag} src="${item.data}"></${tag}><div class="media-badge">${item.type.startsWith('image') ? 'Photo' : 'Video'}</div></div>`;
-            });
-            mediaEl.innerHTML += '</div>';
-        }
-
-        // Files
-        const filesEl = document.getElementById('filesDisplay');
-        filesEl.innerHTML = '';
-        if (businessData.files && businessData.files.length > 0) {
-            filesEl.innerHTML = '<div class="section-title">Documents</div>';
-            businessData.files.forEach(file => {
-                filesEl.innerHTML += `<div class="file-item"><div class="file-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg></div><div class="file-info"><div class="file-name">${file.name}</div><div class="file-size">${(file.size/1024).toFixed(1)} KB</div></div></div>`;
-            });
-        }
-
-        // === PERSONAL CONTENT (giver / receiver / guest) ===
-        {
-            document.getElementById('personalContent').style.display = 'block';
-
-            // Giver message
-            const giverEl = document.getElementById('giverMessageDisplay');
-            giverEl.innerHTML = '';
-            if (giverData.giverName) {
-                let html = `<div class="message-block"><div class="message-from">Message from ${giverData.giverName}</div><p class="message-text">"${giverData.message}"</p>`;
-                if (giverData.occasion) html += `<div style="margin-top:0.75rem; font-style:italic; color:var(--text-muted); font-size:0.9rem;">Occasion: ${giverData.occasion}</div>`;
-                if (giverData.media && giverData.media.length > 0) {
-                    html += '<div style="margin-top:1rem;"><div class="section-title">From the Gift Giver</div><div class="media-gallery">';
-                    giverData.media.forEach(item => {
-                        const tag = item.type.startsWith('image') ? 'img' : 'video';
-                        html += `<div class="media-item"><${tag} src="${item.data}"></${tag}><div class="media-badge">${item.type.startsWith('image') ? 'Photo' : 'Video'}</div></div>`;
-                    });
-                    html += '</div></div>';
-                }
-                html += '</div>';
-                giverEl.innerHTML = html;
-            }
-
-            // Respond section — only show to non-givers when there's a message to respond to
-            const showRespondPrompt = giverData.giverName && !responseData.message && !isGiverViewing();
-            document.getElementById('respondSection').style.display = showRespondPrompt ? 'block' : 'none';
-
-            // Receiver response
-            const recvRespEl = document.getElementById('receiverResponseDisplay');
-            recvRespEl.innerHTML = '';
-            if (responseData.message) {
-                let html = `<div class="message-block" style="background:#f0faf4; border-left-color:var(--sage);"><div class="message-from">Response from the Receiver</div><p class="message-text">"${responseData.message}"</p>`;
-                if (responseData.media && responseData.media.length > 0) {
-                    html += '<div style="margin-top:1rem;"><div class="section-title">Enjoying the Gift</div><div class="media-gallery">';
-                    responseData.media.forEach(item => {
-                        const tag = item.type.startsWith('image') ? 'img' : 'video';
-                        html += `<div class="media-item"><${tag} src="${item.data}"></${tag}><div class="media-badge">${item.type.startsWith('image') ? 'Photo' : 'Video'}</div></div>`;
-                    });
-                    html += '</div></div>';
-                }
-                html += '</div>';
-                recvRespEl.innerHTML = html;
-            }
-
-            // ===========================
-            // CONTEXT-AWARE ACTION BUTTONS
-            // ===========================
-            const actEl = document.getElementById('actionButtons');
-            let btns = '';
-            const hasGiver = !!giverData.giverName;
-            const hasResponse = !!responseData.message;
-            const amGiver = isGiverViewing();
-            const amReceiver = isReceiverViewing();
-
-            if (!hasGiver && !hasResponse) {
-                // BLANK QR — anyone can claim a role
-                btns = '<div class="action-title">What would you like to do?</div>';
-                btns += '<div class="action-subtitle">This item doesn\'t have a personal message yet</div>';
-                btns += '<div class="btn-group">';
-                btns += '<button class="btn btn-primary" onclick="handleAction(\'giver\')">🎁 I\'m Giving This as a Gift</button>';
-                btns += '<button class="btn btn-secondary" onclick="handleAction(\'respond\')">💝 I Received This</button>';
-                btns += '</div>';
-
-            } else if (hasGiver && !hasResponse) {
-                if (amGiver) {
-                    // GIVER viewing their own message — they can edit
-                    btns = '<div class="action-title">Your Message Is Live ✨</div>';
-                    btns += '<div class="action-subtitle">When the recipient scans this code, they\'ll see your message</div>';
-                    btns += '<div class="btn-group">';
-                    btns += '<button class="btn btn-secondary" onclick="handleAction(\'giver\')"><svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align:-3px;margin-right:5px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg>Edit My Message</button>';
-                    btns += '</div>';
-                } else {
-                    // RECEIVER (or anyone else) seeing the giver's message — they can respond
-                    btns = '<div class="action-title">This Gift Has a Message for You</div>';
-                    btns += '<div class="action-subtitle">Read the message above and respond to let them know you received it</div>';
-                    btns += '<div class="btn-group">';
-                    btns += '<button class="btn btn-primary" onclick="handleAction(\'respond\')">💌 Respond to ' + giverData.giverName + '</button>';
-                    btns += '</div>';
-                }
-
-            } else if (hasGiver && hasResponse) {
-                if (amGiver) {
-                    // GIVER sees the response — the payoff moment!
-                    btns = '<div class="action-title">They Responded! 💛</div>';
-                    btns += '<div class="action-subtitle">Your gift made an impact — read their response above</div>';
-                    btns += '<div class="btn-group">';
-                    btns += '<button class="btn btn-primary" onclick="navigate(\'tapestry\')">Save to My Tapestry →</button>';
-                    btns += '</div>';
-                } else if (amReceiver) {
-                    // RECEIVER revisiting — they can edit their response
-                    btns = '<div class="action-title">Your Response Is Live ✨</div>';
-                    btns += '<div class="action-subtitle">' + giverData.giverName + ' can now see your message</div>';
-                    btns += '<div class="btn-group">';
-                    btns += '<button class="btn btn-secondary" onclick="handleAction(\'editResponse\')"><svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align:-3px;margin-right:5px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg>Edit My Response</button>';
-                    btns += '<button class="btn btn-primary" onclick="navigate(\'tapestry\')">View My Tapestry →</button>';
-                    btns += '</div>';
-                } else {
-                    // SOMEONE ELSE viewing a complete thread
-                    btns = '<div class="action-title">A Beautiful Connection</div>';
-                    btns += '<div class="action-subtitle">This thread tells the story of a meaningful gift</div>';
-                    btns += '<div class="btn-group">';
-                    btns += '<button class="btn btn-primary" onclick="navigate(\'tapestry\')">View My Tapestry →</button>';
-                    btns += '</div>';
-                }
-            }
-
-            actEl.innerHTML = btns;
-        }
-    }
-
     // ==========================================
     // RECEIVER VIEW
     // ==========================================
@@ -11076,7 +10857,8 @@
                 openTapSingle(id);
             });
         } else {
-            navigate('threadView');
+            // No saved id to open — their tapestry lands them on the thread anyway.
+            navigate('tapestry');
         }
     }
 
