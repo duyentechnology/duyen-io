@@ -9523,7 +9523,12 @@
                         _header +
                         '<div style="padding:22px 16px 4px;background:#EFE5EF;">' +
                             _aboutSection +
-                            bProduct +
+                            // No product/gift item here: a "just save this business"
+                            // must show only the business's own public profile
+                            // (About + promotion). The product card carries a
+                            // giver's item photos and free-text note, which live on
+                            // the SHARED code — showing them to a stranger who saved
+                            // the same business leaks personal content.
                             bPromo +
                         '</div>' +
                     '</div>';
