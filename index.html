@@ -2923,72 +2923,14 @@
             <!-- Giver view: shows when role=giver and giver data exists (waiting for response or showing reply) -->
             <div id="qcGiverSent" style="display: none; padding: 0.5rem 0;">
 
-                <!-- "For [recipient name]" header -->
-                <div id="qcGiverForHeader" style="text-align: center; padding: 1.5rem 0 1.25rem;">
-                    <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.4rem; color: #6B5751; margin-bottom: 0.4rem; letter-spacing: 0.01em;">For you,</div>
-                    <div id="qcGiverForName" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3.5rem; color: #2E2A28; line-height: 1; letter-spacing: 0.04em;">you</div>
-                </div>
-
-                <!-- The original message — italic serif, no sandy box -->
-                <div id="qcGiverSentMessage" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;"></div>
-
-                <!-- Photos: stacked one per row -->
-                <div id="qcGiverSentPhotos" style="display:none; margin: 0 0 0.75rem;"></div>
-
-                <!-- Video -->
-                <div id="qcGiverSentVideo" style="display:none; margin-bottom: 0.75rem;">
-                    <video id="qcGiverSentVideoEl" controls playsinline preload="metadata" style="width:100%; border-radius:14px; display:block;"></video>
-                </div>
-
-                <!-- Voice memo: matched style to tapestry voice player -->
-                <div id="qcGiverSentVoice" class="tap-fc-voice" style="display:none; background:transparent; padding:0; margin-top: 0.75rem; margin-bottom: 0.5rem;">
-                    <div class="tap-fc-voice-label">Voice Note</div>
-                    <div class="tap-fc-voice-player">
-                        <button class="tap-fc-play-btn" id="btn_qcgs" type="button" onclick="toggleVoicePlay('qcgs')">▶</button>
-                        <div class="tap-fc-waveform" id="wave_qcgs"></div>
-                        <div class="tap-fc-duration" id="dur_qcgs">—</div>
-                    </div>
-                    <audio class="tap-fc-audio-el" id="aud_qcgs" preload="metadata"></audio>
-                </div>
+                <!-- Gift content — the ONE shared card (giftMomentHtml), filled
+                     by populateQRContent. Replaces the old per-field template. -->
+                <div id="qcGiverSentBody"></div>
 
                 <!-- Receiver's reply section (mirrored treatment) -->
-                <div id="qcReceiverResponse" style="display: none;">
-
-                    <!-- Plum gradient divider with "message back" -->
-                    <div style="padding: 2rem 0 1.5rem; display: flex; align-items: center; gap: 14px;">
-                        <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>
-                        <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: #8B3A7F; letter-spacing: 0.04em; white-space: nowrap;">message back</div>
-                        <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>
-                    </div>
-
-                    <!-- "From [receiver name]" header -->
-                    <div style="text-align: center; padding: 0.25rem 0 1rem;">
-                        <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.4rem; color: #6B5751; margin-bottom: 0.4rem;">From</div>
-                        <div id="qcReceiverFromName" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3.5rem; color: #2E2A28; line-height: 1; letter-spacing: 0.04em;">Mike</div>
-                    </div>
-
-                    <!-- Receiver's message — italic serif, same treatment as giver's -->
-                    <div id="qcReceiverMessage" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;"></div>
-
-                    <!-- Receiver's photos -->
-                    <div id="qcReceiverRespPhotos" style="display:none; margin: 0 0 0.75rem;"></div>
-
-                    <!-- Receiver's video -->
-                    <div id="qcReceiverRespVideo" style="display:none; margin-bottom: 0.75rem;">
-                        <video id="qcReceiverRespVideoEl" controls playsinline preload="metadata" style="width:100%; border-radius:14px; display:block;"></video>
-                    </div>
-
-                    <!-- Receiver's voice -->
-                    <div id="qcReceiverRespVoice" class="tap-fc-voice" style="display:none; background:transparent; padding:0; margin-top: 0.75rem;">
-                        <div class="tap-fc-voice-label">Voice Note</div>
-                        <div class="tap-fc-voice-player">
-                            <button class="tap-fc-play-btn" id="btn_qcrr" type="button" onclick="toggleVoicePlay('qcrr')">▶</button>
-                            <div class="tap-fc-waveform" id="wave_qcrr"></div>
-                            <div class="tap-fc-duration" id="dur_qcrr">—</div>
-                        </div>
-                        <audio class="tap-fc-audio-el" id="aud_qcrr" preload="metadata"></audio>
-                    </div>
-                </div>
+                <!-- Receiver's "message back" — the ONE shared response card
+                     (receiverResponseHtml), filled by populateQRContent. -->
+                <div id="qcReceiverResponse" style="display: none;"></div>
 
                 <div id="qcGiverWaiting" style="margin-top: 2rem; text-align: center; font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; color: var(--text-muted); font-size: 0.95rem;">
                     Waiting for a reply…
@@ -2998,29 +2940,9 @@
             <!-- Receiver section: shows when role=receiver -->
             <div id="qcReceiverView" style="display: none;">
                 <div id="qcGiverMessageView" style="display: none;">
-                    <!-- "For [name]" header — matches giver sent view -->
-                    <div id="qcForHeader" style="text-align: center; padding: 1.5rem 0 1.25rem;">
-                        <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.4rem; color: #6B5751; margin-bottom: 0.4rem; letter-spacing: 0.01em;">For you,</div>
-                        <div id="qcForName" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3.5rem; color: #2E2A28; line-height: 1; letter-spacing: 0.04em;">you</div>
-                    </div>
-                    <!-- Message — italic serif, no sandy box (matches giver sent view) -->
-                    <div id="qcGiverMsgContent" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;"></div>
-                    <!-- Photos: single-column stacked, one per scroll-step -->
-                    <div id="qcGiverMsgPhotos" style="display: none; margin: 0 0 0.75rem;"></div>
-                    <!-- Video — borderless to match giver sent view -->
-                    <div id="qcGiverMsgVideo" style="display:none; margin-bottom: 0.75rem;">
-                        <video id="qcGiverMsgVideoEl" controls playsinline preload="metadata" style="width:100%; border-radius:14px; display:block;"></video>
-                    </div>
-                    <!-- Voice memo: custom green waveform (kept) -->
-                    <div id="qcGiverMsgVoice" style="display:none; margin-top: 1.25rem;">
-                        <div style="font-family: 'Outfit', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5a4a56; margin-bottom: 0.6rem;">Voice Note</div>
-                        <div style="display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; padding: 10px 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);">
-                            <button id="qcGiverMsgVoiceBtn" type="button" onclick="qcToggleGiverVoice()" style="width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;background:#3A8C7A;color:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.15s ease, background 0.15s ease;">▶</button>
-                            <div id="qcGiverMsgVoiceWaveform" style="flex:1;display:flex;align-items:center;gap:2px;height:32px;"></div>
-                            <div id="qcGiverMsgVoiceDuration" style="font-family:'Outfit',sans-serif;font-size:12px;color:#5a4a56;flex-shrink:0;min-width:28px;text-align:right;">0:00</div>
-                            <audio id="qcGiverMsgAudio" style="display:none;"></audio>
-                        </div>
-                    </div>
+                    <!-- Gift content — the ONE shared card (giftMomentHtml),
+                         filled by populateQRContent. -->
+                    <div id="qcReceiverGiftBody"></div>
                     <hr style="border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0;">
                 </div>
                 <div id="qcReceiverPrompt" style="display:none; padding:0.5rem 0 1rem;">
@@ -5014,37 +4936,18 @@
     // Mirrors the real receiver view (populateQRContent, markup 3432–3458): "For you,"
     // + big serif name, italic serif message, full-width stacked photos, and the green
     // "Voice Note" player. No invented styling.
-    function _previewWaveform() {
-        var bars = '';
-        for (var i = 0; i < 26; i++) { var h = 6 + Math.round(Math.random() * 22); bars += '<div style="width:3px;border-radius:2px;background:#C8D5D2;flex:0 0 auto;height:' + h + 'px;"></div>'; }
-        return bars;
-    }
     function _voiceDurStr(audio) {
         var d = (audio && isFinite(audio.duration)) ? audio.duration : 0;
         var m = Math.floor(d / 60), s = Math.floor(d % 60);
         return m + ':' + (s < 10 ? '0' : '') + s;
     }
     function _showMomentPreview(o) {
-        var photosHtml = '';
-        if (o.imgs && o.imgs.length) {
-            for (var i = 0; i < o.imgs.length; i++) photosHtml += '<img src="' + o.imgs[i].src + '" style="display:block;width:100%;border-radius:14px;margin-bottom:12px;border:1px solid var(--border-light);">';
-        }
-        var videoHtml = o.video ? '<video src="' + o.video + '" controls playsinline preload="metadata" style="display:block;width:100%;border-radius:14px;margin-bottom:12px;border:1px solid var(--border-light);"></video>' : '';
-        var voiceHtml = o.hasVoice
-            ? '<div style="margin-top:1.25rem;">' +
-                '<div style="font-family:\'Outfit\',sans-serif;font-size:0.68rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#5a4a56;margin-bottom:0.6rem;">Voice Note</div>' +
-                '<div style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 1px 8px rgba(0,0,0,0.07);">' +
-                  '<div style="width:38px;height:38px;border-radius:50%;background:#3A8C7A;color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>' +
-                  '<div style="flex:1;display:flex;align-items:center;gap:2px;height:32px;overflow:hidden;">' + _previewWaveform() + '</div>' +
-                  '<div style="font-family:\'Outfit\',sans-serif;font-size:12px;color:#5a4a56;min-width:28px;text-align:right;">' + (o.voiceDur || '0:00') + '</div>' +
-                '</div>' +
-              '</div>'
-            : '';
-        var header = '<div style="text-align:center; padding:0.5rem 0 1.25rem;">' +
-              '<div style="font-family:\'Crimson Pro\',\'Playfair Display\',serif;font-style:italic;font-weight:400;font-size:1.4rem;color:#6B5751;margin-bottom:0.4rem;letter-spacing:0.01em;">' + o.forLabel + '</div>' +
-              '<div style="font-family:\'Crimson Pro\',\'Playfair Display\',serif;font-weight:500;font-size:3.5rem;color:#2E2A28;line-height:1;letter-spacing:0.04em;word-break:break-word;">' + _escLink(o.forName || 'you') + '</div>' +
-            '</div>';
-        var msgHtml = o.msg ? '<div style="font-family:\'Crimson Pro\',\'Playfair Display\',serif;font-style:italic;font-size:1.2rem;line-height:1.7;color:#3D2E24;padding:0.5rem 0 1.25rem;white-space:pre-wrap;">' + _escLink(o.msg) + '</div>' : '';
+        // The compose preview renders the ONE shared gift card (giftMomentHtml),
+        // so "what they'll see" is exactly what the receiver and the saved card
+        // show. Only the modal chrome (subtitle, close, lock note) is local.
+        var _photos = [];
+        if (o.imgs) for (var _pi = 0; _pi < o.imgs.length; _pi++) _photos.push(o.imgs[_pi].src || o.imgs[_pi]);
+        var _card = giftMomentHtml({ forLabel: o.forLabel, forName: o.forName, message: o.msg, photos: _photos, video: o.video, voice: o.voiceSrc || '', uid: 'cmp', lightboxId: 'cmp' });
         var lockNote = o.secret
             ? '<div style="display:flex;align-items:center;gap:8px;justify-content:center;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.35);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#fff;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>They enter your secret phrase first, then see this</div>'
             : '';
@@ -5064,7 +4967,7 @@
               '</div>' +
               lockNote +
               '<div style="flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#faf7f4;border-radius:20px;padding:14px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
-                header + msgHtml + photosHtml + videoHtml + voiceHtml +
+                _card +
               '</div>' +
             '</div>';
         modal.style.display = 'flex';
@@ -5080,7 +4983,7 @@
         var videoEl = document.querySelector('#qcGiverVideoPreview video');
         var video = videoEl ? videoEl.src : '';
         if (!msg && !imgs.length && !hasVoice && !video) { alert('Add a message, photo, video, or voice memo to preview.'); return; }
-        _showMomentPreview({ forLabel: 'For you,', forName: to, msg: msg, imgs: imgs, video: video, hasVoice: hasVoice, voiceDur: _voiceDurStr(audio), secret: val('qcGiverSecretPhrase'), subtitle: 'Preview · this is what ' + (to ? _escLink(to) : 'they') + ' will see' });
+        _showMomentPreview({ forLabel: 'For you,', forName: to, msg: msg, imgs: imgs, video: video, voiceSrc: (hasVoice && audio ? audio.src : ''), secret: val('qcGiverSecretPhrase'), subtitle: 'Preview · this is what ' + (to ? _escLink(to) : 'they') + ' will see' });
     }
     function previewThankYou() {
         var noteEl = document.getElementById('qcReceiverNote');
@@ -5094,7 +4997,7 @@
         var video = videoEl ? videoEl.src : '';
         if (!msg && !imgs.length && !hasVoice && !video) { alert('Add a note, photo, video, or voice memo to preview.'); return; }
         var me = (typeof currentUser === 'string' && currentUser) ? currentUser.split(' ')[0] : 'You';
-        _showMomentPreview({ forLabel: 'From', forName: me, msg: msg, imgs: imgs, video: video, hasVoice: hasVoice, voiceDur: _voiceDurStr(audio), secret: '', subtitle: 'Preview · your thank-you note' });
+        _showMomentPreview({ forLabel: 'From', forName: me, msg: msg, imgs: imgs, video: video, voiceSrc: (hasVoice && audio ? audio.src : ''), secret: '', subtitle: 'Preview · your thank-you note' });
     }
     // Spend 1 token for a moment (idempotent per code). Returns new balance, or -1 if none.
     async function spendMomentToken(qrId) {
@@ -6644,73 +6547,26 @@
                 var giverData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
                 document.getElementById('qcBizSection').style.display = 'none'; document.getElementById('qcGiverSent').style.display = 'block';
 
-                // Populate "For [recipient name]" header
+                // Gift content — the ONE shared card (giftMomentHtml).
                 var _giverForName = (giverData.recipient_name || giverData.recipientName || '').trim();
-                document.getElementById('qcGiverForName').textContent = _giverForName || 'you';
+                document.getElementById('qcGiverSentBody').innerHTML = giftMomentHtml({
+                    forLabel: 'For you,', forName: _giverForName,
+                    message: giverData.message || '',
+                    photos: giverData.photos || [], video: giverData.video || '', voice: giverData.voice || '',
+                    uid: 'qcgs', lightboxId: 'qcgs'
+                });
 
-                document.getElementById('qcGiverSentMessage').textContent = giverData.message || '';
-                
-                // Show giver sent photos — stacked one per row
-                var gSentPhotos = document.getElementById('qcGiverSentPhotos');
-                if (giverData.photos && giverData.photos.length > 0) {
-                    gSentPhotos.innerHTML = giverData.photos.map(function(p) {
-                        return '<img src="' + p + '" alt="Gift photo" onclick="window.open(this.src)" style="width:100%; display:block; border-radius:14px; margin-bottom:12px; cursor:pointer;">';
-                    }).join('');
-                    gSentPhotos.style.display = 'block';
-                } else {
-                    gSentPhotos.style.display = 'none';
-                }
-                
-                // Show giver voice memo if saved
-                if (giverData.voice) {
-                    setupLiveVoicePlayer('qcgs', giverData.voice);
-                    document.getElementById('qcGiverSentVoice').style.display = 'block';
-                } else {
-                    document.getElementById('qcGiverSentVoice').style.display = 'none';
-                }
-                // Show giver video if saved
-                if (giverData.video) {
-                    document.getElementById('qcGiverSentVideoEl').src = posterUrl(giverData.video);
-                    document.getElementById('qcGiverSentVideo').style.display = 'block';
-                } else {
-                    document.getElementById('qcGiverSentVideo').style.display = 'none';
-                }
-                
                 if (data.receiver_data) {
                     var recData = typeof data.receiver_data === 'string' ? JSON.parse(data.receiver_data) : data.receiver_data;
-                    document.getElementById('qcReceiverResponse').style.display = 'block';
-
-                    // Populate "From [name]" — receiver's name
+                    var _recResp = document.getElementById('qcReceiverResponse');
+                    // The ONE shared response card.
                     var _recName = (recData.name || recData.from_name || recData.fromName || recData.user || '').trim();
-                    document.getElementById('qcReceiverFromName').textContent = _recName || 'them';
-
-                    document.getElementById('qcReceiverMessage').textContent = recData.message || '';
-
-                    // Show receiver response photos — stacked one per row
-                    var rRespPhotos = document.getElementById('qcReceiverRespPhotos');
-                    if (recData.photos && recData.photos.length > 0) {
-                        rRespPhotos.innerHTML = recData.photos.map(function(p) {
-                            return '<img src="' + p + '" alt="Thank you photo" onclick="window.open(this.src)" style="width:100%; display:block; border-radius:14px; margin-bottom:12px; cursor:pointer;">';
-                        }).join('');
-                        rRespPhotos.style.display = 'block';
-                    } else {
-                        rRespPhotos.style.display = 'none';
-                    }
-                    
-                    // Show receiver voice if saved
-                    if (recData.voice) {
-                        setupLiveVoicePlayer('qcrr', recData.voice);
-                        document.getElementById('qcReceiverRespVoice').style.display = 'block';
-                    } else {
-                        document.getElementById('qcReceiverRespVoice').style.display = 'none';
-                    }
-                    // Show receiver video if saved
-                    if (recData.video) {
-                        document.getElementById('qcReceiverRespVideoEl').src = posterUrl(recData.video);
-                        document.getElementById('qcReceiverRespVideo').style.display = 'block';
-                    } else {
-                        document.getElementById('qcReceiverRespVideo').style.display = 'none';
-                    }
+                    _recResp.innerHTML = receiverResponseHtml({
+                        forName: _recName || 'them', message: recData.message || '',
+                        photos: recData.photos || [], video: recData.video || '', voice: recData.voice || '',
+                        uid: 'qcrr', lightboxId: 'qcrr'
+                    });
+                    _recResp.style.display = 'block';
                     document.getElementById('qcGiverWaiting').style.display = 'none';
                 } else {
                     document.getElementById('qcReceiverResponse').style.display = 'none';
@@ -6758,38 +6614,15 @@
             if (data.giver_data) {
                 var gData = typeof data.giver_data === 'string' ? JSON.parse(data.giver_data) : data.giver_data;
                 document.getElementById('qcGiverMessageView').style.display = 'block';
-                document.getElementById('qcGiverMsgContent').textContent = gData.message || '';
 
-                // "For [name]" header — fall back to "you" if no recipient name set
+                // Gift content — the ONE shared card (giftMomentHtml).
                 var forName = (gData.recipient_name || gData.recipientName || '').trim();
-                document.getElementById('qcForName').textContent = forName || 'you';
-
-                // Show giver voice memo (animated waveform style)
-                if (gData.voice) {
-                    document.getElementById('qcGiverMsgAudio').src = gData.voice;
-                    document.getElementById('qcGiverMsgVoice').style.display = 'block';
-                    qcBuildGiverVoiceWaveform();
-                } else {
-                    document.getElementById('qcGiverMsgVoice').style.display = 'none';
-                }
-                // Show giver video
-                if (gData.video) {
-                    document.getElementById('qcGiverMsgVideoEl').src = posterUrl(gData.video);
-                    document.getElementById('qcGiverMsgVideo').style.display = 'block';
-                } else {
-                    document.getElementById('qcGiverMsgVideo').style.display = 'none';
-                }
-
-                // Show giver photos — single-column stacked, one per row
-                var gPhotos = document.getElementById('qcGiverMsgPhotos');
-                if (gData.photos && gData.photos.length > 0) {
-                    gPhotos.innerHTML = gData.photos.map(function(p) {
-                        return '<img src="' + p + '" alt="Gift photo" onclick="window.open(this.src)" style="display:block;width:100%;border-radius:14px;margin-bottom:12px;cursor:pointer;border:1px solid var(--border-light);">';
-                    }).join('');
-                    gPhotos.style.display = 'block';
-                } else {
-                    gPhotos.style.display = 'none';
-                }
+                document.getElementById('qcReceiverGiftBody').innerHTML = giftMomentHtml({
+                    forLabel: 'For you,', forName: forName,
+                    message: gData.message || '',
+                    photos: gData.photos || [], video: gData.video || '', voice: gData.voice || '',
+                    uid: 'qcrv', lightboxId: 'qcrv'
+                });
             } else {
                 document.getElementById('qcGiverMessageView').style.display = 'none';
             }
@@ -7359,57 +7192,6 @@
     // ==========================================
     // GIVER VOICE PLAYER (animated waveform style, matches tapestry)
     // ==========================================
-    function qcBuildGiverVoiceWaveform() {
-        var wf = document.getElementById('qcGiverMsgVoiceWaveform');
-        if (!wf) return;
-        // Generate ~36 randomized bars for visual rhythm
-        var bars = '';
-        var seed = 0;
-        for (var i = 0; i < 36; i++) {
-            // Pseudo-random heights between 6 and 22px, deterministic so it looks consistent
-            var h = 6 + Math.round((Math.sin(i * 1.7) + 1.2) * 6);
-            bars += '<div class="qcgvw-bar" style="flex:1;border-radius:2px;background:#C8D5D2;height:' + h + 'px;transition:background 0.2s;"></div>';
-        }
-        wf.innerHTML = bars;
-
-        // Hook audio events for played-progress fill + duration display
-        var audio = document.getElementById('qcGiverMsgAudio');
-        if (audio) {
-            audio.onloadedmetadata = function() {
-                var d = audio.duration;
-                if (isFinite(d)) {
-                    var m = Math.floor(d / 60);
-                    var s = Math.round(d % 60);
-                    document.getElementById('qcGiverMsgVoiceDuration').textContent = m + ':' + (s < 10 ? '0' + s : s);
-                }
-            };
-            audio.ontimeupdate = function() {
-                if (!audio.duration) return;
-                var pct = audio.currentTime / audio.duration;
-                var allBars = document.querySelectorAll('#qcGiverMsgVoiceWaveform .qcgvw-bar');
-                var filledCount = Math.round(allBars.length * pct);
-                allBars.forEach(function(bar, idx) {
-                    bar.style.background = idx < filledCount ? '#3A8C7A' : '#C8D5D2';
-                });
-            };
-            audio.onended = function() {
-                document.getElementById('qcGiverMsgVoiceBtn').textContent = '▶';
-            };
-        }
-    }
-    function qcToggleGiverVoice() {
-        var audio = document.getElementById('qcGiverMsgAudio');
-        var btn = document.getElementById('qcGiverMsgVoiceBtn');
-        if (!audio || !btn) return;
-        if (audio.paused) {
-            audio.play();
-            btn.textContent = '❚❚';
-        } else {
-            audio.pause();
-            btn.textContent = '▶';
-        }
-    }
-
     // Save to tapestry only — no form. Used by Option B split flow.
     async function saveToMyTapestry() {
         if (!scannedQRData) return;
@@ -9212,6 +8994,73 @@
         '</div>';
     }
 
+    // ── ONE gift/moment card renderer for every context ───────────────────
+    // The compose preview, the giver-sent view, the receiver view, and the
+    // saved tapestry card all render the same "For [name] + message + photos +
+    // video + voice" unit. This is the single source. Each caller passes data;
+    // the card is identical everywhere (canonical: "For you," label, word-break
+    // name, linkified message, lightbox photos, borderless video, the
+    // .tap-fc-voice player). Voice/lightbox work in every context — see the
+    // __lbSets registry below, which lets openLightbox serve a card that isn't
+    // a saved tapestry thread.
+    //   p : { forLabel, forName, message, photos:[], video, voice, uid, lightboxId }
+    function giftMomentHtml(p) {
+        p = p || {};
+        var esc = (typeof _escLink === 'function') ? _escLink : function (s) { return (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+        var uid = p.uid || ('gm_' + Math.random().toString(36).slice(2));
+        var lbId = p.lightboxId || uid;
+
+        // Header — "For [name]"
+        var header = '<div style="text-align: center; padding: 1.5rem 0 1.25rem;">' +
+            '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-weight: 400; font-size: 1.4rem; color: #6B5751; margin-bottom: 0.4rem; letter-spacing: 0.01em;">' + (p.forLabel || 'For you,') + '</div>' +
+            '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-weight: 500; font-size: 3.5rem; color: #2E2A28; line-height: 1; letter-spacing: 0.04em; word-break: break-word;">' + esc(p.forName || 'you') + '</div>' +
+        '</div>';
+
+        // Message — linkified italic serif
+        var msg = p.message ? '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">' + esc(p.message) + '</div>' : '';
+
+        // Media — photos (lightbox) then video (inline), stacked one per row.
+        // Registered so openLightbox can serve this card in any context.
+        var media = [];
+        (p.photos || []).forEach(function (u) { if (u) media.push({ type: 'image', url: u }); });
+        if (p.video && !media.some(function (m) { return m.url === p.video; })) media.push({ type: 'video', url: p.video });
+        try { window.__lbSets = window.__lbSets || {}; window.__lbSets[lbId] = media; } catch (e) {}
+        var mediaHtml = '';
+        if (media.length) {
+            mediaHtml = '<div style="display:flex;flex-direction:column;gap:8px;margin:0 0 0.75rem;">' +
+                media.map(function (m, i) {
+                    var url = m.url;
+                    if (m.type === 'video') {
+                        return '<video src="' + posterUrl(url) + '" controls playsinline preload="metadata" onerror="tapMediaRetry(this)" style="width:100%;height:auto;display:block;border-radius:14px;background:#000;"></video>';
+                    }
+                    return '<div class="tap-photo-wrap" onclick="openLightbox(\'' + lbId + '\',' + i + ')"><img src="' + url + '" alt="" loading="eager" decoding="async" onload="this.parentElement.classList.add(\'loaded\')" onerror="tapMediaRetry(this)"></div>';
+                }).join('') +
+            '</div>';
+        }
+
+        // Voice — the canonical .tap-fc-voice player (inline bars; play via
+        // toggleVoicePlay). Same markup the saved card has always used.
+        var voice = '';
+        if (p.voice) {
+            var bars = '';
+            for (var i = 0; i < 28; i++) {
+                var h = Math.round(20 + Math.sin(i * 0.7) * 10 + Math.random() * 18);
+                bars += '<div class="tap-fc-waveform-bar" style="height:' + h + 'px;"></div>';
+            }
+            voice = '<div class="tap-fc-voice" style="background:transparent;padding:0;">' +
+                '<div class="tap-fc-voice-label">Voice Note</div>' +
+                '<div class="tap-fc-voice-player">' +
+                    '<button class="tap-fc-play-btn" id="btn_' + uid + '" type="button" onclick="toggleVoicePlay(\'' + uid + '\')">▶</button>' +
+                    '<div class="tap-fc-waveform" id="wave_' + uid + '">' + bars + '</div>' +
+                    '<div class="tap-fc-duration" id="dur_' + uid + '">—</div>' +
+                '</div>' +
+                '<audio class="tap-fc-audio-el" id="aud_' + uid + '" src="' + p.voice + '" preload="metadata"></audio>' +
+            '</div>';
+        }
+
+        return header + msg + mediaHtml + voice;
+    }
+
     function buildTapFullCard(thread) {
         const roleLabels={giver:'You gave a gift',receiver:'A gift you received',business:'A Business Moment',external:''};
         const fromPrefixes={giver:'with love from',receiver:'from',business:'by',external:''};
@@ -9381,12 +9230,30 @@
         // and Share. Sitting below the saver's own photos, Share read as if it
         // would send those photos rather than the link.
         const isExtSave = thread.role === 'external';
+        // A giver/receiver save renders the ONE shared gift card (giftMomentHtml)
+        // — the exact same card the compose preview, giver-sent and receiver
+        // views use. The "from [name]" byline, date, edit controls and receiver
+        // response below are saved-card chrome layered around it.
+        const _isGiftMoment = (thread.role === 'giver' || thread.role === 'receiver');
+        const _giftMomentBlock = _isGiftMoment ? giftMomentHtml({
+            forLabel: 'For you,',
+            forName: recipientName,
+            message: thread.giverMessage || thread.message || '',
+            photos: (thread.giverPhotos && thread.giverPhotos.length) ? thread.giverPhotos : [],
+            video: thread.giverVideo || '',
+            voice: (thread.hasVoice ? (thread.giverVoiceUrl || thread.voiceUrl) : ''),
+            uid: 'vp_' + thread.id,
+            lightboxId: thread.id
+        }) : '';
         card.innerHTML=`${originHtml}
         <div class="tap-fc-body">
             ${thread.isFavorite ? '<div class="tap-fc-role">⭐</div>' : ''}
 
-            <!-- For [recipient] header — gifts only -->
-            ${!isGiftEntry ? '' : `<div style="text-align: center; padding: 1.5rem 0 1.25rem;">
+            <!-- Gift moment (giver/receiver) — the ONE shared card -->
+            ${_giftMomentBlock}
+
+            <!-- For [recipient] header — non-gift-moment gift entries only -->
+            ${(_isGiftMoment || !isGiftEntry) ? '' : `<div style="text-align: center; padding: 1.5rem 0 1.25rem;">
                 <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-weight: 400; font-size: 1.4rem; color: #6B5751; margin-bottom: 0.4rem; letter-spacing: 0.01em;">For</div>
                 <div style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-weight: 500; font-size: 3.5rem; color: #2E2A28; line-height: 1; letter-spacing: 0.04em;">${recipientName}</div>
             </div>`}
@@ -9394,12 +9261,12 @@
             <!-- External save: the link leads, before anything the saver added -->
             ${isExtSave ? linkCardHtml + linkHtml : ''}
 
-            <!-- Original message — italic serif, no sandy box (gifts only) -->
-            ${!isGiftEntry && thread.role === 'business' ? '' : `<div id="field-${tid}-message" class="${isGiftQR ? '' : 'mem-note-view'}" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.giverMessage || thread.message || ''}</div>`}
-            <!-- Photos / videos / voice -->
-            ${photoHtml}
+            <!-- Original message — non-gift-moment (external note / etc.) -->
+            ${(_isGiftMoment || (!isGiftEntry && thread.role === 'business')) ? '' : `<div id="field-${tid}-message" class="${isGiftQR ? '' : 'mem-note-view'}" style="font-family: 'Crimson Pro', 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">${thread.giverMessage || thread.message || ''}</div>`}
+            <!-- Photos / videos / voice — non-gift-moment -->
+            ${_isGiftMoment ? '' : photoHtml}
             ${isExtSave ? '' : linkCardHtml}
-            ${voiceHtml}
+            ${_isGiftMoment ? '' : voiceHtml}
 
             <!-- "from" attribution (small, below media). Gift pathway only —
                  woven moments and saved businesses carry no giver byline. -->
@@ -9457,64 +9324,32 @@
         return card;
     }
 
+    // The receiver's "message back" — the ONE shared card again, with a "message
+    // back" divider and a "From [name]" label. Used by the saved tapestry card
+    // and the in-scan giver-sent view, so the response renders identically too.
+    //   p : { forName, message, photos:[], video, voice, uid, lightboxId }
+    function receiverResponseHtml(p) {
+        p = p || {};
+        var divider = '<div style="padding: 2rem 0 1.5rem; display: flex; align-items: center; gap: 14px;">' +
+            '<div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>' +
+            '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-size: 1.05rem; color: #8B3A7F; letter-spacing: 0.04em; white-space: nowrap;">message back</div>' +
+            '<div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>' +
+        '</div>';
+        return divider + giftMomentHtml({
+            forLabel: 'From', forName: p.forName || 'Receiver',
+            message: p.message || '', photos: p.photos || [], video: p.video || '', voice: p.voice || '',
+            uid: p.uid, lightboxId: p.lightboxId
+        });
+    }
+
     function buildReceiverResponseHtml(thread) {
         var rr = thread.receiverResponse;
-        var receiverName = rr.user || 'Receiver';
-
-        // Stacked photos (one per row, matching live scan view)
-        var rrPhotos = '';
-        if (rr.photos && rr.photos.length > 0) {
-            rrPhotos = '<div style="display:flex;flex-direction:column;gap:8px;margin:0 0 0.75rem;">' +
-                rr.photos.map(function(url){
-                    return '<div style="border-radius:14px;overflow:hidden;"><img src="'+url+'" style="width:100%;height:auto;display:block;" alt=""></div>';
-                }).join('') +
-            '</div>';
-        }
-
-        // Video
-        var rrVideo = '';
-        if (rr.video) {
-            rrVideo = '<div style="border-radius:14px;overflow:hidden;margin-bottom:0.75rem;">' +
-                '<video src="'+posterUrl(rr.video)+'" controls playsinline preload="metadata" style="width:100%;height:auto;display:block;"></video>' +
-            '</div>';
-        }
-
-        // Voice — canonical tap-fc-voice green-wave style
-        var rrVoice = '';
-        if (rr.voice) {
-            var ruid = 'rvp_'+thread.id;
-            var bars = '';
-            for (var i = 0; i < 28; i++) {
-                var h = Math.round(20 + Math.sin(i * 0.7) * 10 + Math.random() * 18);
-                bars += '<div class="tap-fc-waveform-bar" style="height:'+h+'px;"></div>';
-            }
-            rrVoice = '<div class="tap-fc-voice" style="background:transparent;padding:0;">' +
-                '<div class="tap-fc-voice-label">Voice Note</div>' +
-                '<div class="tap-fc-voice-player">' +
-                    '<button class="tap-fc-play-btn" id="btn_'+ruid+'" onclick="toggleVoicePlay(\''+ruid+'\')">▶</button>' +
-                    '<div class="tap-fc-waveform" id="wave_'+ruid+'">'+bars+'</div>' +
-                    '<div class="tap-fc-duration" id="dur_'+ruid+'">—</div>' +
-                '</div>' +
-                '<audio class="tap-fc-audio-el" id="aud_'+ruid+'" src="'+rr.voice+'" preload="metadata"></audio>' +
-            '</div>';
-        }
-
         return '<div style="padding: 0 1.4rem 1.5rem;">' +
-            // Plum gradient divider with "message back" — matched to qcReceiverResponse
-            '<div style="padding: 2rem 0 1.5rem; display: flex; align-items: center; gap: 14px;">' +
-                '<div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>' +
-                '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-size: 1.05rem; color: #8B3A7F; letter-spacing: 0.04em; white-space: nowrap;">message back</div>' +
-                '<div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, #C9A0C4 50%, transparent 100%);"></div>' +
-            '</div>' +
-            // "From [name]" header (mirrors For/name treatment)
-            '<div style="text-align: center; padding: 0.25rem 0 1rem;">' +
-                '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-weight: 400; font-size: 1.4rem; color: #6B5751; margin-bottom: 0.4rem;">From</div>' +
-                '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-weight: 500; font-size: 3.5rem; color: #2E2A28; line-height: 1; letter-spacing: 0.04em;">'+receiverName+'</div>' +
-            '</div>' +
-            // Italic Crimson Pro message — same treatment as giver's
-            '<div style="font-family: \'Crimson Pro\', \'Playfair Display\', serif; font-style: italic; font-size: 1.2rem; line-height: 1.7; color: #3D2E24; padding: 0.5rem 0 1.25rem; white-space: pre-wrap;">'+rr.message+'</div>' +
-            // Media
-            rrPhotos + rrVideo + rrVoice +
+            receiverResponseHtml({
+                forName: rr.user || 'Receiver', message: rr.message,
+                photos: rr.photos || [], video: rr.video || '', voice: rr.voice || '',
+                uid: 'rvp_' + thread.id, lightboxId: 'rvp_' + thread.id
+            }) +
             // Date — postmark style at the bottom
             '<div style="text-align: center; margin-top: 1rem; font-family: \'DM Sans\', sans-serif; font-size: 0.78rem; color: #9A8478; letter-spacing: 0.05em;">' +
                 tapDateFull(rr.date) +
@@ -10668,11 +10503,33 @@
     // source === 'memory' opens the saver's own private media (their tapestry
     // row) rather than the media on the shared entry.
     function openLightbox(threadId, idx, source) {
+        // A gift card rendered outside the saved tapestry (scan / compose /
+        // receiver view) registers its media here, since it has no userThreads
+        // entry. Serve that directly when present.
+        let media;
+        if (source !== 'memory' && window.__lbSets && window.__lbSets[threadId]) {
+            media = window.__lbSets[threadId];
+            if (!media.length) return;
+            lightboxMedia = media;
+            lightboxIdx = idx;
+            lightboxThreadId = threadId;
+            const stripEl = document.getElementById('tapLightboxStrip');
+            stripEl.innerHTML = media.map((m, i) => {
+                const url = m.url || m;
+                const isVid = m.type === 'video';
+                return `<div class="tap-lightbox-strip-cell${i===idx?' active':''}" id="lsc-${i}" onclick="lightboxGoTo(${i})">
+                    ${isVid ? `<video src="${posterUrl(url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video>` : `<img src="${url}" alt="">`}
+                </div>`;
+            }).join('');
+            renderLightboxItem();
+            document.getElementById('tapLightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            return;
+        }
         const thread = userThreads.find(t => t.id === threadId);
         if (!thread) return;
         // Build media exactly the way buildTapFullCard does, so the tapped index
         // matches the item shown in the card strip
-        let media;
         if (source === 'memory') {
             media = Array.isArray(thread.memoryMedia) ? thread.memoryMedia : [];
         } else if (thread.role === 'giver' || thread.role === 'receiver' || thread.role === 'business') {
