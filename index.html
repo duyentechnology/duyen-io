@@ -8828,7 +8828,7 @@
         _tapPreviewRetries++;
         setTimeout(function () {
             loadTapestryFromDB().then(function () {
-                buildTapCollage(tapCurrentMonth);
+                buildTapCollage(null);   // top collage is always continuous, never month-filtered
                 buildTapStacks(tapCurrentMonth);
                 maybeRefreshPendingPreviews();
             });
@@ -9538,7 +9538,11 @@
     function refreshTapestryHome() {
         try {
             if (!userThreads || !userThreads.length) return;
-            if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
+            // The top collage is ALWAYS continuous (null) — it is never filtered
+            // by the selected month. Passing tapCurrentMonth here filtered it to
+            // one month, breaking the fanned "string" into single polaroids. The
+            // month stacks below DO follow the selected month.
+            if (typeof buildTapCollage === 'function') buildTapCollage(null);
             if (typeof buildTapStacks === 'function') buildTapStacks(tapCurrentMonth);
         } catch (e) {}
     }
