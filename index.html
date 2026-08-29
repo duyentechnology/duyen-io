@@ -9538,11 +9538,11 @@
     function refreshTapestryHome() {
         try {
             if (!userThreads || !userThreads.length) return;
-            // The top collage is ALWAYS continuous (null) — it is never filtered
-            // by the selected month. Passing tapCurrentMonth here filtered it to
-            // one month, breaking the fanned "string" into single polaroids. The
-            // month stacks below DO follow the selected month.
-            if (typeof buildTapCollage === 'function') buildTapCollage(null);
+            // Only re-render the month polaroid stacks below — that is the part
+            // that went stale after an edit. Do NOT rebuild the floating collage
+            // here: it stays continuous across all of the tapestry and updates on
+            // its own; rebuilding it mid-browse resets its scroll and breaks the
+            // fanned "string."
             if (typeof buildTapStacks === 'function') buildTapStacks(tapCurrentMonth);
         } catch (e) {}
     }
