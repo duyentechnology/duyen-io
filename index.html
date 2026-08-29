@@ -8357,6 +8357,10 @@
 
     function buildTapCollage(month) {
         const scroll=document.getElementById('tapCollageScroll');
+        // Preserve the swipe position across a data-driven rebuild (an edit or a
+        // newly saved moment) so refreshing the home doesn't yank the strip back
+        // to the start mid-browse.
+        const prevScroll = scroll.scrollLeft;
         scroll.classList.add('switching');
         setTimeout(()=>{
             scroll.innerHTML='';
@@ -8368,6 +8372,11 @@
             if(!cards.length){scroll.classList.remove('switching');return;}
             const tilts=[-7,8,-5,6,-8,5,-4,9,-6,7],tapes=[-3,3,2,-2,3,-3,2,-2,3,-1];
             cards.forEach((thread,i)=>{
+              // One malformed thread must NOT abort the loop — an uncaught throw
+              // here would leave the strip truncated at the bad card (the "polaroids
+              // break off and show a single one" bug). Skip the bad card, keep the
+              // rest of the string continuous.
+              try {
                 const hasPhoto=thread.photos&&thread.photos.length>0;
                 const date=tapDateShort(thread.date);
                 const isNew=i===0;
@@ -8413,8 +8422,11 @@
                         <div class="tap-col-date">${date}</div>
                     </div>`;
                 scroll.appendChild(div);
+              } catch (err) { /* skip a bad card, keep the strip continuous */ }
             });
             scroll.classList.remove('switching');
+            // Restore the pre-rebuild swipe position, clamped to the new width.
+            try { scroll.scrollLeft = Math.min(prevScroll, Math.max(0, scroll.scrollWidth - scroll.clientWidth)); } catch (e) {}
             // Featured-on-settle: cache positions, then highlight the centered card.
             // addEventListener dedups the same handler ref, so rebuilds don't stack.
             scroll.addEventListener('scroll', onCollageScroll, { passive: true });
@@ -9538,11 +9550,14 @@
     function refreshTapestryHome() {
         try {
             if (!userThreads || !userThreads.length) return;
-            // Only re-render the month polaroid stacks below — that is the part
-            // that went stale after an edit. Do NOT rebuild the floating collage
-            // here: it stays continuous across all of the tapestry and updates on
-            // its own; rebuilding it mid-browse resets its scroll and breaks the
-            // fanned "string."
+            // Rebuild BOTH the floating collage and the month stacks from the
+            // CURRENT userThreads. They must never diverge: earlier this only
+            // rebuilt the stacks, which stranded the collage on an older, smaller
+            // snapshot — so after adding/editing threads the strip showed a single
+            // stale polaroid while the stacks below were up to date. The collage
+            // stays continuous (null = no month filter) and preserves its swipe
+            // position across the rebuild (see buildTapCollage).
+            if (typeof buildTapCollage === 'function') buildTapCollage(null);
             if (typeof buildTapStacks === 'function') buildTapStacks(tapCurrentMonth);
         } catch (e) {}
     }
