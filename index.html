@@ -9529,6 +9529,20 @@
         }
     }
 
+    // Re-render the home featured collage + month polaroid stacks from the
+    // current userThreads. Edits (added photos, an edited note) update the open
+    // card and the DB, but the tapestry home is built once and cached — without
+    // this, the featured card and the month polaroids keep showing pre-edit
+    // data (a stale thumbnail, the default "A meaningful moment" note). Cheap
+    // and safe to call after any edit that mutates a thread.
+    function refreshTapestryHome() {
+        try {
+            if (!userThreads || !userThreads.length) return;
+            if (typeof buildTapCollage === 'function') buildTapCollage(tapCurrentMonth);
+            if (typeof buildTapStacks === 'function') buildTapStacks(tapCurrentMonth);
+        } catch (e) {}
+    }
+
     function renderTapestry() {
         const grid = document.getElementById('tapestryGrid');
         grid.innerHTML = '';
@@ -10214,6 +10228,7 @@
             thread.message = v;
             var view = document.getElementById('field-' + threadId + '-message');
             if (view) view.textContent = v;
+            refreshTapestryHome();   // note change shows on the home cards too
             if (btn) { btn.textContent = '✓ Saved'; btn.style.background = '#166534'; }
             setTimeout(function () {
                 if (btn) { btn.disabled = false; btn.textContent = 'Save note'; btn.style.background = '#8B3A7F'; }
@@ -10349,6 +10364,7 @@
             thread.photos = next.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
         }
         if (isMemoryThread(thread)) refreshMemoryCard(threadId); else renderEditPhotoGrid(threadId, thread);
+        refreshTapestryHome();   // reordered photos show on the home cards too
         try {
             await persistMemory(thread, { media: withoutPending(next) });
         } catch (e) { console.error('Reorder persist failed:', e); }
@@ -10366,6 +10382,7 @@
             thread.photos = media.filter(function (m) { return m.type !== 'video'; }).map(function (m) { return m.url; });
         }
         if (isMemoryThread(thread)) refreshMemoryCard(threadId); else renderEditPhotoGrid(threadId, thread);
+        refreshTapestryHome();   // removed photo updates the home cards too
         try {
             await persistMemory(thread, { media: withoutPending(media) });
         } catch (e) { console.error('Remove persist failed:', e); }
@@ -10479,6 +10496,7 @@
             }
 
             refreshEditViews(threadId, thread);
+            refreshTapestryHome();   // added photos show on the home cards too
 
         } catch(e) {
             clearPendingMedia(thread, pending);
