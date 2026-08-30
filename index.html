@@ -8388,11 +8388,21 @@
         scroll.classList.add('switching');
         setTimeout(()=>{
             scroll.innerHTML='';
-            // When month is falsy, show ALL cards continuously (no month filter, no 10-card cap).
+            // When month is falsy, show the continuous strip; when a month is
+            // given, only that month.
             const source = month
                 ? userThreads.filter(t=>tapGetMonthKey(t.date)===month)
                 : [...userThreads];
-            const cards = source.sort(tapCompareNewest);
+            let cards = source.sort(tapCompareNewest);
+            // Cap the continuous floating strip to the most-recent N moments so
+            // it stays fast no matter how large the tapestry grows: the cost of
+            // this strip is O(cards rendered), and every older moment is still
+            // reachable in the month sections below (which are chunked by date).
+            // Capping by DATE (after the newest-first sort) means bulk-importing
+            // old, backfilled memories lands them in their historical months, not
+            // in this strip — the recent view can't be flooded.
+            const COLLAGE_CAP = 100;
+            if (!month && cards.length > COLLAGE_CAP) cards = cards.slice(0, COLLAGE_CAP);
             if(!cards.length){scroll.classList.remove('switching');return;}
             const tilts=[-7,8,-5,6,-8,5,-4,9,-6,7],tapes=[-3,3,2,-2,3,-3,2,-2,3,-1];
             cards.forEach((thread,i)=>{
