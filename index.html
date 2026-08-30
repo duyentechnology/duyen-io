@@ -1276,16 +1276,17 @@
             .tap-col-card:hover {
                 transform:rotate(0deg) scale(1.08) translateY(-8px) !important;
                 box-shadow:4px 12px 28px rgba(0,0,0,0.22) !important;
-                z-index:50 !important;
+                z-index:9998 !important;
             }
         }
         /* Card centered in the strip becomes the featured one as you swipe.
-           !important overrides the inline z-index (20-i) each card carries,
-           so the featured Polaroid actually rises above its neighbors. */
+           !important overrides the inline z-index (cards.length - i) each card
+           carries, so the featured Polaroid actually rises above its neighbors.
+           Kept far above any realistic strip length so it always wins. */
         .tap-col-card.tap-col-featured {
             transform:rotate(0deg) scale(1.07) translateY(-6px) !important;
             box-shadow:4px 14px 32px rgba(0,0,0,0.24) !important;
-            z-index:60 !important;
+            z-index:9999 !important;
         }
         .tap-col-card::before {
             content:''; position:absolute; top:-8px; left:50%;
@@ -8425,7 +8426,13 @@
                 }
                 const div=document.createElement('div');
                 div.className='tap-col-card';
-                div.style.cssText=`z-index:${20-i};--ctilt:${tilts[i%tilts.length]}deg;--ctape:${tapes[i%tapes.length]}deg;`;
+                // Newest card sits on top of the fan, each older one tucked behind
+                // the last. z-index MUST stay positive: the old `20 - i` went to 0
+                // and NEGATIVE past the 20th card, and a negative-z card drops
+                // behind the strip's backdrop on iOS Safari — that detached the
+                // last few polaroids ("disconnected the last five"). `cards.length
+                // - i` keeps the same front-to-back order but never goes below 1.
+                div.style.cssText=`z-index:${Math.max(1, cards.length - i)};--ctilt:${tilts[i%tilts.length]}deg;--ctape:${tapes[i%tapes.length]}deg;`;
                 attachCardTap(div, (function(id){ return function(){ openTapSingle(id); }; })(thread.id));
                 div.innerHTML=`
                     ${isNew?'<div class="tap-col-new">new</div>':''}
