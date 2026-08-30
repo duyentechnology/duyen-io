@@ -31,8 +31,31 @@
     <style>html.qr-direct #splash{display:none!important;}</style>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js');
+        // Auto-update: a home-screen / standalone web app never does a page
+        // navigation on reopen, so the browser never checks for a new worker —
+        // it keeps running the cached app for hours or days after a deploy.
+        // (This is what kept showing stale tapestry data after a fix shipped.)
+        // Fix: check for a new worker every time the app returns to the
+        // foreground, and reload once when a new one takes control so the fresh
+        // build shows up on its own — no manual cache clearing.
+        var _swRefreshing = false;
+        var _swHadController = !!navigator.serviceWorker.controller;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          // Only reload when an EXISTING app is replaced by a new deploy — not
+          // on the very first install (there's nothing stale to refresh).
+          if (_swRefreshing || !_swHadController) return;
+          _swRefreshing = true;
+          window.location.reload();
+        });
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').then(function (reg) {
+            var checkForUpdate = function () { try { reg.update(); } catch (e) {} };
+            document.addEventListener('visibilitychange', function () {
+              if (document.visibilityState === 'visible') checkForUpdate();
+            });
+            window.addEventListener('focus', checkForUpdate);
+            setInterval(checkForUpdate, 60 * 60 * 1000); // and hourly while open
+          }).catch(function () {});
         });
       }
     </script>
