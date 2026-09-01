@@ -7440,7 +7440,18 @@
                 console.error('Tapestry save failed (message still saved):', tapCatchErr);
             }
 
-            populateQRContent();
+            await populateQRContent();
+            // Surface the result. The re-render swaps the form for the "Thank You
+            // Sent" confirmation but does NOT move the scroll, so it can land
+            // off-screen and the screen looks stuck on the card above it. Scroll
+            // the confirmation into view (fall back to the top) and toast.
+            var _sent = document.getElementById('qcReceiverSent');
+            if (_sent && _sent.offsetParent !== null && _sent.scrollIntoView) {
+                _sent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) { window.scrollTo(0, 0); }
+            }
+            if (typeof showMomentToast === 'function') showMomentToast('Thank-you sent');
         } catch(e) {
             console.error('Save receiver error:', e);
             alert('Error saving. Please try again.');
