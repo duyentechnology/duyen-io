@@ -7849,7 +7849,7 @@
         // Update tapestry title if we have a name
         const tapTitle = document.getElementById('tapestryTitle');
         const displayName = user.split(' ')[0];
-        tapTitle.textContent = displayName + '\'s Life Tapestry';
+        tapTitle.innerHTML = tapestryTitleHtml(displayName);
 
         proceedAfterAuth();
     }
