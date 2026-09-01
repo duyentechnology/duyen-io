@@ -849,6 +849,17 @@
         .header-logo .logo-symbol { font-size: 2rem; }
         .header-logo .logo-text { font-size: 1rem; letter-spacing: 0.12em; }
 
+        /* Tapestry header: enlarged mark with a small "About" caption beneath —
+           the whole lockup opens the About page. */
+        .tap-header-logo { flex-direction: column; align-items: flex-start; gap: 2px; }
+        .tap-header-logo .logo-lockup { display: flex; align-items: center; gap: 9px; }
+        .tap-header-logo .logo-symbol { font-size: 2.7rem; }
+        .tap-header-logo .logo-text { font-size: 1.3rem; letter-spacing: 0.14em; }
+        .tap-header-logo .logo-about {
+            font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 0.2em;
+            text-transform: uppercase; color: var(--text-muted); margin-top: 1px;
+        }
+
         .header-actions { display: flex; gap: 10px; align-items: center; }
 
         .header-search {
@@ -3423,9 +3434,12 @@
     <!-- Sticky header -->
     <header class="app-header">
         <div class="header-inner">
-            <a class="header-logo" onclick="navigate('tapestry')" style="display:flex;">
-                <div class="logo-symbol">緣</div>
-                <div class="logo-text">DUYÊN</div>
+            <a class="header-logo tap-header-logo" onclick="navigate('about')" title="About duyen.io">
+                <div class="logo-lockup">
+                    <div class="logo-symbol">緣</div>
+                    <div class="logo-text">DUYÊN</div>
+                </div>
+                <div class="logo-about">About</div>
             </a>
             <div class="header-actions">
                 <input type="text" class="header-search" placeholder="Search your life..." id="tapestrySearch" oninput="handleTapestrySearch()">
@@ -3440,7 +3454,6 @@
                         <span class="notif-badge" id="notifBadge" style="display:none; position:absolute; top:-4px; right:-4px; width:9px; height:9px; background:#DA251D; border-radius:50%; border:2px solid white; min-width:unset; font-size:0; padding:0;"></span>
                     </span>
                 </button>
-                <button class="header-btn header-btn-ghost" onclick="navigate('about')">About</button>
                 <button onclick="navigate('profile')" id="headerAvatarBtn" style="background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:15px;font-weight:500;color:#2E2A28;padding:0.4rem;flex-shrink:0;" title="Your account">T</button>
                 <button class="header-btn header-btn-ghost" onclick="logoutDuyen()" style="color: var(--text-muted);">Log Out</button>
             </div>
