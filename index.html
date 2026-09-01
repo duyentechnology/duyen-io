@@ -5016,6 +5016,30 @@
         m.style.display = 'none';
     }
 
+    // A just-recorded/selected video is a local blob with no poster, so iOS
+    // shows a black box in the preview. Grab its first frame and set it as the
+    // poster (keeping the video playable) so the preview isn't a dark rectangle.
+    function posterizePreviewVideos(container) {
+        if (!container) return;
+        container.querySelectorAll('video').forEach(function(vid) {
+            if (vid.getAttribute('poster')) return;
+            var done = false;
+            var grab = function() {
+                if (done || !vid.videoWidth) return;
+                try {
+                    var c = document.createElement('canvas');
+                    c.width = vid.videoWidth; c.height = vid.videoHeight;
+                    c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
+                    var url = c.toDataURL('image/jpeg', 0.7);
+                    if (url && url.length > 2000) { vid.setAttribute('poster', url); done = true; }
+                } catch (e) {}
+            };
+            vid.addEventListener('seeked', grab, { once: true });
+            vid.addEventListener('loadeddata', function() { try { vid.currentTime = 0.1; } catch (e) { grab(); } }, { once: true });
+            if (vid.readyState >= 2) { try { vid.currentTime = 0.1; } catch (e) { grab(); } }
+        });
+    }
+
     function _showMomentPreview(o) {
         // The compose preview renders the ONE shared gift card (giftMomentHtml),
         // so "what they'll see" is exactly what the receiver and the saved card
@@ -5041,11 +5065,12 @@
                 '<button onclick="closeMomentPreview()" aria-label="Close" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.5);color:#fff;border-radius:50%;width:34px;height:34px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
               '</div>' +
               lockNote +
-              '<div style="flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#faf7f4;border-radius:20px;padding:14px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
+              '<div style="flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#faf7f4;border-radius:20px;padding:14px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
                 _card +
               '</div>' +
             '</div>';
         modal.style.display = 'flex';
+        posterizePreviewVideos(modal);
     }
     function previewMoment() {
         var val = function(id){ var el = document.getElementById(id); return el ? (el.value || '').trim() : ''; };
@@ -7359,13 +7384,20 @@
         
         try {
             var qrId = scannedQRData.id;
-            
+            // Same saving/upload progress overlay the giver compose flow uses, so
+            // both flows show the "Uploading video…" progress instead of just a
+            // silent spinner.
+            showSaveProgress(null, 'Sending your thank-you…');
+
             var photoUrls = [];
             for (var i = 0; i < receiverPhotoFileList.length; i++) {
                 var url = await uploadToStorage(receiverPhotoFileList[i], 'receiver/' + qrId);
                 if (url) photoUrls.push(url);
             }
-            var videoUrl = receiverVideoFile ? await uploadToStorage(receiverVideoFile, 'receiver/' + qrId) : null;
+            var videoUrl = receiverVideoFile
+                ? (await uploadFileWithProgress(receiverVideoFile, 'receiver/' + qrId, function(pp){ showSaveProgress(pp, 'Uploading video…'); })
+                    || await uploadToStorage(receiverVideoFile, 'receiver/' + qrId))   // fallback to the proven uploader
+                : null;
             // If a video was selected but upload returned null, halt with a visible error
             if (receiverVideoFile && !videoUrl) {
                 alert('Video upload failed: ' + (window._lastUploadError || 'unknown error') + '\n\nTry a shorter or smaller video.');
@@ -7456,6 +7488,7 @@
             console.error('Save receiver error:', e);
             alert('Error saving. Please try again.');
         } finally {
+            hideSaveProgress();
             saveBtn.textContent = origText;
             saveBtn.disabled = false;
         }
