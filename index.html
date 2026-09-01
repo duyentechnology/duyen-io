@@ -59,7 +59,7 @@
         });
       }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..500&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
     <script src="/vendor-html5-qrcode-2.3.8.js"></script>
     <script src="/vendor-supabase-2.111.0.js"></script>
     <style>
@@ -188,9 +188,9 @@
         .logo-text {
             font-size: 1.25rem;
             color: #DA251D;
-            font-weight: 300;
-            letter-spacing: 0.15em;
-            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            font-family: 'Fraunces', 'Crimson Pro', Georgia, serif;
         }
 
         h1 {
@@ -214,6 +214,29 @@
             color: var(--text-secondary);
             margin-bottom: 2rem;
             font-size: 0.95rem;
+        }
+
+        /* Tapestry masthead — "Heirloom" treatment: Fraunces title with an
+           italic "Life", and a finely tracked uppercase eyebrow. Scoped to the
+           tapestry header so other headings/subtitles are untouched. */
+        #tapestryTitle {
+            font-family: 'Fraunces', 'Crimson Pro', Georgia, serif;
+            font-optical-sizing: auto;
+            font-weight: 400;
+            font-size: 2.15rem;
+            letter-spacing: -0.015em;
+            line-height: 1.06;
+        }
+        #tapestryTitle em {
+            font-style: italic;
+            color: #DA251D;
+        }
+        .tapestry-welcome .subtitle {
+            font-family: 'DM Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            font-size: 0.66rem;
+            color: var(--text-muted);
         }
 
         /* Buttons */
@@ -3453,7 +3476,7 @@
 
         <!-- Welcome stats -->
         <div class="tapestry-welcome">
-            <h1 id="tapestryTitle">Your Life Tapestry</h1>
+            <h1 id="tapestryTitle">Your <em>Life</em> Tapestry</h1>
             <p class="subtitle" style="margin-bottom: 0.75rem;">people · places · things · events</p>
             <div style="position:relative; max-width:420px; margin:0 auto;">
                 <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9A8478;display:inline-flex;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg></span>
@@ -5599,7 +5622,7 @@
             // Update tapestry title
             currentUser = name;
             const tapTitle = document.getElementById('tapestryTitle');
-            if (tapTitle) tapTitle.textContent = name.split(' ')[0] + '\'s Life Tapestry';
+            if (tapTitle) tapTitle.innerHTML = tapestryTitleHtml(name.split(' ')[0]);
             alert('Name updated! ✓');
         } catch(e) { alert('Error saving name'); console.error(e); }
     }
@@ -7523,7 +7546,7 @@
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
             const displayName = currentUser.split(' ')[0];
-            tapTitle.textContent = displayName + '\'s Life Tapestry';
+            tapTitle.innerHTML = tapestryTitleHtml(displayName);
             const path = window.location.pathname;
             const hash = window.location.hash;
             if (!path.startsWith('/q/') && !path.startsWith('/s/') && !hash.startsWith('#/q/')) {
@@ -7543,7 +7566,7 @@
             currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
             const tapTitle = document.getElementById('tapestryTitle');
             const displayName = currentUser.split(' ')[0];
-            tapTitle.textContent = displayName + '\'s Life Tapestry';
+            tapTitle.innerHTML = tapestryTitleHtml(displayName);
 
             handleTokensReturn(); // if returning from Stripe Checkout
 
@@ -8065,6 +8088,12 @@
         var div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // "<name>’s Life Tapestry" with an italic, accented "Life" (Heirloom
+    // masthead). Name is escaped — it comes from user profile data.
+    function tapestryTitleHtml(name) {
+        return escapeHtml(name) + '’s <em>Life</em> Tapestry';
     }
 
     function getTimeAgo(dateStr) {
