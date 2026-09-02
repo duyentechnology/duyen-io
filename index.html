@@ -9080,6 +9080,41 @@
         }, 3000);
     }
 
+    // One-time backfill: links saved before resolve-link re-hosted its image
+    // stored the ORIGIN preview URL (e.g. Marriott's hotlink-protected dbimage),
+    // which the browser can't load. Such rows have link_meta.image but NO
+    // image_cached flag (that flag only exists on rows resolved by the newer
+    // function). Re-invoke resolve-link once for them so the image is downloaded
+    // into our own Storage. Bounded and self-limiting: after re-resolving, the
+    // row gets image_cached (true/false) and is never picked up again.
+    var _previewBackfillDone = false;
+    async function backfillLinkPreviews() {
+        if (_previewBackfillDone || !userThreads || !userThreads.length) return;
+        var stale = userThreads.filter(function (t) {
+            return t.role === 'external' && t.qr_code_id && t.externalUrl
+                && t.linkMeta && t.linkMeta.image
+                && typeof t.linkMeta.image_cached === 'undefined';
+        }).slice(0, 6);
+        if (!stale.length) return;
+        _previewBackfillDone = true;
+        var any = false;
+        for (var i = 0; i < stale.length; i++) {
+            try {
+                await _supabase.functions.invoke('resolve-link', {
+                    body: { id: stale[i].qr_code_id, url: stale[i].externalUrl }
+                });
+                any = true;
+            } catch (e) { /* ownership/other — skip */ }
+        }
+        if (any) {
+            try {
+                await loadTapestryFromDB();
+                buildTapCollage(null);
+                buildTapStacks(tapCurrentMonth);
+            } catch (e) {}
+        }
+    }
+
     // Retry once on CDN miss/cold-start; on second failure show a soft fallback so the user knows the photo exists
     function tapMediaRetry(el) {
         if (!el || el.dataset.retried) {
@@ -9777,6 +9812,7 @@
             buildTapStacks(null);               // bottom: all months continuous by default
             _tapPreviewRetries = 0;
             maybeRefreshPendingPreviews();      // pick up async link previews without a manual revisit
+            backfillLinkPreviews();             // re-host origin preview images saved before re-hosting existed
         } else {
             document.getElementById('tapestryEmpty').style.display = 'block';
             document.getElementById('tapCollageOuter').style.display = 'none';
