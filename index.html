@@ -5063,7 +5063,7 @@
             // scroller is unreliable inside a fixed overlay on iOS Safari — it
             // simply wouldn't scroll. No backdrop-filter here: it would make the
             // overlay a containing block and break the fixed close button.
-            modal.style.cssText = 'position:fixed;inset:0;z-index:11050;background:rgba(46,42,40,0.94);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:54px 16px 44px;box-sizing:border-box;display:none;';
+            modal.style.cssText = 'position:fixed;inset:0;z-index:11050;background:rgba(46,42,40,0.94);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:54px 16px 104px;box-sizing:border-box;display:none;';
             modal.onclick = function(e){ if (e.target === modal) closeMomentPreview(); };
             document.body.appendChild(modal);
         }
@@ -5075,7 +5075,13 @@
               '<div style="background:#faf7f4;border-radius:20px;padding:14px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
                 _card +
               '</div>' +
+            '</div>' +
+            // Fixed action bar: go back to edit, or send straight from the preview.
+            '<div style="position:fixed;left:0;right:0;bottom:0;z-index:2;display:flex;gap:10px;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top, rgba(34,29,26,0.99) 55%, rgba(34,29,26,0));">' +
+              '<button onclick="closeMomentPreview()" style="flex:1;background:rgba(255,255,255,0.14);border:1.5px solid rgba(255,255,255,0.5);color:#fff;border-radius:12px;padding:14px;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;cursor:pointer;">← Back to edit</button>' +
+              (o.sendJs ? '<button onclick="' + o.sendJs + '" style="flex:1;background:#8B3A7F;border:none;color:#fff;border-radius:12px;padding:14px;font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">' + (o.sendLabel || 'Send') + '</button>' : '') +
             '</div>';
+        modal.style.paddingBottom = '104px';
         modal.style.display = 'block';
         modal.scrollTop = 0;
         posterizePreviewVideos(modal);
@@ -5091,7 +5097,7 @@
         var videoEl = document.querySelector('#qcGiverVideoPreview video');
         var video = videoEl ? videoEl.src : '';
         if (!msg && !imgs.length && !hasVoice && !video) { alert('Add a message, photo, video, or voice memo to preview.'); return; }
-        _showMomentPreview({ forLabel: 'For you,', forName: to, msg: msg, imgs: imgs, video: video, voiceSrc: (hasVoice && audio ? audio.src : ''), secret: val('qcGiverSecretPhrase'), subtitle: 'Preview · this is what ' + (to ? _escLink(to) : 'they') + ' will see' });
+        _showMomentPreview({ forLabel: 'For you,', forName: to, msg: msg, imgs: imgs, video: video, voiceSrc: (hasVoice && audio ? audio.src : ''), secret: val('qcGiverSecretPhrase'), subtitle: 'Preview · this is what ' + (to ? _escLink(to) : 'they') + ' will see', sendJs: "saveGiverData('send')", sendLabel: 'Send' });
     }
     function previewThankYou() {
         var noteEl = document.getElementById('qcReceiverNote');
@@ -5105,7 +5111,7 @@
         var video = videoEl ? videoEl.src : '';
         if (!msg && !imgs.length && !hasVoice && !video) { alert('Add a note, photo, video, or voice memo to preview.'); return; }
         var me = (typeof currentUser === 'string' && currentUser) ? currentUser.split(' ')[0] : 'You';
-        _showMomentPreview({ forLabel: 'From', forName: me, msg: msg, imgs: imgs, video: video, voiceSrc: (hasVoice && audio ? audio.src : ''), secret: '', subtitle: 'Preview · your thank-you note' });
+        _showMomentPreview({ forLabel: 'From', forName: me, msg: msg, imgs: imgs, video: video, voiceSrc: (hasVoice && audio ? audio.src : ''), secret: '', subtitle: 'Preview · your thank-you note', sendJs: 'saveReceiverData()', sendLabel: 'Send thank-you' });
     }
     // Spend 1 token for a moment (idempotent per code). Returns new balance, or -1 if none.
     async function spendMomentToken(qrId) {
@@ -9258,7 +9264,7 @@
                     '<div class="tap-fc-waveform" id="wave_' + uid + '">' + bars + '</div>' +
                     '<div class="tap-fc-duration" id="dur_' + uid + '">—</div>' +
                 '</div>' +
-                '<audio class="tap-fc-audio-el" id="aud_' + uid + '" src="' + p.voice + '" preload="metadata"></audio>' +
+                '<audio class="tap-fc-audio-el" id="aud_' + uid + '" src="' + p.voice + '" preload="auto"></audio>' +
             '</div>';
         }
 
