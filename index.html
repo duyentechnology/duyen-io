@@ -5059,22 +5059,25 @@
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'momentPreviewModal';
-            modal.style.cssText = 'position:fixed;inset:0;z-index:11050;background:rgba(46,42,40,0.92);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+            // The WHOLE overlay scrolls (not an inner box). An inner overflow
+            // scroller is unreliable inside a fixed overlay on iOS Safari — it
+            // simply wouldn't scroll. No backdrop-filter here: it would make the
+            // overlay a containing block and break the fixed close button.
+            modal.style.cssText = 'position:fixed;inset:0;z-index:11050;background:rgba(46,42,40,0.94);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:54px 16px 44px;box-sizing:border-box;display:none;';
             modal.onclick = function(e){ if (e.target === modal) closeMomentPreview(); };
             document.body.appendChild(modal);
         }
         modal.innerHTML =
-            '<div style="max-width:400px;width:100%;max-height:92vh;display:flex;flex-direction:column;">' +
-              '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px 10px;flex:0 0 auto;">' +
-                '<div style="color:#fff;font-size:13px;opacity:0.9;">' + (o.subtitle || 'Preview') + '</div>' +
-                '<button onclick="closeMomentPreview()" aria-label="Close" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.5);color:#fff;border-radius:50%;width:34px;height:34px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
-              '</div>' +
+            '<button onclick="closeMomentPreview()" aria-label="Close" style="position:fixed;top:14px;right:14px;z-index:2;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.55);color:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+            '<div style="max-width:400px;width:100%;margin:0 auto;">' +
+              '<div style="color:#fff;font-size:13px;opacity:0.9;padding:0 4px 12px;text-align:center;">' + (o.subtitle || 'Preview') + '</div>' +
               lockNote +
-              '<div style="flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#faf7f4;border-radius:20px;padding:14px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
+              '<div style="background:#faf7f4;border-radius:20px;padding:14px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.35);">' +
                 _card +
               '</div>' +
             '</div>';
-        modal.style.display = 'flex';
+        modal.style.display = 'block';
+        modal.scrollTop = 0;
         posterizePreviewVideos(modal);
     }
     function previewMoment() {
