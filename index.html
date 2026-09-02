@@ -8921,7 +8921,14 @@
     }
 
     // Helper: append #t=0.1 so iOS Safari renders first frame as poster instead of black box
-    function posterUrl(u) { return u ? (u + '#t=0.1') : u; }
+    function posterUrl(u) {
+        if (!u) return u;
+        // The #t=0.1 poster hint helps iOS show a first frame for uploaded (https)
+        // videos, but a fragment on a local blob:/data: URL can stop it loading in
+        // the preview ("video did not upload") — leave those raw.
+        if (/^(blob:|data:)/i.test(u)) return u;
+        return u + '#t=0.1';
+    }
 
     // Downscaled Supabase Storage image via the render/transform endpoint.
     // Branded tile for saved businesses. Their logo fills the frame edge to
@@ -9607,9 +9614,18 @@
         const btn=document.getElementById('btn_'+uid);
         if(!aud||!btn)return;
         if(aud.paused){
-            const pr=aud.play();
             btn.textContent='⏸';
-            if(pr&&pr.catch)pr.catch(function(){ btn.textContent='▶'; });
+            // First tap can fire before the audio is decodable, so play() rejects
+            // and nothing happens until a second tap. Retry once after load() so a
+            // single tap works.
+            const tryPlay=function(retry){
+                const pr=aud.play();
+                if(pr&&pr.catch)pr.catch(function(){
+                    if(retry){ try{ aud.load(); }catch(e){} tryPlay(false); }
+                    else { btn.textContent='▶'; }
+                });
+            };
+            tryPlay(true);
         }
         else { aud.pause(); btn.textContent='▶'; }
     }
