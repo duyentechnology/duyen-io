@@ -5022,6 +5022,11 @@
     function posterizePreviewVideos(container) {
         if (!container) return;
         container.querySelectorAll('video').forEach(function(vid) {
+            // Cap height so a tall portrait video can't fill the whole preview and
+            // trap the scroll on iOS (the video swallows the drag). Leaves room to
+            // scroll past it to the rest of the card.
+            vid.style.maxHeight = '60vh';
+            vid.style.objectFit = 'contain';
             if (vid.getAttribute('poster')) return;
             var done = false;
             var grab = function() {
@@ -5054,7 +5059,7 @@
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'momentPreviewModal';
-            modal.style.cssText = 'position:fixed;inset:0;z-index:11050;background:rgba(46,42,40,0.62);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+            modal.style.cssText = 'position:fixed;inset:0;z-index:11050;background:rgba(46,42,40,0.92);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
             modal.onclick = function(e){ if (e.target === modal) closeMomentPreview(); };
             document.body.appendChild(modal);
         }
