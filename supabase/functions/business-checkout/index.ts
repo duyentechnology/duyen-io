@@ -69,6 +69,15 @@ Deno.serve(async (req) => {
     if (b?.modularId) modularId = String(b.modularId).slice(0, 128);
   } catch { /* defaults */ }
 
+  // The $10 generator unlocks ONE specific profile, so the checkout MUST name it.
+  // Refuse to create the Stripe session (i.e. never take the charge) when it's
+  // missing — otherwise the webhook flips has_generator but unlocks no profile
+  // and the customer pays for nothing. The client also guards this; this is the
+  // authoritative safety net for any stale client.
+  if (tier === "generator" && !profileId) {
+    return json({ error: "no_profile", message: "Add and save a business profile before purchasing its QR." }, 400);
+  }
+
   // Build a Checkout session via the Stripe REST API (form-encoded, inline price).
   const p = new URLSearchParams();
   p.set("client_reference_id", user.id);
