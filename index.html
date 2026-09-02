@@ -8865,7 +8865,7 @@
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
                 const visual = hasLinkImage
-                    ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon, siteIconUrl(t, linkDomain(t)))}</div>`
+                    ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon, siteIconUrl(t, linkDomain(t)), linkDomain(t))}</div>`
                     : hasPhoto
                         ? `<img src="${thumbUrl(t.photos[0], 520)}" alt="${safeTitle}" loading="lazy">`
                         : isExternalNote
@@ -8968,34 +8968,50 @@
     // Link-preview image that degrades gracefully. og:image URLs are often dead, expired, or
     // hotlink-protected (e.g. Marriott/Luma), so a raw CSS background-image leaves a blank box on
     // failure. Render an <img> that, on error, swaps to the entry's emoji tile instead.
-    // Last resort when even the site icon won't load: the emoji tile.
-    function linkIconFail(el, emoji) {
+    // Last resort when neither the preview image nor the site icon will load:
+    // a clean tile LABELLED with the website (its domain), not a thread emoji.
+    // encLabel is URI-encoded so it survives being passed through onerror attrs.
+    function linkIconFail(el, emoji, encLabel) {
         if (!el || !el.parentNode) return;
         el.onerror = null;
-        el.parentNode.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;font-size:2rem;">' + (emoji || '🧵') + '</div>';
-    }
-    // Preview image failed (dead / hotlink-protected — e.g. Marriott's dbimage).
-    // Fall back to the site's OWN logo/icon on a clean tile before the generic
-    // emoji, so a link still reads as that site instead of a thread spool.
-    function linkImgFail(el, emoji, iconUrl) {
-        if (!el || !el.parentNode) return;
-        el.onerror = null;
-        var safeEmoji = String(emoji || '🧵').replace(/'/g, "\\'");
-        if (iconUrl) {
-            var safeIcon = String(iconUrl).replace(/"/g, '&quot;');
+        var label = '';
+        try { label = encLabel ? decodeURIComponent(encLabel) : ''; } catch (e) { label = ''; }
+        if (label) {
+            var lbl = label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             el.parentNode.innerHTML =
-                '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#fff;padding:16%;box-sizing:border-box;">' +
-                  '<img src="' + safeIcon + '" style="max-width:100%;max-height:100%;object-fit:contain;display:block;" onerror="linkIconFail(this,\'' + safeEmoji + '\')">' +
+                '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:16px;box-sizing:border-box;text-align:center;">' +
+                  '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#8B3A7F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="opacity:.9;"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>' +
+                  '<div style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:600;color:#6B5751;line-height:1.35;word-break:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">' + lbl + '</div>' +
                 '</div>';
         } else {
             el.parentNode.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;font-size:2rem;">' + (emoji || '🧵') + '</div>';
         }
     }
-    function linkImgInner(url, emoji, iconUrl) {
+    // Preview image failed (dead / hotlink-protected — e.g. Marriott's dbimage).
+    // Fall back to the site's OWN logo/icon on a clean tile; if that also fails,
+    // a text tile labelled with the website (see linkIconFail) — never a spool.
+    function linkImgFail(el, emoji, iconUrl, encLabel) {
+        if (!el || !el.parentNode) return;
+        el.onerror = null;
+        var safeEmoji = String(emoji || '🧵').replace(/'/g, "\\'");
+        var safeEnc = String(encLabel == null ? '' : encLabel).replace(/'/g, "\\'");
+        if (iconUrl) {
+            var safeIcon = String(iconUrl).replace(/"/g, '&quot;');
+            el.parentNode.innerHTML =
+                '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#fff;padding:16%;box-sizing:border-box;">' +
+                  '<img src="' + safeIcon + '" style="max-width:100%;max-height:100%;object-fit:contain;display:block;" onerror="linkIconFail(this,\'' + safeEmoji + '\',\'' + safeEnc + '\')">' +
+                '</div>';
+        } else {
+            linkIconFail(el, emoji, encLabel);   // no icon — go straight to the labelled tile
+        }
+    }
+    function linkImgInner(url, emoji, iconUrl, label) {
         var safeUrl = String(url == null ? '' : url).replace(/"/g, '&quot;');
         var safeEmoji = String(emoji || '🧵').replace(/'/g, "\\'");
         var safeIcon = String(iconUrl == null ? '' : iconUrl).replace(/"/g, '&quot;').replace(/'/g, "\\'");
-        return '<img src="' + safeUrl + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="linkImgFail(this,\'' + safeEmoji + '\',\'' + safeIcon + '\')">';
+        var enc = '';
+        try { enc = label ? encodeURIComponent(String(label)).replace(/'/g, '%27') : ''; } catch (e) { enc = ''; }
+        return '<img src="' + safeUrl + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="linkImgFail(this,\'' + safeEmoji + '\',\'' + safeIcon + '\',\'' + enc + '\')">';
     }
     // Display domain for an external scan: the resolved destination site (e.g. joinmarriottbonvoy.com)
     // when known, else the domain of the URL as saved. The tap target stays the exact saved URL —
@@ -9389,7 +9405,7 @@
                 const title = esc(lm.title);
                 const desc  = esc(lm.description);
                 return `<a href="${esc(thread.externalUrl || targetUrl)}" target="_blank" rel="noopener noreferrer" style="display:block;background:white;border:1px solid #EEE7E1;border-radius:14px;overflow:hidden;margin:0 0 0.75rem;box-shadow:0 1px 8px rgba(0,0,0,0.08);text-decoration:none;">
-                    <div style="width:100%;aspect-ratio:1.91/1;background:#F7F1EC;">${linkImgInner(lm.image, thread.icon, siteIconUrl(thread, linkDomain(thread)))}</div>
+                    <div style="width:100%;aspect-ratio:1.91/1;background:#F7F1EC;">${linkImgInner(lm.image, thread.icon, siteIconUrl(thread, linkDomain(thread)), linkDomain(thread))}</div>
                     <div style="padding:12px 14px 14px;">
                         ${title ? `<div style="font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-weight:600;font-size:15px;color:#2E2A28;line-height:1.3;margin-bottom:4px;">${title}</div>` : ''}
                         ${desc  ? `<div style="font-size:12px;color:#6B5751;line-height:1.45;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${desc}</div>` : ''}
@@ -9912,7 +9928,7 @@
                     extDomain = linkDomain(thread);
                 }
                 const visual = hasLinkImage
-                    ? `<div class="thread-card-image" style="background:#f5f0eb;">${linkImgInner(linkImage, thread.icon, siteIconUrl(thread, linkDomain(thread)))}</div>`
+                    ? `<div class="thread-card-image" style="background:#f5f0eb;">${linkImgInner(linkImage, thread.icon, siteIconUrl(thread, linkDomain(thread)), linkDomain(thread))}</div>`
                     : isExternalNote
                         ? `<div class="thread-card-image" style="background:#FBF8F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:14px;line-height:1.45;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:40px;height:40px;border-radius:9px;background:white;display:flex;align-items:center;justify-content:center;padding:6px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="${siteIconUrl(thread, extDomain)}" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
                         : `<div class="thread-card-image" style="background:#f5f0eb;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">${thread.icon||'🧵'}</div>`;
