@@ -9247,13 +9247,12 @@
                 '</div>' +
             '</div>' : '';
 
-        // Section order: on the scan landing the brand story leads (About →
-        // product → What's new). In the tapestry (promoOpen) a returning saver
-        // wants the newest thing first, so the promo leads — otherwise a promo
-        // on a product save sits buried under About + the product photos.
+        // Section order. Scan landing: About → product → What's new. Tapestry
+        // (promoOpen): About → What's new → product, so the promo sits right
+        // under About (visible, expanded) instead of buried at the very bottom.
         var body = '<div style="padding:22px 16px 4px;background:#EFE5EF;">' +
-            (_promoOpen ? promoSection : '') +
             aboutSection +
+            (_promoOpen ? promoSection : '') +
             (opts.productHtml || '') +
             (_promoOpen ? '' : promoSection) +
         '</div>';
