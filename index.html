@@ -3516,6 +3516,14 @@
             <div class="tap-month-strip" id="tapMonthStrip"></div>
         </div>
 
+        <!-- "Something new" notification: a saved place pushed a promo the
+             viewer hasn't seen. Tapping scrolls to that polaroid. -->
+        <div id="tapPromoBanner" onclick="openPromoFromBanner()" style="display:none;align-items:center;gap:10px;margin:0 0.6rem 0.9rem;padding:12px 15px;background:linear-gradient(135deg,#F3E9F3,#EFE0EF);border:1px solid #DDBFDA;border-radius:13px;cursor:pointer;box-shadow:0 2px 10px rgba(139,58,127,0.08);">
+            <span style="font-family:'Crimson Pro',serif;font-size:17px;font-weight:600;color:#8B3A7F;">✦ Something new</span>
+            <span id="tapPromoBannerSub" style="font-size:13px;color:#9A8478;"></span>
+            <span style="margin-left:auto;color:#8B3A7F;font-size:20px;line-height:1;">›</span>
+        </div>
+
         <!-- Month sections + polaroids — populated dynamically by buildTapStacks() -->
         <div id="tapStackArea" style="display:none; padding:0 0.2rem;"></div>
 
@@ -8783,6 +8791,11 @@
         // Show/hide month stacks
         document.getElementById('tapMonthOuter').style.display = search ? 'none' : 'block';
 
+        // Hide the "Something new" banner while searching (buildTapStacks
+        // re-evaluates and re-shows it when the search is cleared).
+        var _pb = document.getElementById('tapPromoBanner');
+        if (_pb && search) _pb.style.display = 'none';
+
         // Search results container — inline in body
         let resultsEl = document.getElementById('tapSearchResults');
         if (!resultsEl) {
@@ -8882,8 +8895,15 @@
                     ? `<div class="tap-polaroid-note" style="font-size:11px;color:#6B5751;line-height:1.35;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${extNote}</div>`
                     : '';
                 const caption = extDomainLabel ? extDomainLabel.replace(/</g,'&lt;') : tapPhotoCaption(t);
-                return `<div class="tap-polaroid" data-thread-id="${t.id}">
-                    <div class="tap-polaroid-img">${visual}</div>
+                // "New" corner when the saved place has pushed a promo — so a
+                // polaroid with news is spottable, and the banner can scroll to it.
+                const _pr = t.promotion;
+                const tHasPromo = !!(_pr && (_pr.text || (_pr.photos && _pr.photos.length)));
+                const promoTag = tHasPromo
+                    ? `<div style="position:absolute;top:6px;left:6px;background:#8B3A7F;color:#fff;font-size:10px;font-weight:700;letter-spacing:.3px;padding:2px 7px;border-radius:20px;box-shadow:0 1px 4px rgba(0,0,0,0.2);z-index:2;">✦ New</div>`
+                    : '';
+                return `<div class="tap-polaroid" data-thread-id="${t.id}"${tHasPromo ? ' data-haspromo="1"' : ''}>
+                    <div class="tap-polaroid-img" style="position:relative;">${promoTag}${visual}</div>
                     <div class="tap-polaroid-caption">${caption}</div>
                     ${noteLine}
                     <div class="tap-polaroid-date">${date}</div>
@@ -8909,7 +8929,57 @@
             area.querySelectorAll('.tap-polaroid').forEach(el => {
                 attachCardTap(el, function() { openTapSingle(el.dataset.threadId); });
             });
+            updatePromoBanner();
         }, 180);
+    }
+
+    // "Something new" banner: shown when a saved place has pushed a promo the
+    // viewer hasn't seen yet. "Seen" is the newest pushedAt they've acknowledged,
+    // stored per-device so the banner clears once tapped.
+    function _promoThreads() {
+        return (userThreads || []).filter(function(t){
+            var p = t.promotion;
+            return p && (p.text || (p.photos && p.photos.length));
+        });
+    }
+    function _promoSeenAt() {
+        try { return localStorage.getItem('duyen_promo_seen_at') || ''; } catch(e) { return ''; }
+    }
+    function updatePromoBanner() {
+        var banner = document.getElementById('tapPromoBanner');
+        if (!banner) return;
+        var seen = _promoSeenAt();
+        var unseen = _promoThreads().filter(function(t){
+            var at = (t.promotion && t.promotion.pushedAt) || '';
+            return at && at > seen;
+        });
+        if (!unseen.length) { banner.style.display = 'none'; return; }
+        var sub = document.getElementById('tapPromoBannerSub');
+        if (sub) sub.textContent = unseen.length > 1 ? ('· ' + unseen.length + ' places') : '';
+        banner.style.display = 'flex';
+    }
+    function openPromoFromBanner() {
+        // Newest unseen promo first, so the banner lands on the freshest one.
+        var seen = _promoSeenAt();
+        var unseen = _promoThreads()
+            .filter(function(t){ var at=(t.promotion&&t.promotion.pushedAt)||''; return at && at>seen; })
+            .sort(function(a,b){ return ((b.promotion.pushedAt)||'').localeCompare((a.promotion.pushedAt)||''); });
+        var target = unseen[0] || _promoThreads()[0];
+        // Mark everything up to the newest promo as seen, then hide the banner.
+        var maxAt = _promoThreads().reduce(function(mx,t){ var at=(t.promotion&&t.promotion.pushedAt)||''; return at>mx?at:mx; }, '');
+        try { if (maxAt) localStorage.setItem('duyen_promo_seen_at', maxAt); } catch(e) {}
+        var banner = document.getElementById('tapPromoBanner');
+        if (banner) banner.style.display = 'none';
+        if (!target) return;
+        var el = document.querySelector('.tap-polaroid[data-thread-id="' + target.id + '"]');
+        if (el) {
+            try { el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); } catch(e) { el.scrollIntoView(); }
+            // Brief highlight so the eye lands on the right polaroid.
+            el.style.transition = 'box-shadow .25s, transform .25s';
+            el.style.boxShadow = '0 0 0 3px #8B3A7F, 0 8px 22px rgba(139,58,127,0.25)';
+            el.style.transform = 'translateY(-3px)';
+            setTimeout(function(){ el.style.boxShadow=''; el.style.transform=''; }, 1400);
+        }
     }
 
     function switchTapMonth(month,pillEl) {
