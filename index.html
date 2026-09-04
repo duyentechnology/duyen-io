@@ -6605,7 +6605,7 @@
             try { if (typeof bizDataObj === 'string') bizDataObj = JSON.parse(bizDataObj); } catch(e) {}
             var bizP = bizDataObj || {};
             var bizAboutPhotos = (data.about_photos && data.about_photos.length) ? data.about_photos : (Array.isArray(bizP.aboutPhotos) ? bizP.aboutPhotos : []);
-            var bizPromo = (data.promotion && data.promotion.text) ? data.promotion : null;
+            var bizPromo = (data.promotion && (data.promotion.text || (data.promotion.photos && data.promotion.photos.length))) ? data.promotion : null;
             // Render the SAME shared business card as the scan landing and the
             // tapestry (bizProfileCard) \u2014 so the giver/receiver in-scan view
             // shows the logo, the "Every thing has an origin" line and the
@@ -9223,19 +9223,25 @@
                 '</div>' +
             '</div>' : '';
         // What's new — collapsed by default (scoped self-contained toggle).
+        // A promo counts if it has text OR photos: the composer lets a business
+        // push a photo-only promo (no caption), so gating on text alone silently
+        // dropped those on the customer/tapestry side.
         var promo = opts.promotion;
-        var promoSection = (promo && promo.text) ?
+        var _promoText = (promo && promo.text) ? String(promo.text).trim() : '';
+        var _promoPhotos = (promo && promo.photos && promo.photos.length) ? promo.photos : [];
+        var _promoOpen = !!opts.promoOpen; // auto-expand (e.g. in the tapestry)
+        var promoSection = (_promoText || _promoPhotos.length) ?
             '<div style="background:#fff;border:1.5px solid #E8DDD6;border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
                 '<div onclick="var d=this.parentNode.querySelector(\'.sc-pm\');var a=this.querySelector(\'.sc-pmr\');var o=d.style.display!==\'none\';d.style.display=o?\'none\':\'block\';a.style.transform=o?\'rotate(0deg)\':\'rotate(180deg)\';" style="display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;">' +
                     '<span style="flex:1;font-family:\'Crimson Pro\',serif;font-size:22px;font-weight:600;color:#2E2A28;">What\'s new</span>' +
                     '<span style="background:#8B3A7F;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;">1</span>' +
-                    '<svg class="sc-pmr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(0deg);"><path d="M6 9l6 6 6-6"/></svg>' +
+                    '<svg class="sc-pmr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B3A7F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(' + (_promoOpen ? '180deg' : '0deg') + ');"><path d="M6 9l6 6 6-6"/></svg>' +
                 '</div>' +
-                '<div class="sc-pm" style="display:none;padding:0 16px 16px;">' +
-                    '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + promo.text + '\u201D</div>' +
-                    ((promo.photos && promo.photos.length) ?
-                        '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">' +
-                        promo.photos.slice(0,5).map(function(url){ var s=String(url).replace(/"/g,'&quot;'); return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:auto;display:block;"></div>'; }).join('') +
+                '<div class="sc-pm" style="display:' + (_promoOpen ? 'block' : 'none') + ';padding:0 16px 16px;">' +
+                    (_promoText ? '<div style="font-family:\'Crimson Pro\',serif;font-size:21px;color:#3a2a2e;line-height:1.7;font-style:italic;">\u201C' + _promoText + '\u201D</div>' : '') +
+                    (_promoPhotos.length ?
+                        '<div style="display:flex;flex-direction:column;gap:8px;margin-top:' + (_promoText ? '10px' : '0') + ';">' +
+                        _promoPhotos.slice(0,5).map(function(url){ var s=String(url).replace(/"/g,'&quot;'); return '<div style="width:100%;border-radius:8px;overflow:hidden;background:#f5f0eb;"><img src="' + s + '" loading="lazy" style="width:100%;height:auto;display:block;"></div>'; }).join('') +
                         '</div>'
                     : '') +
                 '</div>' +
@@ -9494,7 +9500,7 @@
             var _prodHtml = thread.isProduct
                 ? bizProductCard({ label: thread.productName, photos: _prodPhotos, details: thread.productDetails })
                 : '';
-            var _card = bizProfileCard(biz, { shareUrl: thread.qrUrl, promotion: thread.promotion, productHtml: _prodHtml, aboutOpen: true });
+            var _card = bizProfileCard(biz, { shareUrl: thread.qrUrl, promotion: thread.promotion, productHtml: _prodHtml, aboutOpen: true, promoOpen: true });
             originHtml =
                 '<div style="border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' +
                     _card.header + _card.body +
@@ -9931,6 +9937,13 @@
                 thread.hasVideo ? `<span class="media-chip"><svg viewBox="0 0 24 24" width="13" height="13" style="vertical-align:-2px;margin-right:4px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>video</span>` : '',
             ].join('');
 
+            // "New" badge when the business has pushed a promo (text or photo)
+            // to this saved code — so a promo is noticeable from the grid, not
+            // buried in the collapsed detail.
+            const _p = thread.promotion;
+            const hasPromo = !!(_p && (_p.text || (_p.photos && _p.photos.length)));
+            const promoBadge = hasPromo ? `<span class="thread-card-category" style="background:#8B3A7F; color:#fff; border:1px solid #8B3A7F; margin-left:6px;">✦ New</span>` : '';
+
             const card = document.createElement('div');
             card.className = `thread-card tint-${thread.role}`;
             card.style.cssText = `--tape-tilt:${tapeTilt}deg;`;
@@ -9944,7 +9957,7 @@
                         <div class="thread-card-body">
                             <span class="thread-card-category" style="background:${cardColor}18; color:${cardColor}; border:1px solid ${cardColor}35;">
                                 ${roleLabel}${thread.isFavorite ? ' ⭐' : ''}
-                            </span>
+                            </span>${promoBadge}
                             <div class="thread-card-title">${thread.title}</div>
                             ${thread.role === 'external' ? '' : `<div class="thread-card-from">${thread.from}</div>`}
                             <div class="thread-card-msg">${thread.message}</div>
@@ -9976,7 +9989,7 @@
                         <div class="thread-card-body">
                             <span class="thread-card-category" style="background:${cardColor}18; color:${cardColor}; border:1px solid ${cardColor}35;">
                                 ${roleLabel}${thread.isFavorite ? ' ⭐' : ''}
-                            </span>
+                            </span>${promoBadge}
                             <div class="thread-card-title">${thread.title}</div>
                             ${thread.role === 'external' ? '' : `<div class="thread-card-from">${thread.from}</div>`}
                             <div class="thread-card-msg">${bodyMsg}</div>
