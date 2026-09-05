@@ -1263,6 +1263,10 @@
         .tap-collage-outer {
             position:relative; margin:0.5rem 0 0;
             overflow:visible;
+            /* Contain the fanned cards' inline z-index (up to cards.length ~100)
+               in their own stacking context, so they can't climb above the FAB
+               menu (z-index 90) and hide its action labels. */
+            isolation:isolate;
         }
         .tap-collage-outer::before,
         .tap-collage-outer::after {
