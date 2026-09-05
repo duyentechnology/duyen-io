@@ -31,6 +31,16 @@ const json = (b: unknown, s = 200) =>
 const toIso = (unixSecs: unknown) =>
   (typeof unixSecs === "number" && unixSecs > 0) ? new Date(unixSecs * 1000).toISOString() : null;
 
+// Recent Stripe API versions moved current_period_end from the subscription to
+// the subscription item, so read the top level first and fall back to the item.
+function periodEndIso(sub: any): string | null {
+  if (!sub) return null;
+  const top = toIso(sub.current_period_end);
+  if (top) return top;
+  const item = sub.items?.data?.[0]?.current_period_end;
+  return toIso(item);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -91,8 +101,8 @@ Deno.serve(async (req) => {
       plan: acct?.plan || null,
       plan_status: acct?.plan_status || null,
       cancel_at_period_end: !!updated.cancel_at_period_end,
-      ends_at: toIso(updated.current_period_end),
-      renews_at: acct?.renews_at || toIso(updated.current_period_end),
+      ends_at: periodEndIso(updated),
+      renews_at: acct?.renews_at || periodEndIso(updated),
     });
   }
 
@@ -105,7 +115,7 @@ Deno.serve(async (req) => {
     plan: acct?.plan || null,
     plan_status: acct?.plan_status || null,
     cancel_at_period_end: !!(sub && sub.cancel_at_period_end),
-    ends_at: sub ? toIso(sub.current_period_end) : (acct?.renews_at || null),
-    renews_at: acct?.renews_at || (sub ? toIso(sub.current_period_end) : null),
+    ends_at: sub ? periodEndIso(sub) : (acct?.renews_at || null),
+    renews_at: acct?.renews_at || (sub ? periodEndIso(sub) : null),
   });
 });
