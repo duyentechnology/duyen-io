@@ -1,0 +1,16 @@
+{
+  "name": "duyen-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "description": "End-to-end + smoke tests for duyen.io and dayduyen.tech (see docs/E2E-FLOW.md)",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test smoke",
+    "seed": "node seed.mjs",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0"
+  }
+}
