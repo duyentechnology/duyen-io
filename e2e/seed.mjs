@@ -74,7 +74,7 @@ async function main() {
   console.log('business_accounts entitlement (insights/active):');
   const acctBody = {
     user_id: biz.id, plan: 'insights', plan_status: 'active',
-    origin: 'e2e-seed', has_generator: true, updated_at: new Date().toISOString(),
+    origin: 'direct', has_generator: true, updated_at: new Date().toISOString(),
   };
   let ar = await fetch(`${URL}/rest/v1/business_accounts?on_conflict=user_id`, {
     method: 'POST',
