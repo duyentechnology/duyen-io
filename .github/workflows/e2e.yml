@@ -1,0 +1,51 @@
+name: E2E tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * *'   # daily 13:00 UTC smoke/full sweep
+
+# Only the newest run per ref; cancel superseded ones.
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: e2e/package.json
+
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+
+      # Full specs auto-skip when their creds are absent, so PRs from forks
+      # (no secrets) still run the smoke subset and stay green.
+      - run: npx playwright test
+        env:
+          E2E_TEST_QR: ${{ secrets.E2E_TEST_QR }}
+          E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
+          E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
+          E2E_BIZ_EMAIL: ${{ secrets.E2E_BIZ_EMAIL }}
+          E2E_BIZ_PASSWORD: ${{ secrets.E2E_BIZ_PASSWORD }}
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: e2e/playwright-report/
+          retention-days: 14
