@@ -4855,16 +4855,21 @@
         // Populate screen
         document.getElementById('externalUrl').value = url;
 
-        // Auto-suggest title from URL
+        // Auto-suggest a title from the URL — but only for a real domain. For a
+        // link shortener / QR generator the host is meaningless ("qrco.de") and the
+        // real destination often can't be resolved, so we leave the field BLANK and
+        // let the person name it (they scanned it — they have the context we don't).
         let suggestedTitle = '';
         try {
             const urlObj = new URL(url);
-            suggestedTitle = urlObj.hostname.replace('www.', '').split('.')[0];
-            suggestedTitle = suggestedTitle.charAt(0).toUpperCase() + suggestedTitle.slice(1);
-            const path = urlObj.pathname.replace(/\//g, ' ').trim();
-            if (path) suggestedTitle += ' — ' + path.charAt(0).toUpperCase() + path.slice(1);
+            if (!_isShortenerHost(urlObj.hostname)) {
+                suggestedTitle = urlObj.hostname.replace('www.', '').split('.')[0];
+                suggestedTitle = suggestedTitle.charAt(0).toUpperCase() + suggestedTitle.slice(1);
+                const path = urlObj.pathname.replace(/\//g, ' ').trim();
+                if (path) suggestedTitle += ' — ' + path.charAt(0).toUpperCase() + path.slice(1);
+            }
         } catch(e) {
-            suggestedTitle = url.substring(0, 40);
+            suggestedTitle = '';   // never dump a raw URL as the title
         }
         document.getElementById('extTitle').value = suggestedTitle;
 
@@ -9132,14 +9137,30 @@
         if (!u) return '';
         try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
     }
-    // Display label for an external scan: the link's real page title (og:title) when we have it,
-    // else the destination domain. Empty for non-external entries (or those with no link yet), so
-    // callers fall back to the stored title. This is display-only — the stored label is untouched.
+    // Link shorteners / QR generators. Their host is meaningless as a title
+    // (e.g. "qrco.de"), and many hide the destination behind JS so we can never
+    // resolve it. We never show these as a card label.
+    var _EXT_SHORTENERS = {
+        'bit.ly':1,'tinyurl.com':1,'t.co':1,'goo.gl':1,'ow.ly':1,'is.gd':1,'buff.ly':1,
+        'rebrand.ly':1,'cutt.ly':1,'t.ly':1,'rb.gy':1,'qrco.de':1,'shorturl.at':1,'tiny.cc':1,
+        'short.io':1,'snip.ly':1,'trib.al':1,'v.gd':1,'lnkd.in':1,'s.id':1,'soo.gd':1
+    };
+    function _isShortenerHost(h) {
+        return !!_EXT_SHORTENERS[String(h || '').toLowerCase().replace(/^www\./, '')];
+    }
+    // Display label for an external scan. Priority: the link's real page title
+    // (og:title) when we could fetch it → the name the USER gave it → a genuine
+    // destination domain. We never fall back to a shortener domain ("qrco.de"):
+    // that's worse than nothing, and the user's own title is the reliable signal.
     function externalDisplayLabel(t) {
         if (!t || t.role !== 'external') return '';
         var title = (t.linkMeta && t.linkMeta.title) ? String(t.linkMeta.title).trim() : '';
         if (title) return title;
-        return linkDomain(t);
+        var stored = (t.title || '').trim();          // the user's own name for it
+        if (stored) return stored;
+        var dom = linkDomain(t);
+        if (dom && !_isShortenerHost(dom)) return dom; // a real domain is fine
+        return 'Saved link';                           // never surface a shortener host
     }
     // link_meta is filled asynchronously by the resolve-link edge function (fetch + redirect-follow,
     // a few seconds). If the tapestry renders before it lands, re-pull a few times so the preview
