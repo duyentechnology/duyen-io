@@ -4,20 +4,17 @@
 // URL runs a fixed battery of checks; a link that passes ALL of them is 'live'
 // immediately, otherwise it is 'flagged' with the reasons recorded and held out
 // of the public fan-out until an admin approves it. Fail-closed: a check that
-// cannot complete (Safe Browsing down/missing key, an unreachable site) flags
+// cannot complete (Web Risk down/missing key, an unreachable site) flags
 // the link rather than letting it through.
 //
 // Auth: the caller (verified via /auth/v1/user) is always the link owner —
 // callers can only vet their own profile's links. Writes use the service role.
 //
-// Secrets: GOOGLE_SAFE_BROWSING_KEY (optional; absent => that check is
-// inconclusive => the link is flagged for manual review).
+// Secrets: GOOGLE_SAFE_BROWSING_KEY — the Google API key (the name is kept from
+// the original Safe Browsing wiring; the key now needs the Web Risk API enabled).
+// Absent => the safety check is inconclusive => the link is flagged for review.
 //
-// TODO (before commercial scale): Google's Safe Browsing API v4 is licensed for
-// NON-COMMERCIAL use only. Migrate safeBrowsing() to the Web Risk API
-// (webrisk.googleapis.com/v1/uris:search) once vetting volume looks commercial —
-// the admin Link Review screen nudges at 500 checks/30 days. Only this function
-// changes; the verdict/flagging/admin flow stay identical.
+// Safety check uses the commercial-licensed Google Web Risk Lookup API.
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -77,32 +74,27 @@ async function follow(url: string): Promise<{ ok: boolean; status?: number; fina
   }
 }
 
-async function safeBrowsing(urls: string[]): Promise<{ checked: boolean; safe: boolean; note?: string }> {
+// Google Web Risk Lookup API (commercial-licensed; replaces the non-commercial
+// Safe Browsing v4). One uris:search GET per URL; a `threat` field => unsafe.
+// Same key (GOOGLE_SAFE_BROWSING_KEY) — the key just needs Web Risk enabled.
+async function webRisk(urls: string[]): Promise<{ checked: boolean; safe: boolean; note?: string }> {
   if (!GSB_KEY) return { checked: false, safe: false, note: "no_key" };
+  const TYPES = ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE"];
+  const list = [...new Set(urls.filter(Boolean))];
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 6000);
   try {
-    const res = await fetch(
-      `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${encodeURIComponent(GSB_KEY)}`,
-      {
-        method: "POST",
-        signal: ctl.signal,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          client: { clientId: "duyen", clientVersion: "1.0" },
-          threatInfo: {
-            threatTypes: ["MALWARE","SOCIAL_ENGINEERING","UNWANTED_SOFTWARE","POTENTIALLY_HARMFUL_APPLICATION"],
-            platformTypes: ["ANY_PLATFORM"],
-            threatEntryTypes: ["URL"],
-            threatEntries: [...new Set(urls.filter(Boolean))].map((u) => ({ url: u })),
-          },
-        }),
-      },
-    );
-    if (!res.ok) return { checked: false, safe: false, note: "api_" + res.status };
-    const data = await res.json();
-    const hasMatch = Array.isArray(data.matches) && data.matches.length > 0;
-    return { checked: true, safe: !hasMatch };
+    for (const u of list) {
+      const p = new URLSearchParams();
+      p.set("key", GSB_KEY);
+      p.set("uri", u);
+      for (const ty of TYPES) p.append("threatTypes", ty);
+      const res = await fetch(`https://webrisk.googleapis.com/v1/uris:search?${p.toString()}`, { signal: ctl.signal });
+      if (!res.ok) return { checked: false, safe: false, note: "api_" + res.status };
+      const data = await res.json();
+      if (data && data.threat) return { checked: true, safe: false };  // a match => unsafe
+    }
+    return { checked: true, safe: true };
   } catch (e) {
     return { checked: false, safe: false, note: String((e as Error)?.message || e) };
   } finally {
@@ -155,8 +147,8 @@ async function vetOne(rawUrl: string) {
                         mismatch: !!(finalDomain && submittedDomain && finalDomain !== submittedDomain) };
   }
 
-  // 4. Google Safe Browsing (submitted + final). Inconclusive => fail-closed.
-  const sb = await safeBrowsing([rawUrl, finalUrl || ""].filter(Boolean));
+  // 4. Google Web Risk (submitted + final). Inconclusive => fail-closed.
+  const sb = await webRisk([rawUrl, finalUrl || ""].filter(Boolean));
   checks.safebrowsing = sb;
   if (sb.checked && !sb.safe) reasons.push("unsafe");
   else if (!sb.checked) reasons.push("safebrowsing_unavailable");
