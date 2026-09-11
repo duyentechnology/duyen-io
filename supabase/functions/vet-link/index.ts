@@ -12,6 +12,12 @@
 //
 // Secrets: GOOGLE_SAFE_BROWSING_KEY (optional; absent => that check is
 // inconclusive => the link is flagged for manual review).
+//
+// TODO (before commercial scale): Google's Safe Browsing API v4 is licensed for
+// NON-COMMERCIAL use only. Migrate safeBrowsing() to the Web Risk API
+// (webrisk.googleapis.com/v1/uris:search) once vetting volume looks commercial —
+// the admin Link Review screen nudges at 500 checks/30 days. Only this function
+// changes; the verdict/flagging/admin flow stay identical.
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;

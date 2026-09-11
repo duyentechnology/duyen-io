@@ -95,7 +95,17 @@ Deno.serve(async (req) => {
       )).json().catch(() => []);
       for (const p of (profs || [])) nameById[p.id] = p.business_profile?.name || "";
     }
-    return json({ ok: true, links: (rows || []).map((r: any) => ({ ...r, business_name: nameById[r.user_id] || "" })) });
+    // Usage signal: Safe Browsing checks (one per submitted link) in the last
+    // 30 days, so the admin panel can nudge the move to Web Risk at scale.
+    let usage30d = 0;
+    try {
+      const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+      const cr = await sr(`link_review_audit?select=id&event=eq.submitted&created_at=gte.${since}&limit=1`,
+        { headers: { Prefer: "count=exact", Range: "0-0" } });
+      const m = (cr.headers.get("content-range") || "").match(/\/(\d+)$/);
+      if (m) usage30d = parseInt(m[1], 10);
+    } catch { /* best-effort */ }
+    return json({ ok: true, usage30d, links: (rows || []).map((r: any) => ({ ...r, business_name: nameById[r.user_id] || "" })) });
   }
 
   const linkId = String(body.link_id || "");
