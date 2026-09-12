@@ -5423,15 +5423,22 @@
 
     async function saveExternalScan() {
         const titleEl = document.getElementById('extTitle');
-        const title = titleEl.value.trim();
+        let title = titleEl.value.trim();
         const errorEl = document.getElementById('extTitleError');
 
+        // Title is optional — saving should be one tap, no forced "memory". If it's
+        // left blank, derive a light fallback from the destination (never a
+        // shortener host); resolve-link's real page title takes over for display
+        // when it lands.
         if (!title) {
-            errorEl.style.display = 'block';
-            titleEl.style.borderColor = 'var(--brand-red)';
-            titleEl.focus();
-            return;
+            try {
+                const h = new URL(document.getElementById('externalUrl').value.trim() || scannedExternalUrl)
+                    .hostname.replace(/^www\./, '');
+                title = _isShortenerHost(h) ? 'Saved link' : h;
+            } catch (e) { title = 'Saved link'; }
         }
+        if (errorEl) errorEl.style.display = 'none';
+        titleEl.style.borderColor = '';
 
         errorEl.style.display = 'none';
         titleEl.style.borderColor = '';
@@ -8695,7 +8702,7 @@
                         : hasPhoto
                             ? `<div class="tap-col-photo"><img src="${thumbUrl(thread.photos[0], 720)}" alt="${caption}" loading="lazy"></div>`
                             : isExternalNote
-                                ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="${siteIconUrl(thread, extDomain)}" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
+                                ? `<div class="tap-col-note">${extDomain ? `<div class="tap-col-note-fav"><img src="${siteIconUrl(thread, extDomain)}" alt="" onerror="this.parentNode.style.display='none';"></div>` : ''}${extNote ? `<div>&quot;${extNote}&quot;</div>` : ''}</div>`
                                 : thread.role === 'business'
                                     ? `<div class="tap-col-nophoto" style="padding:0;">${bizTileHtml(thread.from, thread.businessInfo && thread.businessInfo.logo)}</div>`
                                     : `<div class="tap-col-nophoto">${thread.icon||'🧵'}</div>`
@@ -8957,12 +8964,16 @@
                     extDomain = linkDomain(t);   // resolved domain, not the shortener's
                 }
                 const safeTitle = (t.title || '').replace(/"/g, '&quot;');
+                // Only show a real user note as the card caption — the default
+                // "A meaningful moment" placeholder is suppressed (logo only).
+                const extMsgReal = (t.message && t.message !== 'A meaningful moment')
+                    ? String(t.message).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
                 const visual = hasLinkImage
                     ? `<div style="width:100%;height:100%;background:#f5f0eb;">${linkImgInner(linkImage, t.icon, siteIconUrl(t, linkDomain(t)), linkDomain(t))}</div>`
                     : hasPhoto
                         ? `<img src="${thumbUrl(t.photos[0], 520)}" alt="${safeTitle}" loading="lazy">`
                         : isExternalNote
-                            ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="${siteIconUrl(t, extDomain)}" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${t.message}"</div></div>`
+                            ? `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF8F4;padding:12px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:13px;line-height:1.4;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:34px;height:34px;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;padding:5px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="${siteIconUrl(t, extDomain)}" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}${extMsgReal ? `<div>&quot;${extMsgReal}&quot;</div>` : ''}</div>`
                             : t.role === 'business'
                                 ? `<div style="width:100%;height:100%;">${bizTileHtml(t.from, t.businessInfo && t.businessInfo.logo)}</div>`
                                 : `<div class="tap-polaroid-emoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f0eb;">${t.icon||'🧵'}</div>`;
@@ -10089,10 +10100,12 @@
                     // otherwise show the shortener's favicon, not the destination's.
                     extDomain = linkDomain(thread);
                 }
+                const extMsgReal = (thread.message && thread.message !== 'A meaningful moment')
+                    ? String(thread.message).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
                 const visual = hasLinkImage
                     ? `<div class="thread-card-image" style="background:#f5f0eb;">${linkImgInner(linkImage, thread.icon, siteIconUrl(thread, linkDomain(thread)), linkDomain(thread))}</div>`
                     : isExternalNote
-                        ? `<div class="thread-card-image" style="background:#FBF8F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:14px;line-height:1.45;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:40px;height:40px;border-radius:9px;background:white;display:flex;align-items:center;justify-content:center;padding:6px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="${siteIconUrl(thread, extDomain)}" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}<div>"${thread.message}"</div></div>`
+                        ? `<div class="thread-card-image" style="background:#FBF8F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;font-family:'Crimson Pro','Playfair Display',Georgia,serif;font-style:italic;font-size:14px;line-height:1.45;color:#3D2E24;text-align:center;overflow:hidden;">${extDomain ? `<div style="width:40px;height:40px;border-radius:9px;background:white;display:flex;align-items:center;justify-content:center;padding:6px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.06);flex-shrink:0;"><img src="${siteIconUrl(thread, extDomain)}" alt="" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.display='none';"></div>` : ''}${extMsgReal ? `<div>&quot;${extMsgReal}&quot;</div>` : ''}</div>`
                         : `<div class="thread-card-image" style="background:#f5f0eb;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">${thread.icon||'🧵'}</div>`;
                 const bodyMsg = isExternalNote ? '' : (thread.message || '');
                 card.innerHTML = `
