@@ -3663,6 +3663,18 @@
             <button class="user-action-btn user-action-btn-secondary" onclick="buyTokens(1)">Buy 5 tokens · $5</button>
         </div>
 
+        <div class="user-section-label">Emails</div>
+        <div class="user-field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div style="flex:1;min-width:0;">
+                <div class="user-field-label" style="margin-bottom:2px;">What's New digest</div>
+                <div style="font-size:0.76rem;color:var(--text-muted);line-height:1.4;">A weekly email with new promotions from shops you've saved.</div>
+            </div>
+            <button id="digestToggle" role="switch" aria-checked="true" aria-label="What's New digest email" onclick="toggleDigestPref()"
+                style="flex:none;position:relative;width:50px;height:30px;border-radius:999px;border:none;background:#8B3A7F;cursor:pointer;transition:background .2s;padding:0;">
+                <span id="digestToggleKnob" style="position:absolute;top:3px;left:23px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .2s;"></span>
+            </button>
+        </div>
+
         <div class="user-section-label">Security</div>
         <div id="userPasswordSection">
             <button class="user-action-btn user-action-btn-secondary" onclick="sendPasswordReset()"><svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="4.5"/><path d="M11.5 11.5 20 20"/><path d="M17 17l2-2M15 15l2-2"/></svg>Send password reset email</button>
@@ -5698,7 +5710,46 @@
                 tokSec.style.display = TOKENS_ENABLED ? 'block' : 'none';
                 if (TOKENS_ENABLED) loadTokenBalance();
             }
+
+            loadDigestPref(); // reflect the saved What's New email preference
         } catch(e) { console.error('Profile load error:', e); }
+    }
+
+    // ---- What's New digest email preference (in-app toggle) ----
+    function setDigestToggleUI(on) {
+        var el = document.getElementById('digestToggle');
+        var knob = document.getElementById('digestToggleKnob');
+        if (!el) return;
+        el.setAttribute('aria-checked', on ? 'true' : 'false');
+        el.style.background = on ? '#8B3A7F' : '#C9BDB3';
+        if (knob) knob.style.left = on ? '23px' : '3px';
+    }
+    async function loadDigestPref() {
+        if (!document.getElementById('digestToggle')) return;
+        try {
+            var user = (await _supabase.auth.getUser()).data.user;
+            if (!user) return;
+            var r = await _supabase.from('digest_prefs').select('email_opt_in').eq('user_id', user.id).maybeSingle();
+            if (r.error) return; // leave default ON
+            // Default ON: no row yet, or email_opt_in not explicitly false.
+            setDigestToggleUI(!(r.data && r.data.email_opt_in === false));
+        } catch (e) { /* leave default */ }
+    }
+    async function toggleDigestPref() {
+        var el = document.getElementById('digestToggle');
+        if (!el) return;
+        var cur = el.getAttribute('aria-checked') === 'true';
+        var next = !cur;
+        setDigestToggleUI(next);          // optimistic
+        el.style.pointerEvents = 'none';
+        try {
+            var r = await _supabase.rpc('set_digest_opt_in', { p_opt_in: next });
+            if (r.error) throw r.error;
+            showMomentToast(next ? "You'll get the What's New email" : "Unsubscribed from What's New");
+        } catch (e) {
+            setDigestToggleUI(cur);       // revert on failure
+            showMomentToast('Could not update — please try again');
+        } finally { el.style.pointerEvents = ''; }
     }
 
     async function saveUserName() {
