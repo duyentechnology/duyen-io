@@ -53,15 +53,23 @@ Deno.serve(async (req) => {
   // the message directly (invoke() only surfaces non-2xx as an opaque error).
   if (!row) return json({ ok: false, error: "This link is invalid or has already been used." });
 
+  // Idempotent: a mail-app prefetch/scanner (or a double click) can hit this more
+  // than once. If the row is already verified, every later call still succeeds —
+  // we do NOT destroy the token on use, so the user's actual tap never sees
+  // "invalid" just because something fetched the link first.
+  if (row.verified_at) return json({ ok: true, app: row.app, already: true });
+
   if (new Date(row.expires_at).getTime() < Date.now()) {
     return json({ ok: false, error: "This link has expired. Request a new one from the app.", expired: true });
   }
 
-  // Stamp verified + consume the token (null hash so the link can't be reused).
+  // Stamp verified. The token_hash is kept (not nulled): the link stays idempotent
+  // until it expires, and re-clicks resolve to the already-verified branch above.
+  // send-verify-email rotates the hash on the same row if a new link is requested.
   const upd = await sr(`email_verifications?user_id=eq.${row.user_id}`, {
     method: "PATCH",
     headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({ verified_at: new Date().toISOString(), token_hash: null }),
+    body: JSON.stringify({ verified_at: new Date().toISOString() }),
   });
   if (!upd.ok) {
     const t = await upd.text().catch(() => "");
