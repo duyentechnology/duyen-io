@@ -7,6 +7,7 @@
   "scripts": {
     "test": "playwright test",
     "test:smoke": "playwright test smoke",
+    "flow": "node flow-check.mjs",
     "seed": "node seed.mjs",
     "report": "playwright show-report"
   },
