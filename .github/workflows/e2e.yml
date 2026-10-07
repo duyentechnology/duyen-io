@@ -31,6 +31,18 @@ jobs:
           cache-dependency-path: e2e/package.json
 
       - run: npm install
+
+      # Backend flow check (no browser): QR generate -> scan -> save to tapestry
+      # -> digest candidate, plus edge-function health. Runs the full flow when
+      # SUPABASE_SERVICE_KEY is set; otherwise a no-secret smoke tier (stays green
+      # on forks). Fast, so it runs before the browser install to fail early.
+      - name: Backend flow check
+        run: node flow-check.mjs
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DIGEST_SECRET: ${{ secrets.DIGEST_SECRET }}
+          E2E_TEST_QR: ${{ secrets.E2E_TEST_QR }}
+
       - run: npx playwright install --with-deps chromium
 
       # Full specs auto-skip when their creds are absent, so PRs from forks
