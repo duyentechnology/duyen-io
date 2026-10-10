@@ -4084,14 +4084,6 @@
     let giverUserId = null;          // who left the giver message
     let receiverUserId = null;       // who left the receiver response
 
-    function isGiverViewing() {
-        return isAuthenticated && giverUserId && currentUser === giverUserId;
-    }
-
-    function isReceiverViewing() {
-        return isAuthenticated && receiverUserId && currentUser === receiverUserId;
-    }
-
     // Tapestry data (user's saved threads)
     let userThreads = [];
     
@@ -4592,28 +4584,6 @@
         }
     }
 
-    function handleAction(action) {
-        if (action === 'giver') {
-            currentRole = 'giver';
-            if (isAuthenticated) {
-                navigate('qrContent');
-            } else {
-                window.postAuthDestination = 'qrContent';
-                if (scannedQRData && scannedQRData.id) sessionStorage.setItem('pendingQRCode', scannedQRData.id);
-                navigate('auth');
-            }
-        }
-        else if (action === 'respond') {
-            // Receiver wants to respond — always needs their own account
-            if (isAuthenticated) navigate('response');
-            else { currentRole = 'receiver'; navigate('auth'); }
-        }
-        else if (action === 'editResponse') {
-            if (isAuthenticated) navigate('response');
-            else { currentRole = 'receiver'; navigate('auth'); }
-        }
-    }
-
     // ==========================================
     // QR SCANNER
     // ==========================================
@@ -5024,11 +4994,6 @@
     // Mirrors the real receiver view (populateQRContent, markup 3432–3458): "For you,"
     // + big serif name, italic serif message, full-width stacked photos, and the green
     // "Voice Note" player. No invented styling.
-    function _voiceDurStr(audio) {
-        var d = (audio && isFinite(audio.duration)) ? audio.duration : 0;
-        var m = Math.floor(d / 60), s = Math.floor(d % 60);
-        return m + ':' + (s < 10 ? '0' : '') + s;
-    }
     // Dismiss the moment/thank-you preview modal AND stop any audio/video it is
     // playing. Hiding the modal alone leaves its <audio> playing (the voice memo
     // "kept playing back" after closing/sending), and never dismissing it on send
@@ -9971,23 +9936,6 @@
 
     // Helper for live-scan voice players where the audio src changes per QR scan.
     // Sets src, regenerates waveform bars, resets play button, and rewires playback handlers.
-    function setupLiveVoicePlayer(uid, src) {
-        const aud = document.getElementById('aud_'+uid);
-        const wf = document.getElementById('wave_'+uid);
-        const btn = document.getElementById('btn_'+uid);
-        if (!aud || !wf) return;
-        try { aud.pause(); } catch(e) {}
-        aud.src = src;
-        if (btn) btn.textContent = '▶';
-        let bars = '';
-        for (let i = 0; i < 28; i++) {
-            const h = Math.round(20 + Math.sin(i * 0.7) * 10 + Math.random() * 18);
-            bars += '<div class="tap-fc-waveform-bar" style="height:' + h + 'px;"></div>';
-        }
-        wf.innerHTML = bars;
-        initVoicePlayer(uid);
-    }
-
     function toggleVoicePlay(uid){
         const aud=document.getElementById('aud_'+uid);
         const btn=document.getElementById('btn_'+uid);
