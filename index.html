@@ -6662,11 +6662,31 @@
                 _qcMediaRaw.forEach(function(m){ var u=(m&&m.url)?m.url:(m&&m.dataUrl)?m.dataUrl:m; if (typeof u==='string') _qcProdPhotos.push(u); });
                 _qcProd = bizProductCard({ label: data.label, photos: _qcProdPhotos, details: data.details });
             }
-            var _qcCard = bizProfileCard(bizP, { shareUrl: data.url, promotion: bizPromo, productHtml: _qcProd, aboutOpen: true });
-            document.getElementById('qcBizPanel').innerHTML =
-                '<div style="border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' +
-                    _qcCard.header + _qcCard.body +
-                '</div>';
+            // A business is "attached" only when there's a real profile (an owner
+            // id or actual profile fields). A plain note/moment code with a custom
+            // label but no business must NOT show the "Every thing has an origin"
+            // maker header — that header implies a business that isn't there.
+            var _qcHasBiz = !!data.business_user_id || !!(bizP.name || bizP.description || bizP.logo ||
+                bizP.website || bizP.phone || bizP.email ||
+                (bizP.social && Object.keys(bizP.social).length) ||
+                (Array.isArray(bizP.aboutPhotos) && bizP.aboutPhotos.length) ||
+                (Array.isArray(bizP.menuPhotos) && bizP.menuPhotos.length));
+            var _qcPanel = '';
+            if (_qcHasBiz) {
+                var _qcCard = bizProfileCard(bizP, { shareUrl: data.url, promotion: bizPromo, productHtml: _qcProd, aboutOpen: true });
+                _qcPanel = _qcCard.header + _qcCard.body;
+            } else if (_qcProd) {
+                // A product/item with no business attached — show just the item,
+                // without the maker/origin header.
+                _qcPanel = _qcProd;
+            }
+            if (_qcPanel) {
+                document.getElementById('qcBizPanel').innerHTML =
+                    '<div style="border:1.5px solid #E8DDD6;border-radius:14px;overflow:hidden;">' + _qcPanel + '</div>';
+            } else {
+                document.getElementById('qcBizPanel').innerHTML = '';
+                bizSection.style.display = 'none';
+            }
             // Raw media grid — only for legacy business media NOT already shown
             // as the product card above (avoids showing the item's photos twice).
             var mediaGrid = document.getElementById('qcBizMedia');
