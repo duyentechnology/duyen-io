@@ -7739,56 +7739,58 @@
         }
     }
 
-    // Handle OAuth redirect (Google sign-in returns here)
+    // Route a signed-in user into the app. Called from EVERY auth signal — the
+    // onAuthStateChange events (INITIAL_SESSION / SIGNED_IN / TOKEN_REFRESHED) AND
+    // the initial getSession() — because a Google/implicit OAuth return can resolve
+    // the session through whichever of these wins the race. A late-attached listener
+    // never receives SIGNED_IN (it gets INITIAL_SESSION instead), and getSession can
+    // momentarily return null (e.g. the post-deploy service-worker reload interrupts
+    // the exchange), so relying on any single one stranded authenticated users on the
+    // logged-out welcome screen. Idempotent + self-healing: the heavy init is cheap to
+    // repeat, and it only (re)routes when we're sitting on a logged-out/splash screen,
+    // so a background token refresh never yanks someone mid-action.
+    var _loggedOutScreens = ['welcomeScreen','authScreen','loginScreen','signupScreen','verifyScreen','forgotScreen'];
+    function routeAuthedUser(session) {
+        if (!session || !session.user) return;
+        isAuthenticated = true;
+        window._authNavigated = true;
+        ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
+        if (TOKENS_ENABLED) loadTokenBalance(); // grant 10 free on first login + preload the number
+        var _meta = session.user.user_metadata || {};
+        currentUser = _meta.full_name || _meta.name || (session.user.email ? session.user.email.split('@')[0] : 'you');
+        try {
+            var tapTitle = document.getElementById('tapestryTitle');
+            if (tapTitle) tapTitle.innerHTML = tapestryTitleHtml(currentUser.split(' ')[0]);
+        } catch (e) {}
+        maybeShowVerifyBanner(session);
+        // Never pull someone off a QR scan/share URL.
+        var path = window.location.pathname;
+        var hash = window.location.hash;
+        if (path.startsWith('/q/') || path.startsWith('/s/') || hash.startsWith('#/q/')) return;
+        // Only route from a logged-out/splash screen; if they're already inside the
+        // app, leave them where they are.
+        var active = document.querySelector('.screen.active');
+        if (active && _loggedOutScreens.indexOf(active.id) === -1) return;
+        proceedAfterAuth();
+    }
+
+    // Handle OAuth redirect (Google sign-in returns here). PASSWORD_RECOVERY is its
+    // own screen; every other event that carries a session routes through the shared
+    // handler above — including INITIAL_SESSION, which is the only event a listener
+    // that attached after the session was restored will ever see.
     _supabase.auth.onAuthStateChange(function(event, session) {
         if (event === 'PASSWORD_RECOVERY') {
             window._authNavigated = true;
             navigate('setPassword');
             return;
         }
-        if (event === 'SIGNED_IN' && session && session.user) {
-            if (isAuthenticated) return; // already handled by getSession
-            isAuthenticated = true;
-            window._authNavigated = true;
-            ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
-            if (TOKENS_ENABLED) loadTokenBalance(); // grant 10 free on first login + preload the number
-            const _meta = session.user.user_metadata || {};
-            currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
-            const tapTitle = document.getElementById('tapestryTitle');
-            const displayName = currentUser.split(' ')[0];
-            tapTitle.innerHTML = tapestryTitleHtml(displayName);
-            maybeShowVerifyBanner(session);
-            const path = window.location.pathname;
-            const hash = window.location.hash;
-            if (!path.startsWith('/q/') && !path.startsWith('/s/') && !hash.startsWith('#/q/')) {
-                proceedAfterAuth();
-            }
-        }
+        if (session && session.user) routeAuthedUser(session);
     });
 
-    _supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session && session.user) {
-            // Set auth state but DON'T navigate if we're on a QR scan URL
-            isAuthenticated = true;
-            window._authNavigated = true;
-            ensureSignupDomain(session.user); // stamp origin domain (OAuth + backfill)
-            if (TOKENS_ENABLED) loadTokenBalance(); // grant 10 free on first login + preload the number
-            const _meta = session.user.user_metadata || {};
-            currentUser = _meta.full_name || _meta.name || session.user.email.split('@')[0];
-            const tapTitle = document.getElementById('tapestryTitle');
-            const displayName = currentUser.split(' ')[0];
-            tapTitle.innerHTML = tapestryTitleHtml(displayName);
-            maybeShowVerifyBanner(session);
-
-            handleTokensReturn(); // if returning from Stripe Checkout
-
-            // Only auto-navigate to tapestry if NOT on a QR scan URL
-            const path = window.location.pathname;
-            const hash = window.location.hash;
-            if (!path.startsWith('/q/') && !path.startsWith('/s/') && !hash.startsWith('#/q/')) {
-                proceedAfterAuth();
-            }
-        }
+    _supabase.auth.getSession().then(function(res) {
+        var session = res && res.data && res.data.session;
+        handleTokensReturn(); // if returning from Stripe Checkout
+        routeAuthedUser(session);
     }).catch(function(e) {
         console.warn('Session check failed, continuing as guest:', e);
     });
