@@ -4025,6 +4025,16 @@
         var hash = window.location.hash;
         var isQRScan = path.startsWith('/q/') || path.startsWith('/s/') || hash.startsWith('#/q/');
         var isPasswordRecovery = hash.includes('type=recovery');
+        // Returning from a social sign-in (Google/Apple). PKCE comes back with
+        // ?code=… in the query; implicit with #access_token=… in the hash. Supabase
+        // exchanges this for a session ASYNCHRONOUSLY, and on a cold mobile load that
+        // can take longer than the splash timer — so we must not flash the logged-out
+        // welcome screen in the meantime (that looked like "sign in again"). Suppress
+        // the welcome nav and let the auth handler route to the tapestry once the
+        // session resolves. (recovery, which also carries access_token, is handled
+        // above first via its type=recovery marker.)
+        var isOAuthReturn = /[?&]code=/.test(window.location.search)
+            || /access_token=|provider_token=/.test(hash);
 
         if (isPasswordRecovery) {
             window._authNavigated = true;
@@ -4033,6 +4043,25 @@
                 if (splash) splash.classList.add('hidden');
                 navigate('setPassword');
             }, 1500);
+        } else if (isOAuthReturn) {
+            // Never auto-show the logged-out welcome while the exchange is in flight;
+            // the SIGNED_IN / getSession handlers navigate to the tapestry when the
+            // session lands. Splash hides on the same cadence as the normal flow.
+            window._authNavigated = true;
+            setTimeout(function() {
+                var splash = document.getElementById('splash');
+                if (splash) splash.classList.add('hidden');
+            }, 2200);
+            // Safety net: if the code exchange fails and no session ever lands, don't
+            // strand the user on a blank screen — fall back to the welcome screen.
+            setTimeout(function() {
+                if (isAuthenticated) return;
+                try { navigate('home'); } catch(e) {
+                    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+                    var ws = document.getElementById('welcomeScreen');
+                    if (ws) ws.classList.add('active');
+                }
+            }, 8000);
         } else if (isQRScan) {
             // Scanned/shared link: no branded intro splash. It's already
             // suppressed before paint (html.qr-direct), so route straight to the
@@ -7781,7 +7810,15 @@
         try {
             var u = (session && session.user) || (await _supabase.auth.getUser()).data.user;
             if (!u) return true;
-            if (u.app_metadata && u.app_metadata.email_verified === true) return true;
+            var am = u.app_metadata || {};
+            var um = u.user_metadata || {};
+            // Social sign-ins (Google/Apple/…) already confirmed the email at the
+            // provider — never nag them. The verified flag lives in user_metadata for
+            // OAuth; app_metadata is the legacy spot. And any non-email provider is,
+            // by definition, a confirmed address.
+            if (am.email_verified === true || um.email_verified === true) return true;
+            var prov = am.provider || (Array.isArray(am.providers) && am.providers[0]);
+            if (prov && prov !== 'email') return true;
             var r = await _supabase.from('email_verifications')
                 .select('verified_at').eq('user_id', u.id).maybeSingle();
             if (r.error) return true;
