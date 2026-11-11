@@ -43,7 +43,21 @@ jobs:
           DIGEST_SECRET: ${{ secrets.DIGEST_SECRET }}
           E2E_TEST_QR: ${{ secrets.E2E_TEST_QR }}
 
-      - run: npx playwright install --with-deps chromium
+      # Cache the Chromium binary so it isn't re-downloaded every run.
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package.json') }}
+
+      # Browser binary comes from Playwright's CDN (and the cache above), never apt.
+      - run: npx playwright install chromium
+
+      # The core OS libraries Chromium needs are already on the GitHub runner; this
+      # step only adds extra CJK/emoji fonts via apt. Make it best-effort and
+      # time-bounded so a transient apt/DNS blip on the runner (which failed run #48
+      # on 2026-11-11) can't hang for ~7 min or fail the whole job.
+      - run: timeout 120 npx playwright install-deps chromium || echo "::warning::Playwright OS deps (apt) unavailable; continuing with the runner's preinstalled libraries"
 
       # Full specs auto-skip when their creds are absent, so PRs from forks
       # (no secrets) still run the smoke subset and stay green.
