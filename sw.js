@@ -7,7 +7,7 @@
 // cache (now long-lived via the upload cacheControl). Any cache error falls
 // back to a normal network fetch, so this can never break a request.
 
-const APP_CACHE = 'duyen-app-v64';
+const APP_CACHE = 'duyen-app-v65';
 const MEDIA_CACHE = 'duyen-media-v1';
 const MEDIA_MAX_ENTRIES = 150; // rough cap; browser also evicts under pressure
 
@@ -17,6 +17,13 @@ const MEDIA_MAX_ENTRIES = 150; // rough cap; browser also evicts under pressure
 const VENDOR_ASSETS = [
   '/vendor-supabase-2.111.0.js',
   '/vendor-html5-qrcode-2.3.8.js',
+  // Welcome / "how it works" illustrations — stable files, cache-first. A new
+  // icon with a new filename (or an APP_CACHE bump) refreshes them.
+  '/icons/add-a-moment-256.png',
+  '/icons/receive-a-gift-256.png',
+  '/icons/give-a-moment-256.png',
+  '/icons/see-it-woven-256.png',
+  '/icons/never-lose-a-link-256.png',
 ];
 
 self.addEventListener('install', e => {
